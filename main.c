@@ -1,4 +1,4 @@
-#include "libusb-1.0/libusb.h"
+#include <libusb-1.0/libusb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,28 +6,34 @@
 #include <unistd.h>
 
 int verbose = 0;
-int out_ep = 1;
-int in_ep = 2;
+int loop = 1;
+char * directory = NULL;
+
+int out_ep;
+int in_ep;
+
+typedef struct MESSAGE_S {
+		int length;
+		unsigned char signature[20];
+} boot_message_t;
 
 void usage(int error)
 {
 	FILE * dest = error ? stderr : stdout;
 
 	fprintf(dest, "Usage: rpiboot\n");
-	fprintf(dest, "   or: rpiboot -b fatimage\n");
-	fprintf(dest, "Boot a Raspberry Pi Model A or Compute Module through USB\n");
-	fprintf(dest, "\n");
-	fprintf(dest, "rpiboot			: Boot the device into Mass Storage Device mode\n");
-	fprintf(dest, "rpiboot -b fatimage	: Boot the device into a buildroot linux image\n");
-	fprintf(dest, "\n");
+	fprintf(dest, "   or: rpiboot -d [directory]\n");
+	fprintf(dest, "Boot a Raspberry Pi in device mode either directly into a mass storage device\n");
+	fprintf(dest, "or provide a set of boot files in a directory from which to boot.  This can\n");
+	fprintf(dest, "then contain a initramfs to boot through to linux kernel\n\n");
+	fprintf(dest, "rpiboot                  : Boot the device into mass storage device\n");
+	fprintf(dest, "rpiboot -d [directory]   : Boot the device using the boot files in 'directory'\n");
 	fprintf(dest, "Further options:\n");
-	fprintf(dest, "      -x executable      : Autoexecute function\n");
-	fprintf(dest, "           This option is used to trigger the execution of a\n");
-	fprintf(dest, "           script after finishing the USB boot process\n");
-	fprintf(dest, "      -l                 : Sit in a loop permanently\n");
-	fprintf(dest, "      -v                 : Verbose output");
-	fprintf(dest, "      -h                 : This help\n");
-	exit(-1);
+	fprintf(dest, "        -l               : Loop forever\n");
+	fprintf(dest, "        -v               : Verbose\n");
+	fprintf(dest, "        -h               : This help\n");
+
+	exit(error ? -1 : 0);
 }
 
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
@@ -49,7 +55,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (r < 0)
 			goto out;
 		if(verbose)
-			printf("Found device %d idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
+			printf("Found device %zu idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
 			   desc.idProduct == 0x2764)
@@ -85,11 +91,14 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	*usb_device = open_device_with_vid(*ctx, 0x0a5c);
 	if (*usb_device == NULL)
 	{
+		sleep(1);
 		return -1;
 	}
 
 	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
 
+	// Handle 2837 where it can start with two interfaces, the first is mass storage
+	// the second is the vendor interface for programming
 	if(config->bNumInterfaces == 1)
 	{
 		interface = 0;
@@ -106,16 +115,17 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	ret = libusb_claim_interface(*usb_device, interface);
 	if (ret)
 	{
+		libusb_close(*usb_device);
 		printf("Failed to claim interface\n");
 		return ret;
 	}
 
-	printf("Initialised device correctly\n");
+	if(verbose) printf("Initialised device correctly\n");
 
 	return ret;
 }
 
-int ep_write(unsigned char *buf, int len, libusb_device_handle * usb_device)
+int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
 	int a_len;
 	int ret =
@@ -128,14 +138,17 @@ int ep_write(unsigned char *buf, int len, libusb_device_handle * usb_device)
 		return ret;
 	}
 
-	ret = libusb_bulk_transfer(usb_device, out_ep, buf, len, &a_len, 100000);
-	if(verbose)
-		printf("libusb_bulk_transfer returned %d\n", ret);
+	if(len > 0)
+	{
+		ret = libusb_bulk_transfer(usb_device, out_ep, buf, len, &a_len, 100000);
+		if(verbose)
+			printf("libusb_bulk_transfer returned %d\n", ret);
+	}
 
 	return a_len;
 }
 
-int ep_read(unsigned char *buf, int len, libusb_device_handle * usb_device)
+int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 {
 	int ret =
 	    libusb_control_transfer(usb_device,
@@ -146,44 +159,8 @@ int ep_read(unsigned char *buf, int len, libusb_device_handle * usb_device)
 	return len;
 }
 
-int main(int argc, char *argv[])
+void get_options(int argc, char *argv[])
 {
-	int result;
-	libusb_context *ctx;
-	libusb_device_handle *usb_device;
-	unsigned char *txbuf;
-	int size;
-	int retcode;
-	int last_serial = -1;
-	FILE *fp1, *fp2, *fp;
-
-	char def1_inst[] = "/usr/share/rpiboot/usbbootcode.bin";
-	char def2_inst[] = "/usr/share/rpiboot/msd.elf";
-	char def3_inst[] = "/usr/share/rpiboot/buildroot.elf";
-
-	char def1_loc[] = "./usbbootcode.bin";
-	char def2_loc[] = "./msd.elf";
-	char def3_loc[] = "./buildroot.elf";
-
-	char *def1, *def2, *def3;
-
-	char *stage1   = NULL, *stage2     = NULL;
-	char *fatimage = NULL, *executable = NULL;
-	int loop       = 0;
-
-// if local file version exists use it else use installed
-	if( access( def1_loc, F_OK ) != -1 ) { def1 = def1_loc; } else { def1 = def1_inst; }
-	if( access( def2_loc, F_OK ) != -1 ) { def2 = def2_loc; } else { def2 = def2_inst; }
-	if( access( def3_loc, F_OK ) != -1 ) { def3 = def3_loc; } else { def3 = def3_inst; }
-
-	stage1   = def1;
-	stage2   = def2;
-
-	struct MESSAGE_S {
-		int length;
-		unsigned char signature[20];
-	} message;
-	
 #if defined (__CYGWIN__)
   //printf("Running under Cygwin\n");
 #else
@@ -199,23 +176,16 @@ int main(int argc, char *argv[])
 	argv++; argc--;
 	while(*argv)
 	{
-		if(strcmp(*argv, "-b") == 0)
+		if(strcmp(*argv, "-d") == 0)
 		{
 			argv++; argc--;
 			if(argc < 1)
 				usage(1);
-			stage1 = def1;
-			stage2 = def3;
-			fatimage = *argv;
+			directory = *argv;
 		}
 		else if(strcmp(*argv, "-h") == 0 || strcmp(*argv, "--help") == 0)
 		{
 			usage(0);
-		}
-		else if(strcmp(*argv, "-x") == 0)
-		{
-			argv++; argc--;
-			executable = *argv;
 		}
 		else if(strcmp(*argv, "-l") == 0)
 		{
@@ -229,26 +199,219 @@ int main(int argc, char *argv[])
 		{
 			usage(1);
 		}
-		
+
 		argv++; argc--;
 	}
+}
 
-	fp1 = fopen(stage1, "rb");
-	if (fp1 == NULL)
+boot_message_t boot_message;
+void *second_stage_txbuf;
+
+int second_stage_prep(FILE *fp)
+{
+	int size;
+
+	fseek(fp, 0, SEEK_END);
+	boot_message.length = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
+	if (second_stage_txbuf == NULL)
 	{
-		printf("Cannot open file %s\n", stage1);
-		exit(-1);
+		printf("Failed to allocate memory\n");
+		return -1;
 	}
 
-	fp2 = fopen(stage2, "rb");
-	if (fp2 == NULL)
+	size = fread(second_stage_txbuf, 1, boot_message.length, fp);
+	if(size != boot_message.length)
 	{
-		printf("Cannot open file %s\n", stage2);
-		exit(-1);
+		printf("Failed to read second stage\n");
+		return -1;
 	}
-	if(strcmp(stage2 + strlen(stage2) - 4, ".elf"))
+
+	return 0;
+}
+
+int second_stage_boot(libusb_device_handle *usb_device)
+{
+	int size, retcode = 0;
+
+	size = ep_write(&boot_message, sizeof(boot_message), usb_device);
+	if (size != sizeof(boot_message))
 	{
-		printf("Third stage needs to be .elf format\n");
+		printf("Failed to write correct length, returned %d\n", size);
+		return -1;
+	}
+
+	if(verbose) printf("Writing %d bytes\n", boot_message.length);
+	size = ep_write(second_stage_txbuf, boot_message.length, usb_device);
+	if (size != boot_message.length)
+	{
+		printf("Failed to read correct length, returned %d\n", size);
+		return -1;
+	}
+
+	sleep(1);
+	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
+
+	if (retcode == 0)
+	{
+		printf("Successful read %d bytes \n", size);
+	}
+	else
+	{
+		printf("Failed : 0x%x", retcode);
+	}
+
+	return retcode;
+
+}
+
+
+FILE * check_file(char * dir, char *fname)
+{
+	FILE * fp = NULL;
+	char path[256];
+
+	// Check directory first then /usr/share/rpiboot
+	if(dir)
+	{
+		strcpy(path, dir);
+		strcat(path, "/");
+		strcat(path, fname);
+		fp = fopen(path, "rb");
+	}
+
+	if(fp == NULL)
+	{
+		strcpy(path, "/usr/share/rpiboot/");
+		strcat(path, fname);
+		fp = fopen(path, "rb");
+	}
+
+	return fp;
+}
+
+int file_server(libusb_device_handle * usb_device)
+{
+	int going = 1;
+	struct file_message {
+		int command;
+		char fname[256];
+	} message;
+	static FILE * fp = NULL;
+
+	while(going)
+	{
+		ep_read(&message, sizeof(message), usb_device);
+		if(verbose) printf("Received message %d: %s\n", message.command, message.fname);
+		switch(message.command)
+		{
+			case 0: // Get file size
+				if(fp)
+					fclose(fp);
+				fp = check_file(directory, message.fname);
+				if(fp != NULL)
+				{
+					int file_size;
+					void *buf;
+
+					fseek(fp, 0, SEEK_END);
+					file_size = ftell(fp);
+					fseek(fp, 0, SEEK_SET);
+
+					int sz = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
+					    file_size & 0xffff, file_size >> 16, NULL, 0, 1000);
+
+					if(sz < 0)
+						return -1;
+				}
+				else
+				{
+					ep_write(NULL, 0, usb_device);
+					if(verbose) printf("Cannot open file %s\n", message.fname);
+					break;
+				}
+				break;
+
+			case 1: // Read file
+				if(fp != NULL)
+				{
+					int file_size;
+					void *buf;
+
+					printf("File read: %s\n", message.fname);
+
+					fseek(fp, 0, SEEK_END);
+					file_size = ftell(fp);
+					fseek(fp, 0, SEEK_SET);
+
+					buf = malloc(file_size);
+					if(buf == NULL)
+					{
+						printf("Failed to allocate buffer for file %s\n", message.fname);
+						return -1;
+					}
+					int read = fread(buf, 1, file_size, fp);
+					if(read != file_size)
+					{
+						printf("Failed to read from input file\n");
+						return -1;
+					}
+
+					int sz = ep_write(buf, file_size, usb_device);
+
+					fclose(fp);
+
+					if(sz != file_size)
+					{
+						printf("Failed to write complete file to USB device\n");
+						return -1;
+					}
+				}
+				else
+				{
+					if(verbose) printf("No file %s found\n", message.fname);
+					ep_write(NULL, 0, usb_device);
+				}
+				break;
+
+			case 2: // Done, exit file server
+				going = 0;
+				break;
+
+			default:
+				printf("Unknown message\n");
+				return -1;
+		}
+	}
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	FILE * second_stage;
+	libusb_context *ctx;
+	libusb_device_handle *usb_device;
+	struct libusb_device_descriptor desc;
+	struct libusb_config_descriptor *config;
+
+	get_options(argc, argv);
+
+	// Default to standard msd directory
+	if(directory == NULL)
+		directory = "msd";
+
+	second_stage = check_file(directory, "bootcode.bin");
+	if(second_stage == NULL)
+	{
+		fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot or supplied directory\n");
+		usage(1);
+	}
+	if(second_stage_prep(second_stage) != 0)
+	{
+		fprintf(stderr, "Failed to prepare the second stage bootcode\n");
 		exit(-1);
 	}
 
@@ -263,117 +426,56 @@ int main(int argc, char *argv[])
 
 	do
 	{
-		FILE *fp_img = NULL;
-		struct libusb_device_descriptor desc;
-		struct libusb_config_descriptor *config;
+		int last_serial = -1;
 
-		printf("Waiting for BCM2835 ...\n");
+		printf("Waiting for BCM2835/6/7\n");
 
 		// Wait for a device to get plugged in
 		do
 		{
-			result = Initialize_Device(&ctx, &usb_device);
-			if(result == 0)
+			ret = Initialize_Device(&ctx, &usb_device);
+			if(ret == 0)
 			{
-				libusb_get_device_descriptor(libusb_get_device
-								 (usb_device), &desc);
-				printf("Found serial number %d\n", desc.iSerialNumber);
+				libusb_get_device_descriptor(libusb_get_device(usb_device), &desc);
+
+				if(verbose)
+					printf("Found serial number %d\n", desc.iSerialNumber);
+
 				// Make sure we've re-enumerated since the last time
 				if(desc.iSerialNumber == last_serial)
 				{
-					result = -1;
+					ret = -1;
 					libusb_close(usb_device);
-				}			
+				}
 
 				libusb_get_active_config_descriptor(libusb_get_device(usb_device), &config);
 			}
 
-			if (result)
+			if (ret)
 			{
-				usleep(100);
+				usleep(500);
 			}
 		}
-		while (result);
+		while (ret);
 
 		last_serial = desc.iSerialNumber;
-		printf("Found serial = %d: writing file %s\n",
-		       desc.iSerialNumber,
-		       desc.iSerialNumber == 0 ? stage1 : stage2);
-		fp = desc.iSerialNumber == 0 ? fp1 : fp2;
-
-		fseek(fp, 0, SEEK_END);
-		message.length = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
-
-		if(desc.iSerialNumber == 1 && fatimage != NULL)
+		if(desc.iSerialNumber == 0)
 		{
-			// Been given a filesystem image
-			fp_img = fopen(fatimage, "rb");
-			if(fp_img == NULL)
-			{
-				printf("Failed to open image %s\n", fatimage);
-				exit(-1);
-			}
-			fseek(fp_img, 0, SEEK_END);
-			message.length += ftell(fp_img);
-			if(verbose) printf("Adding %ld bytes of binary to end of elf\n", ftell(fp_img));
-			fseek(fp_img, 0, SEEK_SET);
-		}
-
-		txbuf = (unsigned char *)malloc(message.length);
-		if (txbuf == NULL)
-		{
-			printf("Failed to allocate memory\n");
-			exit(-1);
-		}
-
-		size = fread(txbuf, 1, message.length, fp);
-		if(fp_img)
-		{
-			size += fread(txbuf + size, 1, message.length - size, fp_img);
-		}
-
-		size =
-		    ep_write((unsigned char *)&message, sizeof(message),
-			     usb_device);
-		if (size != sizeof(message))
-		{
-			printf("Failed to write correct length, returned %d\n",
-			       size);
-			exit(-1);
-		}
-		if(verbose) printf("Writing %d bytes\n", message.length);
-		size = ep_write(txbuf, message.length, usb_device);
-		if (size != message.length)
-		{
-			printf("Failed to read correct length, returned %d\n",
-			       size);
-			exit(-1);
-		}
-
-		sleep(1);
-		size =
-		    ep_read((unsigned char *)&retcode, sizeof(retcode),
-			    usb_device);
-
-		if (retcode == 0)
-		{
-			printf("Successful read %d bytes \n", size);
-
-			if(fp == fp2 && executable)
-			{
-				system(executable);
-			}
+			printf("Sending bootcode.bin\n");
+			second_stage_boot(usb_device);
 		}
 		else
-			printf("Failed : 0x%x", retcode);
+		{
+			printf("Second stage boot server\n");
+			file_server(usb_device);
+		}
 
 		libusb_close(usb_device);
-		sleep(1);
 	}
-	while(fp == fp1 || loop);
+	while(loop);
 
 	libusb_exit(ctx);
 
 	return 0;
 }
+
