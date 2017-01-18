@@ -37,7 +37,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *found = NULL;
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
-	size_t i = 0;
+	uint32_t i = 0;
 	int r;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
