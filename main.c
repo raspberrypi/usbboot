@@ -393,6 +393,7 @@ int file_server(libusb_device_handle * usb_device)
 		}
 	}
 
+	printf("Second stage boot server done\n");
 	return 0;
 }
 
@@ -492,7 +493,7 @@ int main(int argc, char *argv[])
 		libusb_close(usb_device);
 		sleep(5);
 	}
-	while(loop);
+	while(loop || desc.iSerialNumber == 0);
 
 	libusb_exit(ctx);
 
