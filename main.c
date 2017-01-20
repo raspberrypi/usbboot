@@ -155,8 +155,10 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 				    LIBUSB_REQUEST_TYPE_VENDOR |
 				    LIBUSB_ENDPOINT_IN, 0, len & 0xffff,
 				    len >> 16, buf, len, 1000);
-
-	return len;
+	if(ret >= 0)
+		return len;
+	else
+		return ret;
 }
 
 void get_options(int argc, char *argv[])
@@ -254,7 +256,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 	sleep(1);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
-	if (retcode == 0)
+	if (size > 0 && retcode == 0)
 	{
 		printf("Successful read %d bytes \n", size);
 	}
@@ -303,22 +305,37 @@ int file_server(libusb_device_handle * usb_device)
 
 	while(going)
 	{
-		ep_read(&message, sizeof(message), usb_device);
-		if(verbose) printf("Received message %d: %s\n", message.command, message.fname);
+		char message_name[][20] = {"GetFileSize", "ReadFile", "Done"};
+		int i = ep_read(&message, sizeof(message), usb_device);
+		if(i < 0)
+		{
+			sleep(1);
+			continue;
+		}
+		if(verbose) printf("Received message %s: %s\n", message_name[message.command], message.fname);
+
+		// Done can also just be null filename
+		if(strlen(message.fname) == 0)
+		{
+			ep_write(NULL, 0, usb_device);
+			break;
+		}
+
 		switch(message.command)
 		{
 			case 0: // Get file size
 				if(fp)
 					fclose(fp);
 				fp = check_file(directory, message.fname);
-				if(fp != NULL)
+				if(strlen(message.fname) && fp != NULL)
 				{
 					int file_size;
-					void *buf;
 
 					fseek(fp, 0, SEEK_END);
 					file_size = ftell(fp);
 					fseek(fp, 0, SEEK_SET);
+
+					if(verbose) printf("File size = %d bytes\n", file_size);
 
 					int sz = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 					    file_size & 0xffff, file_size >> 16, NULL, 0, 1000);
@@ -362,6 +379,7 @@ int file_server(libusb_device_handle * usb_device)
 					int sz = ep_write(buf, file_size, usb_device);
 
 					fclose(fp);
+					fp = NULL;
 
 					if(sz != file_size)
 					{
@@ -471,6 +489,7 @@ int main(int argc, char *argv[])
 		}
 
 		libusb_close(usb_device);
+		sleep(5);
 	}
 	while(loop);
 
