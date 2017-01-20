@@ -16,7 +16,7 @@ $ git clone --depth=1 https://github.com/raspberrypi/usbboot
 $ cd usbboot
 $ sudo apt-get install libusb-1.0-0-dev
 $ make
-$ sudo rpiboot
+$ sudo ./rpiboot
 ```
 
 ## Running your own (not MSD) build
@@ -29,7 +29,7 @@ you can build an initramfs into the kernel, add an initramfs to the boot directo
 other interface to the filesystem.
 
 ```
-$ sudo rpiboot -d boot
+$ sudo ./rpiboot -d boot
 ```
 
 This will serve the boot directory to the Raspberry Pi Device.
