@@ -163,17 +163,6 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 
 void get_options(int argc, char *argv[])
 {
-#if defined (__CYGWIN__)
-  //printf("Running under Cygwin\n");
-#else
-	//exit if not run as sudo
-	if(getuid() != 0)
-	{
-		printf("Must be run with sudo...\n");
-		exit(-1);
-	}
-#endif
-
 	// Skip the command name
 	argv++; argc--;
 	while(*argv)
@@ -416,6 +405,18 @@ int main(int argc, char *argv[])
 	struct libusb_config_descriptor *config;
 
 	get_options(argc, argv);
+
+#if defined (__CYGWIN__)
+	//printf("Running under Cygwin\n");
+#else
+	//exit if not run as sudo
+	if(getuid() != 0)
+	{
+		printf("Must be run with sudo...\n");
+		exit(-1);
+	}
+#endif
+
 
 	// Default to standard msd directory
 	if(directory == NULL)
