@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 int verbose = 0;
-int loop = 1;
+int loop = 0;
 char * directory = NULL;
 
 int out_ep;
