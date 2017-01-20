@@ -43,7 +43,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *found = NULL;
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
-	size_t i = 0;
+	uint32_t i = 0;
 	int r;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
@@ -55,7 +55,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (r < 0)
 			goto out;
 		if(verbose)
-			printf("Found device %zu idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
+			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
 			   desc.idProduct == 0x2764)
