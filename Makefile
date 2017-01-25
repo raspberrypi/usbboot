@@ -1,5 +1,5 @@
 rpiboot: main.c
-	$(CC) -g -o $@ $< -lusb-1.0
+	$(CC) -Wall -Wextra -g -o $@ $< -lusb-1.0
 
 uninstall:
 	rm -f /usr/bin/rpiboot

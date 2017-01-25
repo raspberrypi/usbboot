@@ -127,7 +127,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
-	int a_len;
+	int a_len = 0;
 	int ret =
 	    libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 				    len & 0xffff, len >> 16, NULL, 0, 1000);
@@ -362,11 +362,13 @@ int file_server(libusb_device_handle * usb_device)
 					if(read != file_size)
 					{
 						printf("Failed to read from input file\n");
+						free(buf);
 						return -1;
 					}
 
 					int sz = ep_write(buf, file_size, usb_device);
 
+					free(buf);
 					fclose(fp);
 					fp = NULL;
 
