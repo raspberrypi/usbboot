@@ -7,7 +7,9 @@
 
 int verbose = 0;
 int loop = 0;
+int overlay = 0;
 char * directory = NULL;
+char pathname[18];
 
 int out_ep;
 int in_ep;
@@ -30,6 +32,9 @@ void usage(int error)
 	fprintf(dest, "rpiboot -d [directory]   : Boot the device using the boot files in 'directory'\n");
 	fprintf(dest, "Further options:\n");
 	fprintf(dest, "        -l               : Loop forever\n");
+	fprintf(dest, "        -o               : Use files from overlay subdirectory if they exist (when using a custom directory)\n");
+	fprintf(dest, "                           USB Path (1-1.3.2 for example) is shown in verbose mode.\n");
+	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -h               : This help\n");
 
@@ -44,18 +49,39 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
 	uint32_t i = 0;
-	int r;
+	int r, j, len;
+	uint8_t path[8];
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
+		len = 0;
 		struct libusb_device_descriptor desc;
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0)
 			goto out;
+
+		if(overlay||verbose)
+		{
+			r = libusb_get_port_numbers(dev, path, sizeof(path));
+			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
+			if (r > 0) {
+				len += snprintf(&pathname[len], 18-len, "-");
+				len += snprintf(&pathname[len], 18-len, "%d", path[0]);
+				for (j = 1; j < r; j++)
+				{
+					len += snprintf(&pathname[len], 18-len, ".%d", path[j]);
+				}
+			}
+		}
+
 		if(verbose)
+		{
 			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
+			printf("Bus: %d, Device: %d Path: %s\n",libusb_get_bus_number(dev), libusb_get_device_address(dev), pathname);
+		}
+		
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
 			   desc.idProduct == 0x2764)
@@ -186,12 +212,21 @@ void get_options(int argc, char *argv[])
 		{
 			verbose = 1;
 		}
+		else if(strcmp(*argv, "-o") == 0)
+		{
+
+			overlay = 1;
+		}
 		else
 		{
 			usage(1);
 		}
 
 		argv++; argc--;
+	}
+	if(overlay&&!directory)
+	{
+		usage(1);
 	}
 }
 
@@ -264,13 +299,28 @@ FILE * check_file(char * dir, char *fname)
 	FILE * fp = NULL;
 	char path[256];
 
+
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
-		strcpy(path, dir);
-		strcat(path, "/");
-		strcat(path, fname);
-		fp = fopen(path, "rb");
+		if(overlay&&(pathname != NULL))
+		{
+			strcpy(path, dir);
+			strcat(path, "/");
+			strcat(path, pathname);
+			strcat(path, "/");
+			strcat(path, fname);
+			fp = fopen(path, "rb");
+			memset(path, 0, sizeof(path));
+		}
+
+		if (fp == NULL)
+		{
+			strcpy(path, dir);
+			strcat(path, "/");
+			strcat(path, fname);
+			fp = fopen(path, "rb");
+		}
 	}
 
 	if(fp == NULL)
