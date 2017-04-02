@@ -154,13 +154,15 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
 	int a_len = 0;
-	int ret =
-	    libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
+	int ret;
+	
+	sleep(1);
+	ret = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 				    len & 0xffff, len >> 16, NULL, 0, 1000);
 
 	if(ret != 0)
 	{
-		printf("Failed control transfer\n");
+		printf("Failed control transfer (%d,%d)\n", ret, len);
 		return ret;
 	}
 
