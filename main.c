@@ -189,7 +189,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	return ret;
 }
 
-#define LIBUSB_MAX_TRANSFER (496 * 1024)
+#define LIBUSB_MAX_TRANSFER (4096 * 1024)
 
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
@@ -205,7 +205,7 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 		return ret;
 	}
 
-	while((abort++ < 200) && (len > 0))
+	while((abort++ < 20) && (len > 0))
 	{
 		sending = len < LIBUSB_MAX_TRANSFER ? len : LIBUSB_MAX_TRANSFER;
 		ret = libusb_bulk_transfer(usb_device, 0x01, buf, sending, &sent, 5000);
