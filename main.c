@@ -409,6 +409,9 @@ int main(int argc, char *argv[])
 
 	get_options(argc, argv);
 
+	// flush immediately
+	setbuf(stdout, NULL);
+
 #if defined (__CYGWIN__)
 	//printf("Running under Cygwin\n");
 #else
