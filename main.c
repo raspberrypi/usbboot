@@ -494,6 +494,7 @@ int main(int argc, char *argv[])
 			printf("Second stage boot server\n");
 			file_server(usb_device);
 		}
+		libusb_reset_device(usb_device);
 
 		libusb_close(usb_device);
 		sleep(5);
