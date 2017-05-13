@@ -227,6 +227,8 @@ int second_stage_boot(libusb_device_handle *usb_device)
 {
 	int size, retcode = 0;
 
+	sleep(1);
+
 	size = ep_write(&boot_message, sizeof(boot_message), usb_device);
 	if (size != sizeof(boot_message))
 	{
@@ -242,7 +244,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 		return -1;
 	}
 
-	sleep(1);
+	usleep(125);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
 	if (size > 0 && retcode == 0)
@@ -253,6 +255,8 @@ int second_stage_boot(libusb_device_handle *usb_device)
 	{
 		printf("Failed : 0x%x", retcode);
 	}
+
+	sleep(1);
 
 	return retcode;
 
@@ -494,10 +498,8 @@ int main(int argc, char *argv[])
 			printf("Second stage boot server\n");
 			file_server(usb_device);
 		}
-		libusb_reset_device(usb_device);
 
 		libusb_close(usb_device);
-		sleep(5);
 	}
 	while(loop || desc.iSerialNumber == 0);
 
