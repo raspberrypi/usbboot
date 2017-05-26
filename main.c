@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 
+int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
 char * directory = NULL;
@@ -31,6 +32,7 @@ void usage(int error)
 	fprintf(dest, "Further options:\n");
 	fprintf(dest, "        -l               : Loop forever\n");
 	fprintf(dest, "        -v               : Verbose\n");
+	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -54,7 +56,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0)
 			goto out;
-		if(verbose)
+		if(verbose == 2)
 			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
@@ -68,6 +70,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	}
 
 	if (found) {
+		sleep(1);
 		r = libusb_open(found, &handle);
 		if (r < 0)
 		{
@@ -91,11 +94,16 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	*usb_device = open_device_with_vid(*ctx, 0x0a5c);
 	if (*usb_device == NULL)
 	{
-		sleep(1);
+		usleep(200);
 		return -1;
 	}
 
 	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
+	if(config == NULL)
+	{
+		printf("Failed to read config descriptor\n");
+		exit(-1);
+	}
 
 	// Handle 2837 where it can start with two interfaces, the first is mass storage
 	// the second is the vendor interface for programming
@@ -186,6 +194,14 @@ void get_options(int argc, char *argv[])
 		{
 			verbose = 1;
 		}
+		else if(strcmp(*argv, "-vv") == 0)
+		{
+			verbose = 2;
+		}
+		else if(strcmp(*argv, "-s") == 0)
+		{
+			signed_boot = 1;
+		}
 		else
 		{
 			usage(1);
@@ -198,13 +214,18 @@ void get_options(int argc, char *argv[])
 boot_message_t boot_message;
 void *second_stage_txbuf;
 
-int second_stage_prep(FILE *fp)
+int second_stage_prep(FILE *fp, FILE *fp_sig)
 {
 	int size;
 
 	fseek(fp, 0, SEEK_END);
 	boot_message.length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
+
+	if(fp_sig != NULL)
+	{
+		fread(boot_message.signature, 1, sizeof(boot_message.signature), fp_sig);
+	}
 
 	second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
 	if (second_stage_txbuf == NULL)
@@ -227,8 +248,6 @@ int second_stage_boot(libusb_device_handle *usb_device)
 {
 	int size, retcode = 0;
 
-	sleep(1);
-
 	size = ep_write(&boot_message, sizeof(boot_message), usb_device);
 	if (size != sizeof(boot_message))
 	{
@@ -244,7 +263,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 		return -1;
 	}
 
-	usleep(125);
+	sleep(1);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
 	if (size > 0 && retcode == 0)
@@ -255,8 +274,6 @@ int second_stage_boot(libusb_device_handle *usb_device)
 	{
 		printf("Failed : 0x%x", retcode);
 	}
-
-	sleep(1);
 
 	return retcode;
 
@@ -406,6 +423,7 @@ int file_server(libusb_device_handle * usb_device)
 int main(int argc, char *argv[])
 {
 	FILE * second_stage;
+	FILE * fp_sign;
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
 	struct libusb_device_descriptor desc;
@@ -438,7 +456,18 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot or supplied directory\n");
 		usage(1);
 	}
-	if(second_stage_prep(second_stage) != 0)
+
+	if(signed_boot)
+	{
+		fp_sign = check_file(directory, "bootsig.bin");
+		if(fp_sign == NULL)
+		{
+			fprintf(stderr, "Unable to open 'bootsig.bin'\n");
+			usage(1);
+		}
+	}
+
+	if(second_stage_prep(second_stage, fp_sign) != 0)
 	{
 		fprintf(stderr, "Failed to prepare the second stage bootcode\n");
 		exit(-1);
@@ -500,6 +529,7 @@ int main(int argc, char *argv[])
 		}
 
 		libusb_close(usb_device);
+		sleep(1);
 	}
 	while(loop || desc.iSerialNumber == 0);
 
