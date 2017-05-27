@@ -423,7 +423,7 @@ int file_server(libusb_device_handle * usb_device)
 int main(int argc, char *argv[])
 {
 	FILE * second_stage;
-	FILE * fp_sign;
+	FILE * fp_sign = NULL;
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
 	struct libusb_device_descriptor desc;
