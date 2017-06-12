@@ -162,7 +162,7 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 	    libusb_control_transfer(usb_device,
 				    LIBUSB_REQUEST_TYPE_VENDOR |
 				    LIBUSB_ENDPOINT_IN, 0, len & 0xffff,
-				    len >> 16, buf, len, 1000);
+				    len >> 16, buf, len, 2000);
 	if(ret >= 0)
 		return len;
 	else
