@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 
+int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
 int overlay = 0;
@@ -36,6 +37,7 @@ void usage(int error)
 	fprintf(dest, "                           USB Path (1-1.3.2 for example) is shown in verbose mode.\n");
 	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
 	fprintf(dest, "        -v               : Verbose\n");
+	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -62,7 +64,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (r < 0)
 			goto out;
 
-		if(overlay||verbose)
+		if(overlay || verbose == 2)
 		{
 			r = libusb_get_port_numbers(dev, path, sizeof(path));
 			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
@@ -76,7 +78,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 			}
 		}
 
-		if(verbose)
+		if(verbose == 2)
 		{
 			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
 			printf("Bus: %d, Device: %d Path: %s\n",libusb_get_bus_number(dev), libusb_get_device_address(dev), pathname);
@@ -94,6 +96,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	}
 
 	if (found) {
+		sleep(1);
 		r = libusb_open(found, &handle);
 		if (r < 0)
 		{
@@ -117,11 +120,16 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	*usb_device = open_device_with_vid(*ctx, 0x0a5c);
 	if (*usb_device == NULL)
 	{
-		sleep(1);
+		usleep(200);
 		return -1;
 	}
 
 	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
+	if(config == NULL)
+	{
+		printf("Failed to read config descriptor\n");
+		exit(-1);
+	}
 
 	// Handle 2837 where it can start with two interfaces, the first is mass storage
 	// the second is the vendor interface for programming
@@ -182,7 +190,7 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 	    libusb_control_transfer(usb_device,
 				    LIBUSB_REQUEST_TYPE_VENDOR |
 				    LIBUSB_ENDPOINT_IN, 0, len & 0xffff,
-				    len >> 16, buf, len, 1000);
+				    len >> 16, buf, len, 2000);
 	if(ret >= 0)
 		return len;
 	else
@@ -216,8 +224,15 @@ void get_options(int argc, char *argv[])
 		}
 		else if(strcmp(*argv, "-o") == 0)
 		{
-
 			overlay = 1;
+		}
+		else if(strcmp(*argv, "-vv") == 0)
+		{
+			verbose = 2;
+		}
+		else if(strcmp(*argv, "-s") == 0)
+		{
+			signed_boot = 1;
 		}
 		else
 		{
@@ -235,13 +250,18 @@ void get_options(int argc, char *argv[])
 boot_message_t boot_message;
 void *second_stage_txbuf;
 
-int second_stage_prep(FILE *fp)
+int second_stage_prep(FILE *fp, FILE *fp_sig)
 {
 	int size;
 
 	fseek(fp, 0, SEEK_END);
 	boot_message.length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
+
+	if(fp_sig != NULL)
+	{
+		fread(boot_message.signature, 1, sizeof(boot_message.signature), fp_sig);
+	}
 
 	second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
 	if (second_stage_txbuf == NULL)
@@ -454,12 +474,16 @@ int file_server(libusb_device_handle * usb_device)
 int main(int argc, char *argv[])
 {
 	FILE * second_stage;
+	FILE * fp_sign = NULL;
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
 	struct libusb_device_descriptor desc;
 	struct libusb_config_descriptor *config;
 
 	get_options(argc, argv);
+
+	// flush immediately
+	setbuf(stdout, NULL);
 
 #if defined (__CYGWIN__)
 	//printf("Running under Cygwin\n");
@@ -483,7 +507,18 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot or supplied directory\n");
 		usage(1);
 	}
-	if(second_stage_prep(second_stage) != 0)
+
+	if(signed_boot)
+	{
+		fp_sign = check_file(directory, "bootsig.bin");
+		if(fp_sign == NULL)
+		{
+			fprintf(stderr, "Unable to open 'bootsig.bin'\n");
+			usage(1);
+		}
+	}
+
+	if(second_stage_prep(second_stage, fp_sign) != 0)
 	{
 		fprintf(stderr, "Failed to prepare the second stage bootcode\n");
 		exit(-1);
@@ -545,7 +580,7 @@ int main(int argc, char *argv[])
 		}
 
 		libusb_close(usb_device);
-		sleep(5);
+		sleep(1);
 	}
 	while(loop || desc.iSerialNumber == 0);
 
