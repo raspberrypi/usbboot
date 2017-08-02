@@ -162,10 +162,8 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
 	int a_len = 0;
-	int ret;
-	
-	sleep(1);
-	ret = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
+	int ret =
+	    libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 				    len & 0xffff, len >> 16, NULL, 0, 1000);
 
 	if(ret != 0)
@@ -321,7 +319,6 @@ FILE * check_file(char * dir, char *fname)
 	FILE * fp = NULL;
 	char path[256];
 
-
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
@@ -368,6 +365,11 @@ int file_server(libusb_device_handle * usb_device)
 	{
 		char message_name[][20] = {"GetFileSize", "ReadFile", "Done"};
 		int i = ep_read(&message, sizeof(message), usb_device);
+		if(i == LIBUSB_ERROR_NO_DEVICE)
+		{
+			if(verbose) printf("Device has gone away.\n");
+			return -1;
+		}
 		if(i < 0)
 		{
 			sleep(1);
@@ -562,7 +564,7 @@ int main(int argc, char *argv[])
 
 			if (ret)
 			{
-				usleep(500);
+				sleep(3);
 			}
 		}
 		while (ret);
