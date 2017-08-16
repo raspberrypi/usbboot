@@ -319,6 +319,9 @@ int file_server(libusb_device_handle * usb_device)
 		int i = ep_read(&message, sizeof(message), usb_device);
 		if(i < 0)
 		{
+			// Drop out if the device goes away
+			if(i == LIBUSB_ERROR_NO_DEVICE)
+				break;
 			sleep(1);
 			continue;
 		}
