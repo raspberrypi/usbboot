@@ -320,7 +320,7 @@ int file_server(libusb_device_handle * usb_device)
 		if(i < 0)
 		{
 			// Drop out if the device goes away
-			if(i == LIBUSB_ERROR_NO_DEVICE)
+			if(i == LIBUSB_ERROR_NO_DEVICE || i == LIBUSB_ERROR_IO)
 				break;
 			sleep(1);
 			continue;
