@@ -9,14 +9,14 @@
 ;General
 
   ;Name and file
-  Name "Compute Module Boot Tool"
-  OutFile "ComputeModuleBoot.exe"
+  Name "Raspberry Pi USB boot"
+  OutFile "rpiboot_setup.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\Compute Module Boot"
+  InstallDir "$PROGRAMFILES\Raspberry Pi"
 
   ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "Software\Compute Module Boot" ""
+  InstallDirRegKey HKCU "Software\Raspberry Pi" ""
 
   ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
@@ -52,14 +52,49 @@
   !insertmacro MUI_LANGUAGE "English"
 
 ;--------------------------------
+; Initialisation functions
+Function .onInit
+
+  ReadRegStr $R0 HKCU "Software\Compute Module Boot" ""
+  StrCmp $R0 "" done
+
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "'Compute Module Boot' is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+
+;Run the uninstaller
+uninst:
+  ClearErrors
+
+  ; Remove the left over usb_driver directory
+  RmDir /r /REBOOTOK $R0\usb_driver
+
+  ExecWait '$R0\Uninstall.exe _?=$R0'
+
+  IfErrors no_remove_uninstaller done
+    ;You can either use Delete /REBOOTOK in the uninstaller or add some code
+    ;here to remove the uninstaller. Use a registry key to check
+    ;whether the user has chosen to uninstall. If you are using an uninstaller
+    ;components page, make sure all sections are uninstalled.
+  no_remove_uninstaller:
+
+done:
+
+  RmDir /r /REBOOTOK $R0 
+
+FunctionEnd
+
+;--------------------------------
 ;Installer Sections
 
-Section "Compute Module Boot" SecCmBoot
+Section "Raspberry Pi USB Boot" Sec_rpiboot
 
   SetOutPath "$INSTDIR"
 
   File /r redist
-  File /r msd
+  File /r ..\msd
 
   DetailPrint "Installing BCM2708 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -v 0x0a5c -p 0x2763 -t 0' $0 
@@ -72,14 +107,14 @@ Section "Compute Module Boot" SecCmBoot
   File cyggcc_s-1.dll
   File cygusb-1.0.dll
   File cygwin1.dll
-  File rpiboot.exe
+  File ..\rpiboot.exe
   
-  CreateDirectory $SMPROGRAMS\ComputeModuleBoot
-  CreateShortcut "$SMPROGRAMS\ComputeModuleBoot\RPi Boot.lnk" "$INSTDIR\rpiboot.exe"
-  CreateShortcut "$SMPROGRAMS\ComputeModuleBoot\Uninstall RPi Boot.lnk" "$INSTDIR\Uninstall.exe"
+  CreateDirectory "$SMPROGRAMS\Raspberry Pi"
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot.lnk" "$INSTDIR\rpiboot.exe"
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\Uninstall rpiboot.lnk" "$INSTDIR\Uninstall.exe"
 
   ;Store installation folder
-  WriteRegStr HKCU "Software\Compute Module Boot" "" $INSTDIR
+  WriteRegStr HKCU "Software\Raspberry Pi" "" $INSTDIR
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -94,7 +129,7 @@ SectionEnd
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecCmBoot} $(DESC_SecDummy)
+    !insertmacro MUI_DESCRIPTION_TEXT ${Sec_rpiboot} $(DESC_SecDummy)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -104,6 +139,7 @@ Section "Uninstall"
 
   RmDir /r /REBOOTOK $INSTDIR\redist
   RmDir /r /REBOOTOK $INSTDIR\msd
+  RmDir /r /REBOOTOK $INSTDIR\usb_driver
 
   Delete $INSTDIR\Uninstall.exe
   Delete $INSTDIR\cyggcc_s-1.dll
@@ -113,8 +149,8 @@ Section "Uninstall"
 
   RmDir /REBOOTOK $INSTDIR
 
-  RmDir /r "$SMPROGRAMS\ComputeModuleBoot"
+  RmDir /r "$SMPROGRAMS\Raspberry Pi"
 
-  DeleteRegKey /ifempty HKCU "Software\Compute Module Boot"
+  DeleteRegKey /ifempty HKCU "Software\Raspberry Pi"
 
 SectionEnd
