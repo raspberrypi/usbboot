@@ -1,0 +1,14 @@
+Source: rpiboot
+Section: utils
+Priority: optional
+Maintainer: Serge Schneider <serge@raspberrypi.org>
+Build-Depends: debhelper (>= 9), libusb-1.0-0-dev
+Standards-Version: 3.9.8
+Homepage: https://github.com/raspberrypi/usbboot
+
+Package: rpiboot
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Raspberry Pi USB booting code
+ USB MSD boot code which should work on the Raspberry Pi model A,
+ Compute Module, Compute module 3 and Raspberry Pi Zero.

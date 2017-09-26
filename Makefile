@@ -9,6 +9,6 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
 
 clean: 
-	rm rpiboot
+	rm -f rpiboot
 
 .PHONY: uninstall clean

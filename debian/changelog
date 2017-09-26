@@ -1,0 +1,5 @@
+rpiboot (20170926) stretch; urgency=medium
+
+  * Initial Release.
+
+ -- Serge Schneider <serge@raspberrypi.org>  Tue, 26 Sep 2017 13:31:20 +0100
