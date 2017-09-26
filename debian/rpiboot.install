@@ -1,2 +1,2 @@
 rpiboot usr/bin
-msd usr/share/rpiboot
+msd/* usr/share/rpiboot

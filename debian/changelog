@@ -1,3 +1,9 @@
+rpiboot (20170926+1) stretch; urgency=medium
+
+  * Install msd files without creating a subdirectory
+
+ -- Serge Schneider <serge@raspberrypi.org>  Tue, 26 Sep 2017 14:55:50 +0100
+
 rpiboot (20170926) stretch; urgency=medium
 
   * Initial Release.
