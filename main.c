@@ -296,7 +296,7 @@ FILE * check_file(char * dir, char *fname)
 
 	if(fp == NULL)
 	{
-		strcpy(path, "/usr/share/rpiboot/");
+		strcpy(path, "/usr/share/rpiboot/msd/");
 		strcat(path, fname);
 		fp = fopen(path, "rb");
 	}
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 	second_stage = check_file(directory, "bootcode.bin");
 	if(second_stage == NULL)
 	{
-		fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot or supplied directory\n");
+		fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot/msd or supplied directory\n");
 		usage(1);
 	}
 
