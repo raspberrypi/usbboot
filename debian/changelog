@@ -1,0 +1,18 @@
+rpiboot (20170926+2) stretch; urgency=medium
+
+  * Change rpiboot behaviour to check /usr/share/rpiboot/msd
+  * Add lintian-overrides
+
+ -- Serge Schneider <serge@raspberrypi.org>  Tue, 26 Sep 2017 16:11:13 +0100
+
+rpiboot (20170926+1) stretch; urgency=medium
+
+  * Install msd files without creating a subdirectory
+
+ -- Serge Schneider <serge@raspberrypi.org>  Tue, 26 Sep 2017 14:55:50 +0100
+
+rpiboot (20170926) stretch; urgency=medium
+
+  * Initial Release.
+
+ -- Serge Schneider <serge@raspberrypi.org>  Tue, 26 Sep 2017 13:31:20 +0100
