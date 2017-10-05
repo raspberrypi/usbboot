@@ -9,6 +9,7 @@ int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
 int overlay = 0;
+long delay = 500;
 char * directory = NULL;
 char pathname[18];
 
@@ -36,6 +37,7 @@ void usage(int error)
 	fprintf(dest, "        -o               : Use files from overlay subdirectory if they exist (when using a custom directory)\n");
 	fprintf(dest, "                           USB Path (1-1.3.2 for example) is shown in verbose mode.\n");
 	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
+	fprintf(dest, "        -mX              : Delay X microseconds between checking for new devices (default 500)\n");
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -h               : This help\n");
@@ -224,6 +226,10 @@ void get_options(int argc, char *argv[])
 		{
 			overlay = 1;
 		}
+		else if(strncmp(*argv, "-m", 2) == 0)
+		{
+			delay = atol(*argv+2);
+		}
 		else if(strcmp(*argv, "-vv") == 0)
 		{
 			verbose = 2;
@@ -240,6 +246,10 @@ void get_options(int argc, char *argv[])
 		argv++; argc--;
 	}
 	if(overlay&&!directory)
+	{
+		usage(1);
+	}
+	if(!delay)
 	{
 		usage(1);
 	}
@@ -562,7 +572,7 @@ int main(int argc, char *argv[])
 
 			if (ret)
 			{
-				sleep(3);
+				usleep(delay);
 			}
 		}
 		while (ret);
