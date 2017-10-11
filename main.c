@@ -37,7 +37,7 @@ void usage(int error)
 	fprintf(dest, "        -o               : Use files from overlay subdirectory if they exist (when using a custom directory)\n");
 	fprintf(dest, "                           USB Path (1-1.3.2 for example) is shown in verbose mode.\n");
 	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
-	fprintf(dest, "        -mX              : Delay X microseconds between checking for new devices (default 500)\n");
+	fprintf(dest, "        -m delay         : Microseconds delay between checking for new devices (default 500)\n");
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -h               : This help\n");
@@ -226,9 +226,12 @@ void get_options(int argc, char *argv[])
 		{
 			overlay = 1;
 		}
-		else if(strncmp(*argv, "-m", 2) == 0)
+		else if(strcmp(*argv, "-m") == 0)
 		{
-			delay = atol(*argv+2);
+			argv++; argc--;
+			if(argc < 1)
+				usage(1);
+			delay = atol(*argv);
 		}
 		else if(strcmp(*argv, "-vv") == 0)
 		{
