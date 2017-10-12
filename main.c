@@ -8,7 +8,10 @@
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
+int overlay = 0;
+long delay = 500;
 char * directory = NULL;
+char pathname[18];
 
 int out_ep;
 int in_ep;
@@ -31,6 +34,10 @@ void usage(int error)
 	fprintf(dest, "rpiboot -d [directory]   : Boot the device using the boot files in 'directory'\n");
 	fprintf(dest, "Further options:\n");
 	fprintf(dest, "        -l               : Loop forever\n");
+	fprintf(dest, "        -o               : Use files from overlay subdirectory if they exist (when using a custom directory)\n");
+	fprintf(dest, "                           USB Path (1-1.3.2 for example) is shown in verbose mode.\n");
+	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
+	fprintf(dest, "        -m delay         : Microseconds delay between checking for new devices (default 500)\n");
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -h               : This help\n");
@@ -46,18 +53,39 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
 	uint32_t i = 0;
-	int r;
+	int r, j, len;
+	uint8_t path[8];
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
+		len = 0;
 		struct libusb_device_descriptor desc;
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0)
 			goto out;
+
+		if(overlay || verbose == 2)
+		{
+			r = libusb_get_port_numbers(dev, path, sizeof(path));
+			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
+			if (r > 0) {
+				len += snprintf(&pathname[len], 18-len, "-");
+				len += snprintf(&pathname[len], 18-len, "%d", path[0]);
+				for (j = 1; j < r; j++)
+				{
+					len += snprintf(&pathname[len], 18-len, ".%d", path[j]);
+				}
+			}
+		}
+
 		if(verbose == 2)
+		{
 			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
+			printf("Bus: %d, Device: %d Path: %s\n",libusb_get_bus_number(dev), libusb_get_device_address(dev), pathname);
+		}
+		
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
 			   desc.idProduct == 0x2764)
@@ -142,7 +170,7 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 
 	if(ret != 0)
 	{
-		printf("Failed control transfer\n");
+		printf("Failed control transfer (%d,%d)\n", ret, len);
 		return ret;
 	}
 
@@ -194,6 +222,17 @@ void get_options(int argc, char *argv[])
 		{
 			verbose = 1;
 		}
+		else if(strcmp(*argv, "-o") == 0)
+		{
+			overlay = 1;
+		}
+		else if(strcmp(*argv, "-m") == 0)
+		{
+			argv++; argc--;
+			if(argc < 1)
+				usage(1);
+			delay = atol(*argv);
+		}
 		else if(strcmp(*argv, "-vv") == 0)
 		{
 			verbose = 2;
@@ -208,6 +247,14 @@ void get_options(int argc, char *argv[])
 		}
 
 		argv++; argc--;
+	}
+	if(overlay&&!directory)
+	{
+		usage(1);
+	}
+	if(!delay)
+	{
+		usage(1);
 	}
 }
 
@@ -288,10 +335,24 @@ FILE * check_file(char * dir, char *fname)
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
-		strcpy(path, dir);
-		strcat(path, "/");
-		strcat(path, fname);
-		fp = fopen(path, "rb");
+		if(overlay&&(pathname != NULL))
+		{
+			strcpy(path, dir);
+			strcat(path, "/");
+			strcat(path, pathname);
+			strcat(path, "/");
+			strcat(path, fname);
+			fp = fopen(path, "rb");
+			memset(path, 0, sizeof(path));
+		}
+
+		if (fp == NULL)
+		{
+			strcpy(path, dir);
+			strcat(path, "/");
+			strcat(path, fname);
+			fp = fopen(path, "rb");
+		}
 	}
 
 	if(fp == NULL)
@@ -514,7 +575,7 @@ int main(int argc, char *argv[])
 
 			if (ret)
 			{
-				usleep(500);
+				usleep(delay);
 			}
 		}
 		while (ret);
