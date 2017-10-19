@@ -2,7 +2,7 @@ CFLAGS	= -Wall -Wextra -g `pkg-config --cflags libusb-1.0`
 LDFLAGS	= `pkg-config --libs libusb-1.0`
 
 rpiboot: main.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ main.c
 
 uninstall:
 	rm -f /usr/bin/rpiboot
