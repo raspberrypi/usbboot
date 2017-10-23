@@ -97,11 +97,11 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File /r ..\msd
 
   DetailPrint "Installing BCM2708 driver..."
-  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -v 0x0a5c -p 0x2763 -t 0' $0 
+  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0' $0 
   DetailPrint "Driver install returned $0"
   
   DetailPrint "Installing BCM2710 driver..."
-  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -v 0x0a5c -p 0x2764 -t 0' $0 
+  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2764 -t 0' $0 
   DetailPrint "Driver install returned $0"
 
   File cyggcc_s-1.dll
