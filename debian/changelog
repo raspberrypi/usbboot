@@ -1,3 +1,9 @@
+rpiboot (20171023~154601) stretch; urgency=medium
+
+  * Directory overlay support
+
+ -- Serge Schneider <serge@raspberrypi.org>  Fri, 27 Oct 2017 10:21:19 +0100
+
 rpiboot (20170926+2) stretch; urgency=medium
 
   * Change rpiboot behaviour to check /usr/share/rpiboot/msd
