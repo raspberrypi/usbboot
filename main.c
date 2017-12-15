@@ -208,7 +208,7 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 	while(len > 0)
 	{
 		sending = len < LIBUSB_MAX_TRANSFER ? len : LIBUSB_MAX_TRANSFER;
-		ret = libusb_bulk_transfer(usb_device, out_ep, buf, sending, &sent, 100000);
+		ret = libusb_bulk_transfer(usb_device, out_ep, buf, sending, &sent, 5000);
 		if (ret)
 			break;
 		a_len += sent;
