@@ -332,6 +332,12 @@ FILE * check_file(char * dir, char *fname)
 	FILE * fp = NULL;
 	char path[256];
 
+	// Prevent USB device from requesting files in parent directories
+	if(strstr(fname, ".."))
+	{
+		return NULL;
+	}
+
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
