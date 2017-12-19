@@ -498,18 +498,6 @@ int main(int argc, char *argv[])
 	// flush immediately
 	setbuf(stdout, NULL);
 
-#if defined (__CYGWIN__)
-	//printf("Running under Cygwin\n");
-#else
-	//exit if not run as sudo
-	if(getuid() != 0)
-	{
-		printf("Must be run with sudo...\n");
-		exit(-1);
-	}
-#endif
-
-
 	// Default to standard msd directory
 	if(directory == NULL)
 		directory = "msd";

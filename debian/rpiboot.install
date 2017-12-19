@@ -1,2 +1,3 @@
 rpiboot usr/bin
 msd usr/share/rpiboot
+debian/99-rpiboot.rules /lib/udev/rules.d
