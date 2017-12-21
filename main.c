@@ -100,7 +100,12 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	if (found) {
 		sleep(1);
 		r = libusb_open(found, &handle);
-		if (r < 0)
+		if (r == LIBUSB_ERROR_ACCESS)
+		{
+			printf("Permission to access USB device denied. Make sure you are a member of the plugdev group.\n");
+			exit(-1);
+		}
+		else if (r < 0)
 		{
 			if(verbose) printf("Failed to open the requested device\n");
 			handle = NULL;
@@ -335,6 +340,7 @@ FILE * check_file(char * dir, char *fname)
 	// Prevent USB device from requesting files in parent directories
 	if(strstr(fname, ".."))
 	{
+		printf("Denying request for filename containing .. to prevent path traversal\n");
 		return NULL;
 	}
 
