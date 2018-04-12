@@ -1,5 +1,11 @@
-rpiboot: main.c
+rpiboot: main.c msd/bootcode.h msd/start.h
 	$(CC) -Wall -Wextra -g -o $@ $< -lusb-1.0
+
+%.h: %.bin
+	xxd -i $< > $@
+
+%.h: %.elf
+	xxd -i $< > $@
 
 uninstall:
 	rm -f /usr/bin/rpiboot

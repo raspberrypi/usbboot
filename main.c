@@ -5,6 +5,9 @@
 
 #include <unistd.h>
 
+#include "msd/bootcode.h"
+#include "msd/start.h"
+
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
@@ -410,9 +413,11 @@ FILE * check_file(char * dir, char *fname)
 
 	if(fp == NULL)
 	{
-		strcpy(path, "/usr/share/rpiboot/msd/");
-		strcat(path, fname);
-		fp = fopen(path, "rb");
+		if(strcmp(fname, "bootcode.bin") == 0)
+			fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "r");
+		else
+			if(strcmp(fname, "start.elf") == 0)
+				fp = fmemopen(msd_start_elf, msd_start_elf_len, "r");
 	}
 
 	return fp;
@@ -562,10 +567,6 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-
-	// Default to standard msd directory
-	if(directory == NULL)
-		directory = "msd";
 
 	second_stage = check_file(directory, "bootcode.bin");
 	if(second_stage == NULL)
