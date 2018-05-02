@@ -7,15 +7,22 @@ This version of rpiboot has been modified to work from directories which contain
 firmware.  There is a default directory msd/ which contains bootcode.bin and start.elf to turn
 the Raspberry Pi device into a USB Mass Storage Device (MSD).
 
-## Building
+## Building on Debian-based distributions
 
-Clone this on your Pi or an Ubuntu linux machine
-
-```
+```bash
 $ git clone --depth=1 https://github.com/raspberrypi/usbboot
 $ cd usbboot
 $ sudo apt-get install libusb-1.0-0-dev
 $ make
+$ sudo ./rpiboot
+```
+
+## Building using Docker
+
+```bash
+$ git clone --depth=1 https://github.com/raspberrypi/usbboot
+$ cd usbboot
+$ make docker
 $ sudo ./rpiboot
 ```
 

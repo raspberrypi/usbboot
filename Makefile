@@ -10,6 +10,10 @@ rpiboot: main.c msd/bootcode.h msd/start.h
 bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
+docker:
+	docker build --tag rpiboot-builder .
+	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder
+
 uninstall:
 	rm -f /usr/bin/rpiboot
 	rm -f /usr/share/rpiboot/usbbootcode.bin
@@ -17,7 +21,7 @@ uninstall:
 	rm -f /usr/share/rpiboot/buildroot.elf
 	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
 
-clean: 
+clean:
 	rm -f rpiboot msd/*.h bin2c
 
 .PHONY: uninstall clean
