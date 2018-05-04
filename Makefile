@@ -10,9 +10,17 @@ rpiboot: main.c msd/bootcode.h msd/start.h
 bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
-docker:
-	docker build --tag rpiboot-builder .
-	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder
+docker-centos:
+	docker build --tag rpiboot-builder:centos --file Dockerfile.centos .
+	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:centos
+
+docker-debian:
+	docker build --tag rpiboot-builder:debian --file Dockerfile.debian .
+	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:debian
+
+docker-fedora:
+	docker build --tag rpiboot-builder:fedora --file Dockerfile.fedora .
+	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:fedora
 
 uninstall:
 	rm -f /usr/bin/rpiboot

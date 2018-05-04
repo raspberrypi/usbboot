@@ -19,10 +19,33 @@ $ sudo ./rpiboot
 
 ## Building using Docker
 
+Since binaries from different OSes aren't compatible with `libusb` from other
+OSes you need to build `rpiboot` for your specific OS.
+
+### For CentOS/RHEL
+
 ```bash
 $ git clone --depth=1 https://github.com/raspberrypi/usbboot
 $ cd usbboot
-$ make docker
+$ make docker-centos
+$ sudo ./rpiboot
+```
+
+### For Debian
+
+```bash
+$ git clone --depth=1 https://github.com/raspberrypi/usbboot
+$ cd usbboot
+$ make docker-debian
+$ sudo ./rpiboot
+```
+
+### For Fedora
+
+```bash
+$ git clone --depth=1 https://github.com/raspberrypi/usbboot
+$ cd usbboot
+$ make docker-fedora
 $ sudo ./rpiboot
 ```
 
@@ -40,4 +63,3 @@ $ sudo ./rpiboot -d boot
 ```
 
 This will serve the boot directory to the Raspberry Pi Device.
-
