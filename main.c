@@ -14,7 +14,7 @@ int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
-char pathname[18];
+char pathname[18] = {0};
 uint8_t targetPortNo = 99;
 
 int out_ep;
@@ -391,7 +391,7 @@ FILE * check_file(char * dir, char *fname)
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
-		if(overlay&&(pathname != NULL))
+		if(overlay&&(pathname[0] != 0))
 		{
 			strcpy(path, dir);
 			strcat(path, "/");
