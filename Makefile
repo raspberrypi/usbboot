@@ -11,15 +11,15 @@ bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
 docker-centos:
-	docker build --tag rpiboot-builder:centos --file Dockerfile.centos .
+	docker build --tag rpiboot-builder:centos --file docker/centos.Dockerfile .
 	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:centos
 
 docker-debian:
-	docker build --tag rpiboot-builder:debian --file Dockerfile.debian .
+	docker build --tag rpiboot-builder:debian --file docker/debian.Dockerfile .
 	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:debian
 
 docker-fedora:
-	docker build --tag rpiboot-builder:fedora --file Dockerfile.fedora .
+	docker build --tag rpiboot-builder:fedora --file docker/fedora.Dockerfile .
 	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:fedora
 
 uninstall:
@@ -32,4 +32,4 @@ uninstall:
 clean:
 	rm -f rpiboot msd/*.h bin2c
 
-.PHONY: uninstall clean
+.PHONY: clean docker-centos docker-debian docker-fedora uninstall

@@ -1,4 +1,4 @@
-FROM fedora:27
+FROM fedora:28
 
 RUN dnf --refresh upgrade -y && \
     dnf install -y\
