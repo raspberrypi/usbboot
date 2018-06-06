@@ -1,4 +1,4 @@
-rpiboot: main.c msd/bootcode.h msd/start.h
+rpiboot$(rpiboot_lsb_id): main.c msd/bootcode.h msd/start.h
 	$(CC) -Wall -Wextra -g -o $@ $< -lusb-1.0
 
 %.h: %.bin ./bin2c
@@ -10,17 +10,20 @@ rpiboot: main.c msd/bootcode.h msd/start.h
 bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
+all: docker-centos docker-debian docker-fedora
+
+docker_build = \
+	docker build --tag rpiboot-builder:$(1) --file docker/$(1).Dockerfile . &&\
+	docker run --rm -e "rpiboot_lsb_id=-$(1)" --volume=`pwd`:/src:Z rpiboot-builder:$(1)
+
 docker-centos:
-	docker build --tag rpiboot-builder:centos --file docker/centos.Dockerfile .
-	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:centos
+	$(call docker_build,centos)
 
 docker-debian:
-	docker build --tag rpiboot-builder:debian --file docker/debian.Dockerfile .
-	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:debian
+	$(call docker_build,debian)
 
 docker-fedora:
-	docker build --tag rpiboot-builder:fedora --file docker/fedora.Dockerfile .
-	docker run --rm --volume=`pwd`:/src:Z rpiboot-builder:fedora
+	$(call docker_build,fedora)
 
 uninstall:
 	rm -f /usr/bin/rpiboot
@@ -30,6 +33,6 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
 
 clean:
-	rm -f rpiboot msd/*.h bin2c
+	rm -f rpiboot* msd/*.h bin2c
 
-.PHONY: clean docker-centos docker-debian docker-fedora uninstall
+.PHONY: all clean docker-centos docker-debian docker-fedora uninstall
