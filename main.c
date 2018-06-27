@@ -414,10 +414,10 @@ FILE * check_file(char * dir, char *fname)
 	if(fp == NULL)
 	{
 		if(strcmp(fname, "bootcode.bin") == 0)
-			fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "r");
+			fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "rb");
 		else
 			if(strcmp(fname, "start.elf") == 0)
-				fp = fmemopen(msd_start_elf, msd_start_elf_len, "r");
+				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 	}
 
 	return fp;
