@@ -102,7 +102,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
-			   desc.idProduct == 0x2764)
+			   desc.idProduct == 0x2764 ||
+			   desc.idProduct == 0x2711)
 			{
 				if(verbose == 2)
 				      printf("Found candidate Compute Module...");
@@ -644,7 +645,7 @@ int main(int argc, char *argv[])
 		while (ret);
 
 		last_serial = desc.iSerialNumber;
-		if(desc.iSerialNumber == 0)
+		if(desc.iSerialNumber == 0 || desc.idProduct == 0x2711)
 		{
 			printf("Sending bootcode.bin\n");
 			second_stage_boot(usb_device);
