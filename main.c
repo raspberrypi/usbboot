@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
 	{
 		int last_serial = -1;
 
-		printf("Waiting for BCM2835/6/7/8\n");
+		printf("Waiting for BCM2835/6/7/2711...\n");
 
 		// Wait for a device to get plugged in
 		do
