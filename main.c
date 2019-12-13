@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
 	{
 		int last_serial = -1;
 
-		printf("Waiting for BCM2835/6/7\n");
+		printf("Waiting for BCM2835/6/7/2711...\n");
 
 		// Wait for a device to get plugged in
 		do
@@ -645,7 +645,7 @@ int main(int argc, char *argv[])
 		while (ret);
 
 		last_serial = desc.iSerialNumber;
-		if(desc.iSerialNumber == 0 || desc.idProduct == 0x2711)
+		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
 			printf("Sending bootcode.bin\n");
 			second_stage_boot(usb_device);
