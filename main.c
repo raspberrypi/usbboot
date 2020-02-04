@@ -8,13 +8,18 @@
 #include "msd/bootcode.h"
 #include "msd/start.h"
 
+/* Assume BSD without native fmemopen() if doesn't seem to be glibc */
+#if defined(__APPLE__) || !defined(_GNU_SOURCE) || !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#include "fmemopen.c" // BSD fmemopen() compat in terms of funopen()
+#endif
+
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
-char pathname[18];
+char pathname[18] = {0};
 uint8_t targetPortNo = 99;
 
 int out_ep;
@@ -413,7 +418,7 @@ FILE * check_file(char * dir, char *fname)
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
-		if(overlay&&(pathname != NULL))
+		if(overlay&&(pathname[0] != 0))
 		{
 			strcpy(path, dir);
 			strcat(path, "/");
