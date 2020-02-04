@@ -1,3 +1,15 @@
+rpiboot (20180627~140218) stretch; urgency=medium
+
+  * Switch "r" to "rb" for fmemopen
+  * Add cross platform method of building in a binary
+  * Compile bootcode.bin and start.elf into rpiboot
+  * Change USB device settings to better work with all devices
+  * usbboot: Add support for multiple instances
+  * Add extra delay between disconnecting and reconnecting
+  * Fixed numerous problems with enumerating CM3 / Pi Zero
+
+ -- Serge Schneider <serge@raspberrypi.org>  Wed, 04 Jul 2018 17:46:29 +0100
+
 rpiboot (20171023~154601) stretch; urgency=medium
 
   * Directory overlay support

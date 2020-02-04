@@ -5,6 +5,9 @@
 
 #include <unistd.h>
 
+#include "msd/bootcode.h"
+#include "msd/start.h"
+
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
@@ -12,6 +15,7 @@ int overlay = 0;
 long delay = 500;
 char * directory = NULL;
 char pathname[18];
+uint8_t targetPortNo = 99;
 
 int out_ep;
 int in_ep;
@@ -40,6 +44,7 @@ void usage(int error)
 	fprintf(dest, "        -m delay         : Microseconds delay between checking for new devices (default 500)\n");
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
+	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -54,7 +59,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device_handle *handle = NULL;
 	uint32_t i = 0;
 	int r, j, len;
-	uint8_t path[8];
+	uint8_t path[8];	// Needed for libusb_get_port_numbers
+	uint8_t portNo = 0;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
@@ -80,6 +86,14 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 			}
 		}
 
+		/*
+		  http://libusb.sourceforge.net/api-1.0/group__dev.html#ga14879a0ea7daccdcddb68852d86c00c4
+
+		  The port number returned by this call is usually guaranteed to be uniquely tied to a physical port,
+		  meaning that different devices plugged on the same physical port should return the same port number.
+		*/
+		portNo = libusb_get_port_number(dev);
+
 		if(verbose == 2)
 		{
 			printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
@@ -88,11 +102,26 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
-			   desc.idProduct == 0x2764)
+			   desc.idProduct == 0x2764 ||
+			   desc.idProduct == 0x2711)
 			{
-				if(verbose) printf("Device located successfully\n");
-				found = dev;
-				break;
+				if(verbose == 2)
+				      printf("Found candidate Compute Module...");
+
+				///////////////////////////////////////////////////////////////////////
+				// Check if we should match against a specific port number
+				///////////////////////////////////////////////////////////////////////
+				if (targetPortNo == 99 || portNo == targetPortNo)
+				{
+					if(verbose) printf("Device located successfully\n");
+					found = dev;
+					break;
+				}
+				else
+				{
+					if(verbose == 2)
+					      printf("...Wrong Port, Trying again\n");
+				}
 			}
 		}
 	}
@@ -166,9 +195,12 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	return ret;
 }
 
+#define LIBUSB_MAX_TRANSFER (16 * 1024)
+
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
 	int a_len = 0;
+	int sending, sent;
 	int ret =
 	    libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 				    len & 0xffff, len >> 16, NULL, 0, 1000);
@@ -179,12 +211,18 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 		return ret;
 	}
 
-	if(len > 0)
+	while(len > 0)
 	{
-		ret = libusb_bulk_transfer(usb_device, out_ep, buf, len, &a_len, 100000);
-		if(verbose)
-			printf("libusb_bulk_transfer returned %d\n", ret);
+		sending = len < LIBUSB_MAX_TRANSFER ? len : LIBUSB_MAX_TRANSFER;
+		ret = libusb_bulk_transfer(usb_device, out_ep, buf, sending, &sent, 5000);
+		if (ret)
+			break;
+		a_len += sent;
+		buf += sent;
+		len -= sent;
 	}
+	if(verbose)
+		printf("libusb_bulk_transfer sent %d bytes; returned %d\n", a_len, ret);
 
 	return a_len;
 }
@@ -245,6 +283,34 @@ void get_options(int argc, char *argv[])
 		else if(strcmp(*argv, "-s") == 0)
 		{
 			signed_boot = 1;
+		}
+		else if(strcmp(*argv, "-0") == 0)
+		{
+			targetPortNo = 0;
+		}
+		else if(strcmp(*argv, "-1") == 0)
+		{
+			targetPortNo = 1;
+		}
+		else if(strcmp(*argv, "-2") == 0)
+		{
+			targetPortNo = 2;
+		}
+		else if(strcmp(*argv, "-3") == 0)
+		{
+			targetPortNo = 3;
+		}
+		else if(strcmp(*argv, "-4") == 0)
+		{
+			targetPortNo = 4;
+		}
+		else if(strcmp(*argv, "-5") == 0)
+		{
+			targetPortNo = 5;
+		}
+		else if(strcmp(*argv, "-6") == 0)
+		{
+			targetPortNo = 6;
 		}
 		else
 		{
@@ -369,9 +435,11 @@ FILE * check_file(char * dir, char *fname)
 
 	if(fp == NULL)
 	{
-		strcpy(path, "/usr/share/rpiboot/msd/");
-		strcat(path, fname);
-		fp = fopen(path, "rb");
+		if(strcmp(fname, "bootcode.bin") == 0)
+			fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "rb");
+		else
+			if(strcmp(fname, "start.elf") == 0)
+				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 	}
 
 	return fp;
@@ -550,7 +618,7 @@ int main(int argc, char *argv[])
 	{
 		int last_serial = -1;
 
-		printf("Waiting for BCM2835/6/7\n");
+		printf("Waiting for BCM2835/6/7/2711...\n");
 
 		// Wait for a device to get plugged in
 		do
@@ -581,7 +649,7 @@ int main(int argc, char *argv[])
 		while (ret);
 
 		last_serial = desc.iSerialNumber;
-		if(desc.iSerialNumber == 0)
+		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
 			printf("Sending bootcode.bin\n");
 			second_stage_boot(usb_device);
