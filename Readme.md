@@ -14,7 +14,7 @@ Clone this on your Pi or an Ubuntu linux machine
 ```
 $ git clone --depth=1 https://github.com/raspberrypi/usbboot
 $ cd usbboot
-$ sudo apt-get install libusb-1.0-0-dev
+$ sudo apt install libusb-1.0-0-dev
 $ make
 $ sudo ./rpiboot
 ```
