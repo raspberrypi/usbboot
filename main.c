@@ -129,7 +129,12 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	if (found) {
 		sleep(1);
 		r = libusb_open(found, &handle);
-		if (r < 0)
+		if (r == LIBUSB_ERROR_ACCESS)
+		{
+			printf("Permission to access USB device denied. Make sure you are a member of the plugdev group.\n");
+			exit(-1);
+		}
+		else if (r < 0)
 		{
 			if(verbose) printf("Failed to open the requested device\n");
 			handle = NULL;
@@ -398,6 +403,13 @@ FILE * check_file(char * dir, char *fname)
 	FILE * fp = NULL;
 	char path[256];
 
+	// Prevent USB device from requesting files in parent directories
+	if(strstr(fname, ".."))
+	{
+		printf("Denying request for filename containing .. to prevent path traversal\n");
+		return NULL;
+	}
+
 	// Check directory first then /usr/share/rpiboot
 	if(dir)
 	{
@@ -566,17 +578,9 @@ int main(int argc, char *argv[])
 	// flush immediately
 	setbuf(stdout, NULL);
 
-#if defined (__CYGWIN__)
-	//printf("Running under Cygwin\n");
-#else
-	//exit if not run as sudo
-	if(getuid() != 0)
-	{
-		printf("Must be run with sudo...\n");
-		exit(-1);
-	}
-#endif
-
+	// Default to standard msd directory
+	if(directory == NULL)
+		directory = "msd";
 
 	second_stage = check_file(directory, "bootcode.bin");
 	if(second_stage == NULL)
