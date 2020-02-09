@@ -395,7 +395,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 	}
 	else
 	{
-		printf("Failed : 0x%x", retcode);
+		printf("Failed : 0x%x\n", retcode);
 	}
 
 	return retcode;
