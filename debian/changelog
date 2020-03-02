@@ -1,3 +1,29 @@
+rpiboot (20200217~075142) buster; urgency=medium
+
+  [ Phil Elwell ]
+  * Smallpacket (#26)
+
+  [ Petr Tesarik ]
+  * Add support for Pi4 (#42)
+
+  [ Tim Gover ]
+  * Fix serial check for BCM2711 (#46)
+
+  [ maxnet ]
+  * Allow members of plugdev group to execute rpiboot without root (#27)
+
+  [ Douglas Huff ]
+  * Fixup for recent firmware inclusion changes (#34)
+
+  [ Phil Elwell ]
+  * Fix cross-platform building
+
+  [ Chris Burton ]
+  * Add missing newline to print. (#48)
+  * Change timeout in ep_read to 3 seconds (#50)
+
+ -- Serge Schneider <serge@raspberrypi.org>  Mon, 02 Mar 2020 12:27:11 +0000
+
 rpiboot (20180627~140218) stretch; urgency=medium
 
   * Switch "r" to "rb" for fmemopen
