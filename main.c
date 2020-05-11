@@ -617,7 +617,11 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
-	libusb_set_debug(ctx, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
+	#if LIBUSB_API_VERSION >= 0x01000106
+		libusb_set_option(ctx, LIBUSB_OPTION_LOG_LEVEL, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
+	#else
+		libusb_set_debug(ctx, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
+	#endif
 
 	do
 	{
