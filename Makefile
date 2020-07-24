@@ -1,4 +1,4 @@
-rpiboot: main.c msd/bootcode.h msd/start.h
+rpiboot: main.c
 	$(CC) -Wall -Wextra -g -o $@ $< -lusb-1.0
 
 %.h: %.bin ./bin2c

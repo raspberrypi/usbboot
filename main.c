@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 
+#ifdef EMBED_MSD_FIRMWARE
 #include "msd/bootcode.h"
 #include "msd/start.h"
 
@@ -13,6 +14,7 @@
 #include "fmemopen.c" // BSD fmemopen() compat in terms of funopen()
 #endif
 
+#endif /*EMBED_MSD_FIRMWARE*/
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
@@ -438,6 +440,7 @@ FILE * check_file(char * dir, char *fname)
 		}
 	}
 
+#ifdef EMBED_MSD_FIRMWARE
 	if(fp == NULL)
 	{
 		if(strcmp(fname, "bootcode.bin") == 0)
@@ -446,6 +449,7 @@ FILE * check_file(char * dir, char *fname)
 			if(strcmp(fname, "start.elf") == 0)
 				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 	}
+#endif /*EMBED_MSD_FIRMWARE*/
 
 	return fp;
 }
@@ -585,7 +589,7 @@ int main(int argc, char *argv[])
 
 	// Default to standard msd directory
 	if(directory == NULL)
-		directory = "msd";
+		directory = "/usr/share/rpiboot/msd";
 
 	second_stage = check_file(directory, "bootcode.bin");
 	if(second_stage == NULL)
