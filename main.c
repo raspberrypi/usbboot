@@ -676,7 +676,7 @@ int main(int argc, char *argv[])
 		libusb_close(usb_device);
 		sleep(1);
 	}
-	while(loop || desc.iSerialNumber == 0);
+	while(loop || desc.iSerialNumber == 0 || desc.iSerialNumber == 3);
 
 	libusb_exit(ctx);
 
