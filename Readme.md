@@ -1,11 +1,19 @@
 # USB boot code
 
 This is the USB MSD boot code which should work on the Raspberry Pi model A, Compute Module, Compute
-module 3 and Raspberry Pi Zero.
+Module 3, Compute Module 4 and Raspberry Pi Zero.
 
 This version of rpiboot has been modified to work from directories which contain the booting
-firmware.  There is a default directory msd/ which contains bootcode.bin and start.elf to turn
-the Raspberry Pi device into a USB Mass Storage Device (MSD).
+firmware.  There is a msd/ directory which contains bootcode.bin and start.elf to turn
+the Raspberry Pi device into a USB Mass Storage Device (MSD). If run without arguments
+embedded versions of bootcode.bin and start.elf are used to enable the MSD behaviour.
+
+For more information run 'rpiboot -h'
+
+## Compute Module 4
+On Compute Module 4 the EMMC disable jumper (GPIO 40) must be fitted to switch
+the ROM to usbboot mode. Otherwise, the SPI EEPROM bootloader image will be loaded
+instead.
 
 ## Building
 

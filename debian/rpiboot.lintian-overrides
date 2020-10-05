@@ -3,3 +3,7 @@ rpiboot: arch-dependent-file-in-usr-share usr/share/rpiboot/msd/start.elf
 rpiboot: binary-from-other-architecture usr/share/rpiboot/msd/start.elf
 rpiboot: unstripped-binary-or-object usr/share/rpiboot/msd/start.elf
 rpiboot: statically-linked-binary usr/share/rpiboot/msd/start.elf
+rpiboot: arch-dependent-file-in-usr-share usr/share/rpiboot/msd/start4.elf
+rpiboot: binary-from-other-architecture usr/share/rpiboot/msd/start4.elf
+rpiboot: unstripped-binary-or-object usr/share/rpiboot/msd/start4.elf
+rpiboot: statically-linked-binary usr/share/rpiboot/msd/start4.elf
