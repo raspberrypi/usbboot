@@ -1,1 +1,2 @@
 rpiboot: source-is-missing msd/start.elf
+rpiboot: source-is-missing msd/start4.elf

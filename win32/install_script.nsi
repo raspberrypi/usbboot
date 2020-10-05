@@ -95,6 +95,7 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
 
   File /r redist
   File /r ..\msd
+  File /r ..\recovery
 
   DetailPrint "Installing BCM2708 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0' $0 
@@ -102,6 +103,10 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   
   DetailPrint "Installing BCM2710 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2764 -t 0' $0 
+  DetailPrint "Driver install returned $0"
+  
+  DetailPrint "Installing BCM2711 driver..."
+  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2711 -t 0' $0 
   DetailPrint "Driver install returned $0"
 
   File cyggcc_s-1.dll
@@ -139,6 +144,7 @@ Section "Uninstall"
 
   RmDir /r /REBOOTOK $INSTDIR\redist
   RmDir /r /REBOOTOK $INSTDIR\msd
+  RmDir /r /REBOOTOK $INSTDIR\recovery
   RmDir /r /REBOOTOK $INSTDIR\usb_driver
 
   Delete $INSTDIR\Uninstall.exe

@@ -4,4 +4,4 @@
 	dh $@
 
 override_dh_strip:
-	dh_strip -Xstart.elf
+	dh_strip -Xstart.elf -Xstart4.elf

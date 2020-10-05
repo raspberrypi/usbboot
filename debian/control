@@ -11,4 +11,4 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Raspberry Pi USB booting code
  USB MSD boot code which should work on the Raspberry Pi model A,
- Compute Module, Compute module 3 and Raspberry Pi Zero.
+ Compute Module, Compute Module 3, Compute Module 4 and Raspberry Pi Zero.
