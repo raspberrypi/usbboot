@@ -470,7 +470,9 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 
 	if(dir)
 	{
-		if(overlay&&(pathname[0] != 0))
+		if(overlay && (pathname[0] != 0) &&
+				(strcmp(fname, "bootcode4.bin") != 0) &&
+				(strcmp(fname, "bootcode.bin") != 0))
 		{
 			strcpy(path, dir);
 			strcat(path, "/");
@@ -478,6 +480,8 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 			strcat(path, "/");
 			strcat(path, fname);
 			fp = fopen(path, "rb");
+			if (fp)
+				printf("Loading: %s\n", path);
 			memset(path, 0, sizeof(path));
 		}
 
@@ -487,6 +491,8 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 			strcat(path, "/");
 			strcat(path, fname);
 			fp = fopen(path, "rb");
+			if (fp)
+				printf("Loading: %s\n", path);
 		}
 	}
 
@@ -508,6 +514,8 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 			else if(strcmp(fname, "start.elf") == 0)
 				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 		}
+		if (fp)
+			printf("Loading embedded: %s\n", fname);
 	}
 
 	return fp;
