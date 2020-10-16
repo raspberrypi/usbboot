@@ -1,3 +1,10 @@
+rpiboot (20201016~124509) buster; urgency=medium
+
+  [ Tim Gover ]
+  * Update rpiboot for CM4 and rationlise -d behaviour.
+
+ -- Serge Schneider <serge@raspberrypi.com>  Fri, 16 Oct 2020 14:03:28 +0100
+
 rpiboot (20200217~075142) buster; urgency=medium
 
   [ Phil Elwell ]
