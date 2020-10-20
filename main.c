@@ -22,6 +22,7 @@ int overlay = 0;
 long delay = 500;
 char * directory = NULL;
 char pathname[18] = {0};
+char * targetpathname = NULL;
 uint8_t targetPortNo = 99;
 
 int out_ep;
@@ -60,6 +61,7 @@ void usage(int error)
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
+	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -87,7 +89,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (r < 0)
 			goto out;
 
-		if(overlay || verbose == 2)
+		if(overlay || verbose == 2 || targetpathname!=NULL)
 		{
 			r = libusb_get_port_numbers(dev, path, sizeof(path));
 			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
@@ -165,7 +167,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				///////////////////////////////////////////////////////////////////////
 				// Check if we should match against a specific port number
 				///////////////////////////////////////////////////////////////////////
-				if (targetPortNo == 99 || portNo == targetPortNo)
+				if ((targetPortNo == 99 || portNo == targetPortNo) &&
+					(targetpathname==NULL||strcmp(targetpathname,pathname)==0))
 				{
 					if(verbose) printf("Device located successfully\n");
 					found = dev;
@@ -174,7 +177,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				else
 				{
 					if(verbose == 2)
-					      printf("...Wrong Port, Trying again\n");
+					      printf("...Wrong Port/Path, Trying again\n");
 				}
 			}
 		}
@@ -307,6 +310,13 @@ void get_options(int argc, char *argv[])
 				usage(1);
 			directory = *argv;
 		}
+		else if(strcmp(*argv, "-p") == 0)
+		{
+			argv++; argc--;
+			if(argc < 1)
+				usage(1);
+			targetpathname = *argv;
+		}
 		else if(strcmp(*argv, "-h") == 0 || strcmp(*argv, "--help") == 0)
 		{
 			usage(0);
@@ -378,6 +388,10 @@ void get_options(int argc, char *argv[])
 		usage(1);
 	}
 	if(!delay)
+	{
+		usage(1);
+	}
+	if((targetPortNo != 99) && (targetpathname != NULL))
 	{
 		usage(1);
 	}
