@@ -11,7 +11,7 @@ embedded versions of bootcode.bin and start.elf are used to enable the MSD behav
 For more information run 'rpiboot -h'
 
 ## Compute Module 4
-On Compute Module 4 the EMMC disable jumper (GPIO 40) must be fitted to switch
+On Compute Module 4 the eMMC disable jumper (nRPIBOOT) must be fitted to switch
 the ROM to usbboot mode. Otherwise, the SPI EEPROM bootloader image will be loaded
 instead.
 
