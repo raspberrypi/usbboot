@@ -1,4 +1,5 @@
 #include <libusb-1.0/libusb.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +33,7 @@ static FILE * check_file(const char * dir, const char *fname, int use_fmem);
 static int second_stage_prep(FILE *fp, FILE *fp_sig);
 
 typedef struct MESSAGE_S {
-		int length;
+		uint8_t length[4];
 		unsigned char signature[20];
 } boot_message_t;
 
@@ -294,6 +295,19 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 		return ret;
 }
 
+void int_to_le(int v, uint8_t *p)
+{
+  p[0] = v & 0xff;
+  p[1] = (v >> 8) & 0xff;
+  p[2] = (v >> 16) & 0xff;
+  p[3] = (v >> 24) & 0xff;
+}
+
+int int_from_le(const uint8_t *p)
+{
+  return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
 void get_options(int argc, char *argv[])
 {
 	// Skip the command name
@@ -384,6 +398,7 @@ void get_options(int argc, char *argv[])
 }
 
 boot_message_t boot_message;
+int bootmsg_length;
 void *second_stage_txbuf;
 
 int second_stage_prep(FILE *fp, FILE *fp_sig)
@@ -391,7 +406,7 @@ int second_stage_prep(FILE *fp, FILE *fp_sig)
 	int size;
 
 	fseek(fp, 0, SEEK_END);
-	boot_message.length = ftell(fp);
+	bootmsg_length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
 	if(fp_sig != NULL)
@@ -403,15 +418,15 @@ int second_stage_prep(FILE *fp, FILE *fp_sig)
 		free(second_stage_txbuf);
 	second_stage_txbuf = NULL;
 
-	second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
+	second_stage_txbuf = (uint8_t *) malloc(bootmsg_length);
 	if (second_stage_txbuf == NULL)
 	{
 		printf("Failed to allocate memory\n");
 		return -1;
 	}
 
-	size = fread(second_stage_txbuf, 1, boot_message.length, fp);
-	if(size != boot_message.length)
+	size = fread(second_stage_txbuf, 1, bootmsg_length, fp);
+	if(size != bootmsg_length)
 	{
 		printf("Failed to read second stage\n");
 		return -1;
@@ -424,6 +439,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 {
 	int size, retcode = 0;
 
+	int_to_le(bootmsg_length, boot_message.length);
 	size = ep_write(&boot_message, sizeof(boot_message), usb_device);
 	if (size != sizeof(boot_message))
 	{
@@ -431,9 +447,9 @@ int second_stage_boot(libusb_device_handle *usb_device)
 		return -1;
 	}
 
-	if(verbose) printf("Writing %d bytes\n", boot_message.length);
-	size = ep_write(second_stage_txbuf, boot_message.length, usb_device);
-	if (size != boot_message.length)
+	if(verbose) printf("Writing %d bytes\n", bootmsg_length);
+	size = ep_write(second_stage_txbuf, bootmsg_length, usb_device);
+	if (size != bootmsg_length)
 	{
 		printf("Failed to read correct length, returned %d\n", size);
 		return -1;
@@ -525,9 +541,10 @@ int file_server(libusb_device_handle * usb_device)
 {
 	int going = 1;
 	struct file_message {
-		int command;
+		uint8_t command[4];
 		char fname[256];
 	} message;
+	int command;
 	static FILE * fp = NULL;
 
 	while(going)
@@ -542,7 +559,8 @@ int file_server(libusb_device_handle * usb_device)
 			sleep(1);
 			continue;
 		}
-		if(verbose) printf("Received message %s: %s\n", message_name[message.command], message.fname);
+		command = int_from_le(message.command);
+		if(verbose) printf("Received message %s: %s\n", message_name[command], message.fname);
 
 		// Done can also just be null filename
 		if(strlen(message.fname) == 0)
@@ -551,7 +569,7 @@ int file_server(libusb_device_handle * usb_device)
 			break;
 		}
 
-		switch(message.command)
+		switch(command)
 		{
 			case 0: // Get file size
 				if(fp)
