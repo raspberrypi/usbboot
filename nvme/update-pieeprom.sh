@@ -1,0 +1,1 @@
+../recovery/update-pieeprom.sh
