@@ -12,6 +12,7 @@ For more information run 'rpiboot -h'
 
 ## Building
 
+### Ubuntu
 Clone this on your Pi or an Ubuntu linux machine
 
 ```
@@ -21,6 +22,24 @@ sudo apt install libusb-1.0-0-dev
 make
 sudo ./rpiboot
 ```
+
+### macOS
+From a macOS machine, you can also run usbboot, just follow the same steps:
+
+1. Clone the `usbboot` repository
+2. Install `libusb` (`brew install libusb`)
+3. Build using make
+4. Run the binary
+
+```
+git clone --depth=1 https://github.com/raspberrypi/usbboot
+cd usbboot
+brew install libusb
+make
+sudo ./rpiboot
+```
+
+**Note:** You might see an OS warning message about a new disk that it can't access, click "ignore", this likely means that the storage is empty and has no filesystem. From here I recommend installing an OS using the [Raspberry Pi Imager App](https://www.raspberrypi.org/software/), or using any other means like `dd`.
 
 ## Running your own (not MSD) build
 
