@@ -1,3 +1,22 @@
+rpiboot (20210714~083443) buster; urgency=medium
+
+  [ Tim Gover ]
+  * Don't load bootcode from the overlay directory
+  * pieeprom-2021-01-16: Update to latest release for BCM2711 XHCI boot
+  * Update EEPROM image to latest CM4 manufacturing image + configuration
+  * msd: CM4: Fix occasionaly USB errors
+  * Add native Raspberry Pi Imager port - beta
+  * Update Raspberry Pi 4 EEPROM to pieeprom-2021-07-06
+
+  [ Peter Harper ]
+  * Add nvme folder to enable testing nvme beta changes
+  * Update nvme beta bootloader
+
+  [ Ramon Roche ]
+  * readme: add macOS build step
+
+ -- Serge Schneider <serge@raspberrypi.com>  Wed, 14 Jul 2021 15:58:23 +0100
+
 rpiboot (20201016~124509) buster; urgency=medium
 
   [ Tim Gover ]

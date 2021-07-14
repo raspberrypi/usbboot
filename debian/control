@@ -1,7 +1,7 @@
 Source: rpiboot
 Section: utils
 Priority: optional
-Maintainer: Serge Schneider <serge@raspberrypi.org>
+Maintainer: Serge Schneider <serge@raspberrypi.com>
 Build-Depends: debhelper (>= 9), libusb-1.0-0-dev
 Standards-Version: 3.9.8
 Homepage: https://github.com/raspberrypi/usbboot
