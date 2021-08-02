@@ -10,13 +10,20 @@ rpiboot: main.c msd/bootcode.h msd/start.h msd/bootcode4.h msd/start4.h
 bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
+install: rpiboot
+	install -m 755 rpiboot /usr/bin/
+	install -d /usr/share/rpiboot
+	install -m 644 msd/bootcode.bin  /usr/share/rpiboot/
+	install -m 644 msd/bootcode4.bin /usr/share/rpiboot/
+	install -m 644 msd/start.elf  /usr/share/rpiboot/
+	install -m 644 msd/start4.elf /usr/share/rpiboot/
+
 uninstall:
 	rm -f /usr/bin/rpiboot
-	rm -f /usr/share/rpiboot/usbbootcode.bin
-	rm -f /usr/share/rpiboot/usbbootcode4.bin
-	rm -f /usr/share/rpiboot/msd.elf
-	rm -f /usr/share/rpiboot/msd4.elf
-	rm -f /usr/share/rpiboot/buildroot.elf
+	rm -f /usr/share/rpiboot/bootcode.bin
+	rm -f /usr/share/rpiboot/bootcode4.bin
+	rm -f /usr/share/rpiboot/start.elf
+	rm -f /usr/share/rpiboot/start4.elf
 	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
 
 clean:
