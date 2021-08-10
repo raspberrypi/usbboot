@@ -64,14 +64,9 @@ Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 The Raspberry Pi Imager can be run natively on the CM4 providing a GUI for downloading and installing the operating system.
 
 Beta notes:
-* The current version runs rpi-update upon completion in order to update the firwamre and kernel to support NVMe.
+* The current version runs rpi-update upon completion in order to update the firwamre and kernel.
 * uart_2ndstage is enabled 
 * The HDMI display is limited to 1080p to avoid potential problems with cables etc if a 4K display is attached.
-
-For NVMe boot update the bootloader first:  
-```
-sudo ./rpiboot -d nvme
-```
 
 Run Raspberry Pi Imager:  
 ```
