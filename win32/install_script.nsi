@@ -96,6 +96,9 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File /r redist
   File /r ..\msd
   File /r ..\recovery
+  File /r ..\secure-boot-recovery
+  File /r ..\secure-boot-msd
+  File /r ..\tools
 
   DetailPrint "Installing BCM2708 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0' $0 

@@ -1,0 +1,219 @@
+#!/bin/sh
+
+set -e
+
+TMP_DIR=""
+TMP_IMAGE=""
+IMAGE_SIZE=0
+MEGABYTE=$((1024 * 1024))
+BOOT_MOUNT=""
+LOOP=""
+
+# Define these environment variables to override mkfs options
+SECTOR_SIZE=${SECTOR_SIZE:-512}
+ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
+
+# Add 64k to the size calculation to reserve some space for the FAT,
+# directory entries and rounding up files to cluster sizes.
+FAT_OVERHEAD=${FAT_OVERHEAD:-64}
+
+cleanup() {
+   unmount_image
+
+   [ -z "${TMP_DIR}" ] && return
+   if [ -d "${TMP_DIR}" ]; then
+      rm -rf "${TMP_DIR}"
+   fi
+}
+
+die() {
+   echo "$@" >&2
+   exit 1
+}
+
+createfs() {
+   size_mb="$1"
+   image="$2"
+
+   volume_label="BOOT"
+   if [ -n "${SECTORS_PER_CLUSTER}" ]; then
+      SECTORS_PER_CLUSTER="-s ${SECTORS_PER_CLUSTER}"
+   fi
+
+   if [ -n "${FAT_SIZE}" ]; then
+      fat_size="-F ${FAT_SIZE}"
+   fi
+
+   sectors=$((size_mb * MEGABYTE / SECTOR_SIZE))
+   sectors=$((sectors / 2))
+   /sbin/mkfs.fat -C -f 1 \
+      ${SECTORS_PER_CLUSTER} -n "${volume_label}" \
+      ${fat_size} \
+      -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${sectors} || \
+      die "Failed to create FAT filesystem"
+}
+
+mountfs() {
+   image="$1"
+
+   LOOP=$(udisksctl loop-setup -f "${image}" \
+      | grep loop \
+      | sed 's/.*\/dev\/loop\([0-9]*\).*/\/dev\/loop\1/')
+   [ -e "${LOOP}" ] ||  die "Failed to create loop device"
+
+   BOOT_MOUNT=$(udisksctl mount --options rw -b "${LOOP}" | sed 's/.*Mounted \/dev\/.* at \(.*\)\.$/\1/')
+   [ -d "${BOOT_MOUNT}" ] || die "Failed to mount bootfs @ ${BOOT_MOUNT}"
+
+   echo "Mounted ${LOOP} @ ${BOOT_MOUNT}"
+}
+
+unmount_image() {
+   if [ -d "${BOOT_MOUNT}" ]; then
+      udisksctl unmount -b "${LOOP}" > /dev/null || true
+      BOOT_MOUNT=""
+   fi
+   if [ -e "${LOOP}" ];then
+     udisksctl loop-delete -b "${LOOP}"
+     LOOP=""
+   fi
+}
+
+
+createstaging() {
+   source_dir="$1"
+   staging="$2"
+   board="$3"
+
+   mkdir -p "${staging}" || die "Failed to create ${staging}"
+   cp -a "${source_dir}/"* "${staging}"
+
+   # Remove files for previous hardware version
+   if [ "${board}" = "pi4" ] || [ "${board}" = "pi400" ] || [ "${board}" = "cm4" ]; then
+      (
+         cd "${staging}"
+         rm -f kernel.img kernel7.img bootcode.bin
+         rm -f start.elf fixup.dat start_cd.elf fixup_cd.dat start_db.elf fixup_db.dat start_x.elf fixup_x.dat
+         rm -f start4cd.elf fixup4cd.dat
+         rm -f start4db.elf fixup4db.dat
+         rm -f bcm2708* bcm2709* bcm2710*
+         rm -f bootcode.bin
+      )
+   fi
+
+   if [ "${ARCH}" = 32 ]; then
+      rm -f "${staging}/kernel8.img"
+   elif [ "${ARCH}" = 64 ]; then
+      rm -f "${staging}/kernel7l.img"
+   fi
+
+   if [ "${board}" = pi400 ]; then
+      rm -f "${staging}/start4x.elf"
+      rm -f "${staging}/fixup4x.dat"
+   fi
+   # Estimate the size of the image in KBs
+   content="${TMP_DIR}/content.tar"
+   echo "$(cd "${staging}"; ls -R)"
+   tar -cf "${content}" "${staging}" > /dev/null 2>&1
+   IMAGE_SIZE=$(stat --printf "%s" "${content}")
+   IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+   rm -f "${content}"
+
+   # Add a little padding for FAT etc and convert to megabytes
+   IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
+   IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+
+   echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
+
+   if [ "${IMAGE_SIZE}" -gt 20 ]; then
+      echo "Warning: Large image size detected. Try removing unused files."
+   fi
+}
+
+checkDependencies() {
+   if [ ! -f /sbin/mkfs.fat ]; then
+       die "mkfs.fat is requried. Run this script on Linux"
+   fi
+
+   if ! command -v udisksctl; then
+       die "udisksctl ot found. Try installing the udisks2 package."
+   fi
+}
+
+usage() {
+cat <<EOF
+make-boot-image -d SOURCE_DIR -o OUTPUT
+Options:
+   -a Select 32 or 64 bit kernel
+   -b Optionally prune the files to those required for the given board type.
+   -d The directory containing the files to include in the boot image.
+   -o The filename for the boot image.  -h Display help text and exit
+
+Examples:
+# Include all files in bootfs/
+make-boot-image -d bootfs/ -o boot.img
+
+# Include only the files from bootfs/ required by Pi 4B
+make-boot-image -b pi4 -d bootfs/ -o boot.img
+
+Environment variables:
+The following environment variables may be specified to optionally override mkfs.vfat
+arguments to help minimise the size of the boot image.
+
+
+Name               mkfs.vfat parameter
+SECTOR_SIZE        -S
+ROOT_DIR_ENTRIES   -r
+AFT_SIZE           -F
+
+EOF
+exit 0
+}
+
+SOURCE_DIR=""
+OUTPUT=""
+ARCH=32
+while getopts a:b:d:ho: option; do
+   case "${option}" in
+   a) ARCH="${OPTARG}"
+      ;;
+   b) BOARD="${OPTARG}"
+      ;;
+   d) SOURCE_DIR="${OPTARG}"
+      ;;
+   o) OUTPUT="${OPTARG}"
+      ;;
+   h) usage
+      ;;
+   *) echo "Unknown argument \"${option}\""
+      usage
+      ;;
+   esac
+done
+
+checkDependencies
+
+[ -d "${SOURCE_DIR}" ] || usage
+[ -n "${OUTPUT}" ] || usage
+
+trap cleanup EXIT
+TMP_DIR="$(mktemp -d)"
+STAGING="${TMP_DIR}/staging"
+
+echo "Processing source files"
+createstaging  "${SOURCE_DIR}" "${STAGING}" "${BOARD}"
+
+echo "Creating FAT file system"
+TMP_IMAGE="${TMP_DIR}/boot.img"
+createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
+
+echo "Copying files"
+mountfs "${TMP_IMAGE}"
+cp -a "${staging}"/* "${BOOT_MOUNT}"
+
+echo "Sync"
+unmount_image
+cp -f "${TMP_IMAGE}" "${OUTPUT}"
+
+echo "Created image"
+file "${OUTPUT}"
+ls -l "${OUTPUT}"

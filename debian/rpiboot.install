@@ -4,4 +4,13 @@ msd/*.bin usr/share/rpiboot/msd/
 recovery/*.bin usr/share/rpiboot/recovery/
 recovery/*.sig usr/share/rpiboot/recovery/
 recovery/*.txt usr/share/rpiboot/recovery/
+secure-boot-recovery/*.txt usr/share/rpiboot/secure-boot-recovery/
+secure-boot-recovery/*.conf usr/share/rpiboot/secure-boot-recovery/
+secure-boot-recovery/*.md usr/share/rpiboot/secure-boot-recovery/
+secure-boot-recovery/*.bin usr/share/rpiboot/secure-boot-recovery/
+secure-boot-msd/*.bin usr/share/rpiboot/secure-boot-msd/
+secure-boot-msd/*.img usr/share/rpiboot/secure-boot-msd/
+secure-boot-msd/*.msd usr/share/rpiboot/secure-boot-msd/
+secure-boot-msd/*.md usr/share/rpiboot/secure-boot-msd/
+tools/* usr/share/rpiboot/tools/
 debian/99-rpiboot.rules /lib/udev/rules.d
