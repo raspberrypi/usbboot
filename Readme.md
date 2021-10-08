@@ -112,7 +112,7 @@ e.g. `root=/dev/mmcblk0p2` for the normal partition on CM4 EMMC.
 #### Create the boot image
 The `-p` product argument (pi4,pi400,cm4) tells the script to discard files which are not required by that product. This makes the image smaller and reduces the time taken to calculate the hash of the image file thereby reducing the boot time.
 ```bash
-../tools/make-boot-image -d secure-boot-files -o boot.img -p pi4
+sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -p pi4
 ```
 
 #### Sign the boot image

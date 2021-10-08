@@ -8,6 +8,7 @@ IMAGE_SIZE=0
 MEGABYTE=$((1024 * 1024))
 BOOT_MOUNT=""
 LOOP=""
+NAME=$(basename $0)
 
 # Define these environment variables to override mkfs options
 SECTOR_SIZE=${SECTOR_SIZE:-512}
@@ -20,7 +21,6 @@ FAT_OVERHEAD=${FAT_OVERHEAD:-64}
 cleanup() {
    unmount_image
 
-   [ -z "${TMP_DIR}" ] && return
    if [ -d "${TMP_DIR}" ]; then
       rm -rf "${TMP_DIR}"
    fi
@@ -56,26 +56,23 @@ createfs() {
 mountfs() {
    image="$1"
 
-   LOOP=$(udisksctl loop-setup -f "${image}" \
-      | grep loop \
-      | sed 's/.*\/dev\/loop\([0-9]*\).*/\/dev\/loop\1/')
-   [ -e "${LOOP}" ] ||  die "Failed to create loop device"
+   LOOP=$(losetup -f)
+   losetup ${LOOP} "${image}"
+   [ -e "${LOOP}" ] ||  die "Failed to create loop device ${LOOP}"
 
-   BOOT_MOUNT=$(udisksctl mount --options rw -b "${LOOP}" | sed 's/.*Mounted \/dev\/.* at \(.*\)\.$/\1/')
+   BOOT_MOUNT=$(mktemp -d)
+   mount "${LOOP}" "${BOOT_MOUNT}"
    [ -d "${BOOT_MOUNT}" ] || die "Failed to mount bootfs @ ${BOOT_MOUNT}"
 
    echo "Mounted ${LOOP} @ ${BOOT_MOUNT}"
 }
 
 unmount_image() {
-   if [ -d "${BOOT_MOUNT}" ]; then
-      udisksctl unmount -b "${LOOP}" > /dev/null || true
-      BOOT_MOUNT=""
+   image="$1"
+   if [ -f "${LOOP}" ]; then
+      umount "${LOOP}" > /dev/null || true
    fi
-   if [ -e "${LOOP}" ];then
-     udisksctl loop-delete -b "${LOOP}"
-     LOOP=""
-   fi
+   losetup -d "${LOOP}"
 }
 
 
@@ -85,7 +82,7 @@ createstaging() {
    board="$3"
 
    mkdir -p "${staging}" || die "Failed to create ${staging}"
-   cp -a "${source_dir}/"* "${staging}"
+   cp -r "${source_dir}/"* "${staging}"
 
    # Remove files for previous hardware version
    if [ "${board}" = "pi4" ] || [ "${board}" = "pi400" ] || [ "${board}" = "cm4" ]; then
@@ -133,15 +130,12 @@ checkDependencies() {
    if [ ! -f /sbin/mkfs.fat ]; then
        die "mkfs.fat is requried. Run this script on Linux"
    fi
-
-   if ! command -v udisksctl; then
-       die "udisksctl ot found. Try installing the udisks2 package."
-   fi
 }
 
 usage() {
 cat <<EOF
-make-boot-image -d SOURCE_DIR -o OUTPUT
+sudo ${NAME} -d SOURCE_DIR -o OUTPUT
+
 Options:
    -a Select 32 or 64 bit kernel
    -b Optionally prune the files to those required for the given board type.
@@ -150,10 +144,10 @@ Options:
 
 Examples:
 # Include all files in bootfs/
-make-boot-image -d bootfs/ -o boot.img
+sudo ${NAME} -d bootfs/ -o boot.img
 
 # Include only the files from bootfs/ required by Pi 4B
-make-boot-image -b pi4 -d bootfs/ -o boot.img
+sudo ${NAME} -b pi4 -d bootfs/ -o boot.img
 
 Environment variables:
 The following environment variables may be specified to optionally override mkfs.vfat
@@ -194,6 +188,7 @@ checkDependencies
 
 [ -d "${SOURCE_DIR}" ] || usage
 [ -n "${OUTPUT}" ] || usage
+[ "$(id -u)" = "0" ] || die "\"${NAME}\" must be run as root. Try \"sudo ${NAME}\""
 
 trap cleanup EXIT
 TMP_DIR="$(mktemp -d)"
@@ -208,10 +203,10 @@ createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
 
 echo "Copying files"
 mountfs "${TMP_IMAGE}"
-cp -a "${staging}"/* "${BOOT_MOUNT}"
+cp -rv "${staging}"/* "${BOOT_MOUNT}"
 
 echo "Sync"
-unmount_image
+unmount_image "${IMAGE}"
 cp -f "${TMP_IMAGE}" "${OUTPUT}"
 
 echo "Created image"
