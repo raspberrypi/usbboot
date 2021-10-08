@@ -163,7 +163,7 @@ arguments to help minimise the size of the boot image.
 Name               mkfs.vfat parameter
 SECTOR_SIZE        -S
 ROOT_DIR_ENTRIES   -r
-AFT_SIZE           -F
+FAT_SIZE           -F
 
 EOF
 exit 0
