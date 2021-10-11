@@ -61,11 +61,11 @@ On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch t
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
 <a name="secure-boot"></a>
-## Secure Boot
-TODO - Add link to whitepaper / user-guide
+## Secure Boot -  BETA
+Secure Boot is currently a BETA release feature and the functionality to permanently enable secure-boot via OTP is not enabled in this release.
 
 ### Host setup
-Secure boot require a 2048 bit RSA asymettric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
+Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
 
 #### Install Python Crypto support (the pycryptodomex module)
 ```bash
@@ -90,24 +90,28 @@ must be placed in the boot partition of the Raspberry Pi.
 
 The contents of the boot.img are the files normally present in the Raspberry Pi OS boot
 partition i.e. firmware, DTBs and kernel image. However, in order to reduce boot time
-it is advisible to remove unused files e.g. firmware or kernel images for Pi models.
+it is advisable to remove unused files e.g. firmware or kernel images for Pi models.
 
-The firmware must be new enough to support secure boot. Either download the latest
-Raspberry Pi OS Bullseye OS image or alternateively, download the files
-for the `raspberrypi-bootloader` APT package directly from Github and use the files
-in the `boot` directory.
+The firmware must be new enough to support secure boot. The latest firmware APT
+package supports secure boot. To download the firmware files directly.
 
 `git clone --depth 1 --branch stable https://github.com/raspberrypi/firmware`
 
 A helper script (`make-boot-image`) is provided to automate the image creation process. This
-script depends upon the mkfs.fat and udisksctl tools and only runs on Linux.
+script depends upon the `mkfs.fat` and `losetup` tools and only runs on Linux.
 
 #### Clone the Raspberry Pi OS boot files
 Copy the contents of `/boot` to a local directory called `secure-boot-files`
 
 #### Set the kernel root device
-Verify that `cmdline.txt` in `secure-boot-files` points to the correct device for the root file-system.
-e.g. `root=/dev/mmcblk0p2` for the normal partition on CM4 EMMC.
+Since the boot filesystem for the firmware is now in a signed disk image the OS cannot write to this.
+Therefore, any changes to `cmdline.txt` must be made before the `boot.img` file is signed.
+
+* Verify that `cmdline.txt` in `secure-boot-files` points to the correct UUID for the root file-system.
+  Alternatively, for testing, you can specify the root device name e.g. `root=/dev/mmcblk0p2`.
+
+* Remove `init-resize.sh` from `cmdline.txt`
+
 
 #### Create the boot image
 The `-p` product argument (pi4,pi400,cm4) tells the script to discard files which are not required by that product. This makes the image smaller and reduces the time taken to calculate the hash of the image file thereby reducing the boot time.
@@ -115,12 +119,14 @@ The `-p` product argument (pi4,pi400,cm4) tells the script to discard files whic
 sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -p pi4
 ```
 
+The maximum supported size for boot.img is currently 64 megabytes.
+
 #### Sign the boot image
 ```bash
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
 
-#### Copy the secure boot image to the device boot filesystem
+#### Copy the secure boot image to the boot partition on the Raspberry Pi.
 Copy `boot.img` and `boot.sig` to the chosen boot filesystem. Secure boot images can be loaded from any of the normal boot devices (e.g. SD, USB, Network).
 
 ### Raspberry Pi Imager - BETA
