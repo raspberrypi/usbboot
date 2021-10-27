@@ -119,7 +119,7 @@ The `-p` product argument (pi4,pi400,cm4) tells the script to discard files whic
 sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -p pi4
 ```
 
-The maximum supported size for boot.img is currently 64 megabytes.
+The maximum supported size for boot.img is currently 96 megabytes.
 
 #### Sign the boot image
 ```bash
