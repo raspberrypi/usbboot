@@ -121,6 +121,24 @@ sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -b pi4
 
 The maximum supported size for boot.img is currently 96 megabytes.
 
+#### Verify the boot image
+To verify that the boot image has been created correctly use losetup to mount the .img file.
+
+```bash
+sudo su
+mkdir -p boot-mount
+LOOP=$(losetup -f)
+losetup -f boot.img
+mount ${LOOP} boot-mount/
+
+ echo boot.img contains
+find boot-mount/
+
+umount boot-mount
+losetup -d ${LOOP}
+rmdir boot-mount
+```
+
 #### Sign the boot image
 ```bash
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
