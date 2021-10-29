@@ -140,8 +140,27 @@ rmdir boot-mount
 ```
 
 #### Sign the boot image
+For secure-boot, `rpi-eeprom-digest` extends the current `.sig` format of
+sha256 + timestamp to include an hex format RSA bit PKCS#1 v1.5 signature. The key length
+must be 2048 bits.
+
 ```bash
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
+```
+#### Hardware security modules
+`rpi-eeprom-digest` is a shell script that wraps a call to `openssl dgst -sign`.
+If the private key is stored withing a hardware security module instead of
+a .PEM file the `openssl` command will need to be replaced with the appropriate call to the HSM.
+
+`rpi-eeprom-digest` called by `update-pieeprom.sh` to sign the EEPROM config file.
+
+The RSA public key must be stored within the EEPROM so that it can be used by the bootloader.
+By default, the RSA public key is automatically extracted from the private key PEM file. Alternatively,
+the public key may be specified separately via the `-p` argument to `update-pieeprom.sh` and `rpi-eeprom-config`.
+
+To extract the public key in PEM format from a private key PEM file run.
+```bash
+openssl rsa -in private.pem -pubout -out public.pem`
 ```
 
 #### Copy the secure boot image to the boot partition on the Raspberry Pi.
