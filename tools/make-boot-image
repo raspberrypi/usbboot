@@ -4,11 +4,11 @@ set -e
 
 TMP_DIR=""
 TMP_IMAGE=""
-IMAGE_SIZE=0
+IMAGE_SIZE=${IMAGE_SIZE:-0}
 MEGABYTE=$((1024 * 1024))
 BOOT_MOUNT=""
 LOOP=""
-NAME=$(basename $0)
+NAME="$(basename "$0")"
 
 # Define these environment variables to override mkfs options
 SECTOR_SIZE=${SECTOR_SIZE:-512}
@@ -57,7 +57,7 @@ mountfs() {
    image="$1"
 
    LOOP=$(losetup -f)
-   losetup ${LOOP} "${image}"
+   losetup "${LOOP}" "${image}"
    [ -e "${LOOP}" ] ||  die "Failed to create loop device ${LOOP}"
 
    BOOT_MOUNT=$(mktemp -d)
@@ -69,11 +69,14 @@ mountfs() {
 
 unmount_image() {
    if [ -d "${BOOT_MOUNT}" ]; then
-       umount "${BOOT_MOUNT}" > /dev/null || true
+       umount "${BOOT_MOUNT}" > /dev/null 2>&1 || true
+       rmdir "${BOOT_MOUNT}"
+       BOOT_MOUNT=""
    fi
 
    if [ -n "${LOOP}" ]; then
       losetup -d "${LOOP}"
+      LOOP=""
    fi
 }
 
@@ -113,13 +116,15 @@ createstaging() {
    content="${TMP_DIR}/content.tar"
    echo "$(cd "${staging}"; ls -R)"
    tar -cf "${content}" "${staging}" > /dev/null 2>&1
-   IMAGE_SIZE=$(stat --printf "%s" "${content}")
-   IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
-   rm -f "${content}"
+   if [ "${IMAGE_SIZE}" = 0 ]; then
+      IMAGE_SIZE=$(stat --printf "%s" "${content}")
+      IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+      rm -f "${content}"
 
-   # Add a little padding for FAT etc and convert to megabytes
-   IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
-   IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+      # Add a little padding for FAT etc and convert to megabytes
+      IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
+      IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+   fi
 
    echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
 
