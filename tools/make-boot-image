@@ -68,11 +68,13 @@ mountfs() {
 }
 
 unmount_image() {
-   image="$1"
-   if [ -f "${LOOP}" ]; then
-      umount "${LOOP}" > /dev/null || true
+   if [ -d "${BOOT_MOUNT}" ]; then
+       umount "${BOOT_MOUNT}" > /dev/null || true
    fi
-   losetup -d "${LOOP}"
+
+   if [ -n "${LOOP}" ]; then
+      losetup -d "${LOOP}"
+   fi
 }
 
 
@@ -189,11 +191,13 @@ checkDependencies
 [ -d "${SOURCE_DIR}" ] || usage
 [ -n "${OUTPUT}" ] || usage
 [ "$(id -u)" = "0" ] || die "\"${NAME}\" must be run as root. Try \"sudo ${NAME}\""
+[ -n "${SUDO_UID}" ] || die "SUDO_UID not defined"
+[ -n "${SUDO_GID}" ] || die "SUDO_GID not defined"
 
 trap cleanup EXIT
 TMP_DIR="$(mktemp -d)"
 STAGING="${TMP_DIR}/staging"
-
+rm -f "${OUTPUT}"
 echo "Processing source files"
 createstaging  "${SOURCE_DIR}" "${STAGING}" "${BOARD}"
 
@@ -201,14 +205,19 @@ echo "Creating FAT file system"
 TMP_IMAGE="${TMP_DIR}/boot.img"
 createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
 
-echo "Copying files"
+echo "Copying files to temporary mount ${BOOT_MOUNT}"
 mountfs "${TMP_IMAGE}"
 cp -rv "${staging}"/* "${BOOT_MOUNT}"
+sync
 
 echo "Sync"
-unmount_image "${IMAGE}"
-cp -f "${TMP_IMAGE}" "${OUTPUT}"
+sync
 
-echo "Created image"
+echo "Unmount"
+unmount_image
+
+cp -f "${TMP_IMAGE}" "${OUTPUT}"
+chown "${SUDO_UID}:${SUDO_GID}" "${OUTPUT}"
+
+echo "Created image ${OUTPUT}"
 file "${OUTPUT}"
-ls -l "${OUTPUT}"
