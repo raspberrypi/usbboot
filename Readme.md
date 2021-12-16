@@ -165,18 +165,3 @@ openssl rsa -in private.pem -pubout -out public.pem`
 
 #### Copy the secure boot image to the boot partition on the Raspberry Pi.
 Copy `boot.img` and `boot.sig` to the chosen boot filesystem. Secure boot images can be loaded from any of the normal boot devices (e.g. SD, USB, Network).
-
-### Raspberry Pi Imager - BETA
-The Raspberry Pi Imager can be run natively on the CM4 providing a GUI for downloading and installing the operating system.
-
-Beta notes:
-* The current version runs rpi-update upon completion in order to update the firwamre and kernel.
-* uart_2ndstage is enabled 
-* The HDMI display is limited to 1080p to avoid potential problems with cables etc if a 4K display is attached.
-
-Run Raspberry Pi Imager:  
-```bash
-sudo ./rpiboot -d imager
-```
-
-Once the imager is running you will be prompted to remove the micro-usb cable and connect a mouse.
