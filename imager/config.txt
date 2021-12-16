@@ -1,3 +1,0 @@
-boot_ramdisk=1
-uart_2ndstage=1
-
