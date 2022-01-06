@@ -1,5 +1,5 @@
 rpiboot: main.c msd/bootcode.h msd/start.h msd/bootcode4.h msd/start4.h
-	$(CC) -Wall -Wextra -g -o $@ $< -lusb-1.0
+	$(CC) -Wall -Wextra -g -o $@ $< `pkg-config --cflags --libs libusb-1.0`
 
 %.h: %.bin ./bin2c
 	./bin2c $< $@
