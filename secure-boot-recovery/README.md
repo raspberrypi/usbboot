@@ -81,8 +81,8 @@ To enable this edit the `config.txt` file in this directory and set
 
 * `program_pubkey` - If 1, write the hash of the customer's public key to OTP.
 * `revoke_devkey` - If 1, revoke the ROM bootloader development key which
- requires secure-boot mode and prevents downgrades to bootloader versions that
- don't support secure boot.
+   requires secure-boot mode and prevents downgrades to bootloader versions that
+    don't support secure boot.
 
  ** DO NOT SET THIS `revoke_devkey` UNTIL THE BOOTLOADER IS SIGNED WITH THE SECURE
 BOOT KEY. IT WILL PREVENT THE PI FROM BOOTING.**

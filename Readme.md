@@ -63,8 +63,10 @@ On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch t
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
 <a name="secure-boot"></a>
-## Secure Boot -  BETA
-Secure Boot is currently a BETA release feature and the functionality to permanently enable secure-boot via OTP is not enabled in this release.
+## Secure Boot
+Secure Boot requires the latest stable bootloader image.
+WARNING: If the `revoke_devkey` option is used to revoke the ROM development key then it will
+not be possible to downgrade to a bootloader older than 2022-01-06 OR disable secure-boot mode.
 
 ### Host setup
 Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
