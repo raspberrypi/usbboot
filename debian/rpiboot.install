@@ -10,7 +10,6 @@ secure-boot-recovery/*.md usr/share/rpiboot/secure-boot-recovery/
 secure-boot-recovery/*.bin usr/share/rpiboot/secure-boot-recovery/
 secure-boot-msd/*.bin usr/share/rpiboot/secure-boot-msd/
 secure-boot-msd/*.img usr/share/rpiboot/secure-boot-msd/
-secure-boot-msd/*.msd usr/share/rpiboot/secure-boot-msd/
 secure-boot-msd/*.md usr/share/rpiboot/secure-boot-msd/
 tools/* usr/share/rpiboot/tools/
 debian/99-rpiboot.rules /lib/udev/rules.d
