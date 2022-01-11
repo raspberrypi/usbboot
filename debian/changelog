@@ -1,3 +1,49 @@
+rpiboot (20220111~130126) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * make-boot-image: Use losetup instead of udisksctl
+  * secure-boot BETA documentation updates
+  * beta: Add support for secure-boot - see Readme.md
+  * secure-boot: Added example boot.img
+  * make-boot-image: Fix typo in docs AFT_SIZE -> FAT_SIZE
+  * secure-boot: Move the example PEM file to secure-boot-example
+  * secure-boot: Update recovery,bootcode4 + EEPROM to latest beta - 2021-10-27
+  * secure-boot: Update Readme to update max ramdisk size to 96MB
+  * Readme: Add docs for examining the contents of boot.img
+  * secure-boot: Add more documentation about the RSA signatures and add optional public key argument
+  * make-boot-image: Fix unmount and set GID
+  * make-boot-image: Enable the image size to be specified
+  * Update the default EEPROM image to 2021-11-22
+  * rpi-eeprom-config: Pull in --edit fixes from rpi-eeprom repo
+  * secure-boot-recovery: Update to latest 2021-11-22 EEPROM
+  * Remove imager beta release
+  * bootloader: Enable revoke_devkey in secure-boot recovery.bin
+  * rpiboot: Add build date and version
+
+  [ Peter Harper ]
+  * bootloader: Remove NVMe beta files
+  * Update bootcode4.bin
+  * Update the default EEPROM image to 2021-12-02
+
+  [ Phil Elwell ]
+  * Bump bootcode.bin
+  * msd: Fix non-2711 MSD support
+
+  [ Nils Werner ]
+  * Update udev rules to use uaccess tag
+
+  [ Christophe Blaess ]
+  * Fix `install` and `uninstall` targets in Makefile.
+
+  [ Dodain ]
+  * Corrected the board flag
+  * Corrected the -b flag in the readme.md
+
+  [ Mathew Wicks ]
+  * Use pkg-config to locate libusb-1.0
+
+ -- Serge Schneider <serge@raspberrypi.com>  Tue, 11 Jan 2022 11:45:02 +0000
+
 rpiboot (20210714~083443) buster; urgency=medium
 
   [ Tim Gover ]
