@@ -3,5 +3,9 @@
 %:
 	dh $@
 
+# Makefile does not follow any conventions
+override_dh_auto_install:
+	true
+
 override_dh_strip:
 	dh_strip -Xstart.elf -Xstart4.elf
