@@ -649,6 +649,8 @@ int main(int argc, char *argv[])
 
 	get_options(argc, argv);
 
+	printf("RPIBOOT: build-date %s version %s %s\n", __DATE__, PKG_VER, GIT_VER);
+
 	// flush immediately
 	setbuf(stdout, NULL);
 
