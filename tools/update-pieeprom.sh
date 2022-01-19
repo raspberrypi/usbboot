@@ -150,7 +150,7 @@ if [ -z "${PUBLIC_PEM_FILE}" ]; then
     PUBLIC_PEM_FILE="${PEM_FILE}"
 fi
 
-DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\..*//').sig"
+DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\.[^.]*$//').sig"
 
 update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}"
 image_digest "${DST_IMAGE}" "${DST_IMAGE_SIG}"
