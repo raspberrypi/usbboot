@@ -1,0 +1,2 @@
+erase_eeprom=1
+uart_2ndstage=1
