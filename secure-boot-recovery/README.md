@@ -51,7 +51,7 @@ cd secure-boot-recovery
 ../tools/update-pieeprom.sh -k "${KEY_FILE}"
 ```
 
-`pieeprom.bin` can then be flashed to the bootloader EEPROM via rpiboot.
+`pieeprom.bin` can then be flashed to the bootloader EEPROM via `rpiboot`.
 
 ## Program the EEPROM image using rpiboot
 * Power off CM4
@@ -72,9 +72,11 @@ onwards:
 * The EEPROM configuration file must be signed with the customer private key.
 * It is not possible to install an old version of the bootloader that does
   support secure boot.
-* **It is NOT possible to use a different private key to signed the OS images**
+* This option requires EEPROM version 2022-01-06 or newer.
+* BETA bootloader releases are not signed with the ROM secure boot key and will
+  not boot on a system where `revoke_devkey` has been set.
 
-**WARNING: THESE OPTIONS PERMANENTLY THE BCM2711 CHIP AND ARE IRREVERSIBLE.**
+**WARNING: Modifications to OTP are irreversible. Once `revoke_devkey` has been set it is not possible to unlock secure-boot mode or use a different private key.**
 
 To enable this edit the `config.txt` file in this directory and set
 `program_pubkey=1`
