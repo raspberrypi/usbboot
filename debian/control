@@ -8,7 +8,7 @@ Homepage: https://github.com/raspberrypi/usbboot
 
 Package: rpiboot
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3
 Description: Raspberry Pi USB booting code
  USB MSD boot code which should work on the Raspberry Pi model A,
  Compute Module, Compute Module 3, Compute Module 4 and Raspberry Pi Zero.
