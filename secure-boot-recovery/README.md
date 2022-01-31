@@ -86,9 +86,6 @@ To enable this edit the `config.txt` file in this directory and set
    requires secure-boot mode and prevents downgrades to bootloader versions that
     don't support secure boot.
 
- ** DO NOT SET THIS `revoke_devkey` UNTIL THE BOOTLOADER IS SIGNED WITH THE SECURE
-BOOT KEY. IT WILL PREVENT THE PI FROM BOOTING.**
-
 ## Disabling VideoCore JTAG
 
 VideoCore JTAG may be permentantly disabled by setting `program_jtag_lock` in
