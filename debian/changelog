@@ -1,3 +1,9 @@
+rpiboot (20220131~103329) bullseye; urgency=medium
+
+  * Add python3 dependency
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 31 Jan 2022 10:33:51 +0000
+
 rpiboot (20220131~101805) bullseye; urgency=medium
 
   [ Tim Gover ]
