@@ -1,3 +1,19 @@
+rpiboot (20220131~101805) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * Update EEPROM to latest stable release 2022-01-25
+  * secure-boot: Specify the minimum version for secure-boot mode.
+  * eeprom-erase: Add option to erase the SPI EEPROM
+  * Add eeprom-erase to the APT package
+  * secure-boot: Remove unnecessary warning
+
+  [ katiefaith ]
+  * Fixed regex for sig file to replace only extension
+  * Update tools/update-pieeprom.sh to not truncate a filepath with '.'s
+    but no file extension e.g. previously, ../../filename would generate ../.sig
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 31 Jan 2022 10:21:24 +0000
+
 rpiboot (20220111~130126) bullseye; urgency=medium
 
   [ Tim Gover ]
