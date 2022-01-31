@@ -1,7 +1,7 @@
 rpiboot usr/bin
-eeprom-erase/*.txt
-eeprom-erase/*.md
-eeprom-erase/*.bin
+eeprom-erase/*.txt usr/share/rpiboot/eeprom-erase
+eeprom-erase/*.md usr/share/rpiboot/eeprom-erase
+eeprom-erase/*.bin usr/share/rpiboot/eeprom-erase
 msd/*.elf usr/share/rpiboot/msd/
 msd/*.bin usr/share/rpiboot/msd/
 recovery/*.bin usr/share/rpiboot/recovery/
