@@ -1,3 +1,10 @@
+rpiboot (20220208~181027) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * pieeprom-2022-02-08: Fix boot failure in locked secure-boot
+
+ -- Serge Schneider <serge@raspberrypi.com>  Wed, 09 Feb 2022 10:31:22 +0000
+
 rpiboot (20220131~103329) bullseye; urgency=medium
 
   * Add python3 dependency
