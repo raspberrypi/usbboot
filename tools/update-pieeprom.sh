@@ -41,8 +41,8 @@ cat <<EOF
     RSA signature support requires the Python Crypto module. To install:
     python3 -m pip install Crypto
 
-    -c Bootloader config file - default: "${SRC_IMAGE}"
-    -i Source EEPROM image - default: "${CONFIG}"
+    -c Bootloader config file - default: "${CONFIG}"
+    -i Source EEPROM image - default: "${SRC_IMAGE}"
     -o Output EEPROM image - default: "${DST_IMAGE}"
     -k Optional RSA private key PEM file.
     -p Optional RSA public key PEM file.
