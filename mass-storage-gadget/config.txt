@@ -1,0 +1,5 @@
+# Load boot.img which contains usb.elf
+# In signed-boot or secure-boot mode the bootloader checks the
+# RSA signature of the ramdisk. The signature is located in boot.sig
+boot_ramdisk=1
+uart_2ndstage=1
