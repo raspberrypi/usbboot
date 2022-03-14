@@ -92,14 +92,33 @@ FunctionEnd
 Section "Raspberry Pi USB Boot" Sec_rpiboot
 
   SetOutPath "$INSTDIR"
-
   File /r redist
-  File /r ..\msd
-  File /r ..\recovery
-  File /r ..\secure-boot-recovery
-  File /r ..\secure-boot-msd
-  File /r ..\tools
+  
+  SetOutPath "$INSTDIR\msd"
+  File /r ..\msd\*.*
+  
+  SetOutPath "$INSTDIR\recovery"
+  File /r ..\recovery\*.*
+  
+  SetOutPath "$INSTDIR\mass-storage-gadget"
+  File /r ..\mass-storage-gadget\*.*
+  
+  SetOutPath "$INSTDIR\rpi-imager-embedded"
+  File /r ..\rpi-imager-embedded\*.*
+  
+  SetOutPath "$INSTDIR\secure-boot-example"
+  File /r ..\secure-boot-example\*.*
+  
+  SetOutPath "$INSTDIR\secure-boot-msd"
+  File /r ..\secure-boot-msd\*.*
+  
+  SetOutPath "$INSTDIR\secure-boot-recovery"
+  File /r ..\secure-boot-recovery\*.*
+  
+  SetOutPath "$INSTDIR\tools"
+  File /r ..\tools\*.*
 
+  SetOutPath "$INSTDIR"
   DetailPrint "Installing BCM2708 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0' $0 
   DetailPrint "Driver install returned $0"
@@ -111,7 +130,7 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   DetailPrint "Installing BCM2711 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2711 -t 0' $0 
   DetailPrint "Driver install returned $0"
-
+  
   File cyggcc_s-1.dll
   File cygusb-1.0.dll
   File cygwin1.dll
@@ -146,8 +165,14 @@ SectionEnd
 Section "Uninstall"
 
   RmDir /r /REBOOTOK $INSTDIR\redist
+  RmDir /r /REBOOTOK $INSTDIR\mass-storage-gadget
   RmDir /r /REBOOTOK $INSTDIR\msd
   RmDir /r /REBOOTOK $INSTDIR\recovery
+  RmDir /r /REBOOTOK $INSTDIR\rpi-imager-embedded
+  RmDir /r /REBOOTOK $INSTDIR\secure-boot-example
+  RmDir /r /REBOOTOK $INSTDIR\secure-boot-msd
+  RmDir /r /REBOOTOK $INSTDIR\secure-boot-recovery
+  RmDir /r /REBOOTOK $INSTDIR\tools
   RmDir /r /REBOOTOK $INSTDIR\usb_driver
 
   Delete $INSTDIR\Uninstall.exe
