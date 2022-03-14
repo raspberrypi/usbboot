@@ -1,24 +1,31 @@
-# USB boot code
+# USB device boot code
 
 This is the USB MSD boot code which should work on the Raspberry Pi model A, Compute Module, Compute
 Module 3, Compute Module 4 and Raspberry Pi Zero.
 
-This version of rpiboot has been modified to work from directories which contain the booting
-firmware.  There is a msd/ directory which contains bootcode.bin and start.elf to turn
-the Raspberry Pi device into a USB Mass Storage Device (MSD). If run without arguments
-embedded versions of bootcode.bin and start.elf are used to enable the MSD behaviour.
+The default behaviour when run with no arguments is to boot the Raspberry Pi with
+special firmware sot that it emulates USB Mass Storage Device (MSD). The host OS
+will treat this as a normal USB mass storage device and allowing the file-system
+to be accessed. If the storage has not been formatted then (default for Compute Module)
+then the [Raspberry Pi Imager App](https://www.raspberrypi.com/software/) can be
+used to install a new operating system.
 
-For more information run 'rpiboot -h'
+Since `RPIBOOT` is a generic firmware loading interface it is possible to load
+other versions of the firmware by passing the `-d` flag to specify the directory
+where the firmware should be loaded from.
+E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
+
+For more information run `rpiboot -h`
 
 ## Building
 
-### Ubuntu
-Clone this on your Pi or an Ubuntu linux machine
+### Linux / Cygwin / WSL
+Clone this on your Pi or a Linux machine.  
+Make sure that the system date is set correctly, otherwise, Git may produce an error.
 
 ```
+sudo apt install git libusb-1.0-0-dev
 git clone --depth=1 https://github.com/raspberrypi/usbboot
-cd usbboot
-sudo apt install libusb-1.0-0-dev
 make
 sudo ./rpiboot
 ```
@@ -41,26 +48,27 @@ make
 sudo ./rpiboot
 ```
 
-**Note:** You might see an OS warning message about a new disk that it can't access, click "ignore", this likely means that the storage is empty and has no filesystem. From here I recommend installing an OS using the [Raspberry Pi Imager App](https://www.raspberrypi.org/software/), or using any other means like `dd`.
+## Running
 
-## Running your own (not MSD) build
+### Compute Module 3
+Fit the `EMMC-DISABLE` jumper on the Compute Module IO board before powering on the board
+or connecting the USB cable.
 
-If you would like to boot the Raspberry Pi with a standard build you just need to copy the FAT partition
-files into a subdirectory (it must have at the minimum bootcode.bin and start.elf).  If you take a
-standard firmware release then this will at the very least boot the linux kernel which will then stop
-(and possibly crash!) when it looks for a filesystem.  To provide a filesystem there are many options,
-you can build an initramfs into the kernel, add an initramfs to the boot directory or provide some
-other interface to the filesystem.
-
-```bash
-sudo ./rpiboot -d boot
-```
-
-This will serve the boot directory to the Raspberry Pi Device.
-
-## Compute Module 4
+### Compute Module 4
 On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
+
+## Compute Module 4 extensions
+In addition to the MSD functionality, there are a number of other utilities that can be loaded
+via RPIBOOT on Compute Module 4.
+
+| Directory | Description |
+| ----------| ----------- |
+| [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
+| [secure-boot-recovery](secure-boot-recovery/README.md) | Scripts that extend the `recovery` process to enable secure-boot, sign images etc |
+| [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
+| [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
+
 
 <a name="secure-boot"></a>
 ## Secure Boot
