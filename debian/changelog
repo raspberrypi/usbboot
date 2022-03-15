@@ -1,3 +1,19 @@
+rpiboot (20220315~121405) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * pieeprom-2022-02-22: Fix EMMC secure-boot
+  * secure-boot-example: Replace example boot.img with minimal 64bit busybox initrd
+  * Add mass-storage-gadget replacement for msd on 2711
+  * Add Raspberry Pi Imager - embedded
+  * Update the top-level Readme.md to describe the '-d' programs
+  * Update packaging for win32/debian installers
+  * Simplify debian install file (#123)
+
+  [ Yago ]
+  * Fix -c and -i default option
+
+ -- Serge Schneider <serge@raspberrypi.com>  Tue, 15 Mar 2022 10:31:33 +0000
+
 rpiboot (20220208~181027) bullseye; urgency=medium
 
   [ Tim Gover ]
