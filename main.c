@@ -459,7 +459,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	FILE * fp = NULL;
-	char path[256];
+	char path[256] = {0};
 
 	// Prevent USB device from requesting files in parent directories
 	if(strstr(fname, ".."))
