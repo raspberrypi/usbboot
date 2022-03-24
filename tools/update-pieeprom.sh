@@ -25,7 +25,7 @@ die() {
 }
 
 cleanup() {
-   [ -f "${TMP_CONFIG}" ] && rm -f "${TMP_CONFIG}"
+   if [ -f "${TMP_CONFIG}" ]; then rm -f "${TMP_CONFIG}"; fi
 }
 
 usage() {
