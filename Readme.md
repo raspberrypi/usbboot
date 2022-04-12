@@ -31,6 +31,8 @@ make
 sudo ./rpiboot
 ```
 
+sudo isn't required if you have write permissions for the `/dev/bus/usb` device.
+
 ### macOS
 From a macOS machine, you can also run usbboot, just follow the same steps:
 
