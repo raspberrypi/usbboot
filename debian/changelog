@@ -1,3 +1,24 @@
+rpiboot (20220427~095022) bullseye; urgency=medium
+
+  [ Wojtek Porczyk ]
+  * tools/update-pieeprom.sh: Fix cleanup exiting 1
+
+  [ Daniel Cousens ]
+  * add sudo hint
+  * fix typo
+
+  [ Dan Pastusek ]
+  * Add inline comments about boot order
+  * Update boot.conf
+
+  [ Evan Gates ]
+  * main: check _POSIX_VERSION for fmemopen
+
+  [ Tim Gover ]
+  * Update EEPROM, recovery.bin and bootcode4.bin to 2022-04-26
+
+ -- Serge Schneider <serge@raspberrypi.com>  Wed, 27 Apr 2022 14:26:11 +0100
+
 rpiboot (20220315~121405) bullseye; urgency=medium
 
   [ Tim Gover ]
