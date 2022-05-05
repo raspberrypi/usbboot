@@ -135,7 +135,7 @@ createstaging() {
 
 checkDependencies() {
    if [ ! -f /sbin/mkfs.fat ]; then
-       die "mkfs.fat is requried. Run this script on Linux"
+       die "mkfs.fat is required. Run this script on Linux"
    fi
 }
 
