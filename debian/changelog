@@ -1,3 +1,12 @@
+rpiboot (20220504~214218) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * Update the Windows release to 20220427~095022
+  * msd: Fix support for older EEPROM release in on 2711
+  * Revert msd/bootcode4.bin to earlier release
+
+ -- Serge Schneider <serge@raspberrypi.com>  Thu, 05 May 2022 09:15:30 +0100
+
 rpiboot (20220427~095022) bullseye; urgency=medium
 
   [ Wojtek Porczyk ]
