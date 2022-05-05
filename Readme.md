@@ -76,6 +76,8 @@ via RPIBOOT on Compute Module 4.
 | [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
 
+** The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin` **
+
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file-system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
 boot Linux. To do this, you will need to copy all of the files from a Raspberry Pi boot partition plus create your own
