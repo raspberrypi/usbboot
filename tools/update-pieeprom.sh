@@ -77,7 +77,7 @@ update_eeprom() {
         fi
         update_version=$(strings "${src_image}" | grep BUILD_TIMESTAMP | sed 's/.*=//g')
         if [ "${BOOTLOADER_SECURE_BOOT_MIN_VERSION}" -gt "${update_version}" ]; then
-            die "Source bootloader image ${src_image} does not support secure-boot. Please use a newer verison."
+            die "Source bootloader image ${src_image} does not support secure-boot. Please use a newer version."
         fi
 
         TMP_CONFIG_SIG="$(mktemp)"

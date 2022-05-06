@@ -11,7 +11,7 @@ must be used to enable RPIBOOT if pulled low. The available GPIOs are 2,4,5,6,7,
 since these are high by default.
 
 ### Step 1 - Erase the EEPROM
-In order to avoid this OTP configuration being accidently set on Pi 4B / Pi 400
+In order to avoid this OTP configuration being accidentally set on Pi 4B / Pi 400
 this option can only be set via RPIBOOT. To force RPIBOOT on a Pi 4B / Pi 400
 erase the SPI EEPROM.
 

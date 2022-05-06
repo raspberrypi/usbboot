@@ -125,7 +125,7 @@ rpiboot (20210714~083443) buster; urgency=medium
   * Don't load bootcode from the overlay directory
   * pieeprom-2021-01-16: Update to latest release for BCM2711 XHCI boot
   * Update EEPROM image to latest CM4 manufacturing image + configuration
-  * msd: CM4: Fix occasionaly USB errors
+  * msd: CM4: Fix occasional USB errors
   * Add native Raspberry Pi Imager port - beta
   * Update Raspberry Pi 4 EEPROM to pieeprom-2021-07-06
 

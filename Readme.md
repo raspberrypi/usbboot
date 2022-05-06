@@ -190,7 +190,7 @@ must be 2048 bits.
 ```
 #### Hardware security modules
 `rpi-eeprom-digest` is a shell script that wraps a call to `openssl dgst -sign`.
-If the private key is stored withing a hardware security module instead of
+If the private key is stored within a hardware security module instead of
 a .PEM file the `openssl` command will need to be replaced with the appropriate call to the HSM.
 
 `rpi-eeprom-digest` called by `update-pieeprom.sh` to sign the EEPROM config file.
