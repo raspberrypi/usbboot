@@ -76,7 +76,7 @@ via RPIBOOT on Compute Module 4.
 | [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
 
-** The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin` **
+**The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin`**
 
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file-system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
@@ -130,7 +130,7 @@ script depends upon the `mkfs.fat` and `losetup` tools and only runs on Linux.
 ### Root file-system
 Normally, the Kernel modules and overlays for a secure-boot system would be provided
 in an [initramfs](https://www.raspberrypi.com/documentation/computers/config_txt.html#initramfs)
-and built with (buildroot)[https://buildroot.org/] or (yocto)[https://www.yoctoproject.org/].
+and built with [buildroot](https://buildroot.org/) or [yocto](https://www.yoctoproject.org/).
 
 This ensures that all of the kernel modules and device tree dependencies are covered
 by the secure-boot signature.
@@ -201,7 +201,7 @@ the public key may be specified separately via the `-p` argument to `update-piee
 
 To extract the public key in PEM format from a private key PEM file, run:  
 ```bash
-openssl rsa -in private.pem -pubout -out public.pem`
+openssl rsa -in private.pem -pubout -out public.pem
 ```
 
 #### Copy the secure boot image to the boot partition on the Raspberry Pi.
