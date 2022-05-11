@@ -1,0 +1,3 @@
+# Load the boot files from the ramdisk which is signed in secure-boot mode
+boot_ramdisk=1
+uart_2ndstage=1

@@ -91,6 +91,9 @@ Secure Boot requires the latest stable bootloader image.
 WARNING: If the `revoke_devkey` option is used to revoke the ROM development key then it will
 not be possible to downgrade to a bootloader older than 2022-01-06 OR disable secure-boot mode.
 
+### Tutorial
+Creating a secure-boot system from scratch can be quite complex. The [secure-boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi specific aspects of secure-boot work.
+
 ### Host setup
 Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
 
