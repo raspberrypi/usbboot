@@ -76,7 +76,7 @@ via RPIBOOT on Compute Module 4.
 | [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
 
-** The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin` **
+**The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin`**
 
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file-system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
@@ -90,6 +90,9 @@ the minimal set of files required from the boot partition.
 Secure Boot requires the latest stable bootloader image.
 WARNING: If the `revoke_devkey` option is used to revoke the ROM development key then it will
 not be possible to downgrade to a bootloader older than 2022-01-06 OR disable secure-boot mode.
+
+### Tutorial
+Creating a secure-boot system from scratch can be quite complex. The [secure-boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi specific aspects of secure-boot work.
 
 ### Host setup
 Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
@@ -130,7 +133,7 @@ script depends upon the `mkfs.fat` and `losetup` tools and only runs on Linux.
 ### Root file-system
 Normally, the Kernel modules and overlays for a secure-boot system would be provided
 in an [initramfs](https://www.raspberrypi.com/documentation/computers/config_txt.html#initramfs)
-and built with (buildroot)[https://buildroot.org/] or (yocto)[https://www.yoctoproject.org/].
+and built with [buildroot](https://buildroot.org/) or [yocto](https://www.yoctoproject.org/).
 
 This ensures that all of the kernel modules and device tree dependencies are covered
 by the secure-boot signature.
@@ -201,7 +204,7 @@ the public key may be specified separately via the `-p` argument to `update-piee
 
 To extract the public key in PEM format from a private key PEM file, run:  
 ```bash
-openssl rsa -in private.pem -pubout -out public.pem`
+openssl rsa -in private.pem -pubout -out public.pem
 ```
 
 #### Copy the secure boot image to the boot partition on the Raspberry Pi.
