@@ -1,26 +1,26 @@
-# Secure-boot quickstart
+# Secure Boot Quickstart
 
 ## Overview
-Secure-boot is a mechanism for verifying the integrity of the kernel image and 
+Secure boot is a mechanism for verifying the integrity of the kernel image and 
 other files required during boot by storing them in a signed ramdisk image.
-These files include the GPU firmware (start.elf etc), Kernel, initrd, device-tree tree
+These files include the GPU firmware (start.elf etc), kernel, initrd, Device Tree
 and overlays.
-Secure-boot does not depend on particular OS, nor does it provide services
-to the OS after startup.  However, since the secure-boot will only load trusted 
-kernel + initrd images the kernel/initrd can safely verify or mount an
-an encrypted file-system e.g. by using a TPM.
+Secure boot does not depend on a particular OS, nor does it provide services
+to the OS after startup. However, since secure boot will only load trusted 
+kernel and initrd images, the kernel/initrd can safely verify or mount an
+an encrypted file system e.g. by using a TPM.
 
-N.B The memory for the secure ramdisk is reclaimed as soon as the CPU is started.
+N.B. The memory for the secure ramdisk is reclaimed as soon as the CPU is started.
 
 ## Example OS
 This example includes a simple buildroot image for Compute Module 4 in order
-to demonstrate secure-boot on a simple but functional OS.
+to demonstrate secure boot on a simple but functional OS.
 
-The example does NOT modify the OTP or make other permanent changes to the system
-and the code-signing can be disabled by reflashing the default bootloader EEPROM.
+The example does NOT modify the OTP or make other permanent changes to the system;
+ the code signing can be disabled by reflashing the default bootloader EEPROM.
 
-The tutorial does not cover how to create the `boot.img` file or permanently
-require secure-boot in OTP. Please see the top level [README](../Readme.md#building) and
+This tutorial does not cover how to create the `boot.img` file or permanently
+require secure boot in OTP. Please see the top level [README](../Readme.md#building) and
 [secure-boot-recovery/README](../secure-boot-recovery/README.md) guides for
 more information.
 
@@ -51,7 +51,7 @@ make
 See the top-level [README](../Readme.md) for build instructions.
 
 ### Hardware setup for `rpiboot` mode
-Prepare the Compute Module for `rpiboot` mode.
+Prepare the Compute Module for `rpiboot` mode:
 
 * Set the `nRPIBOOT` jumper which is labelled `Fit jumper to disable eMMC Boot' on the Compute Module 4 IO board.
 * Connect the micro USB cable to the `USB slave` port on the CM4 IO board.
@@ -59,20 +59,20 @@ Prepare the Compute Module for `rpiboot` mode.
 * Connect the USB serial adapter to [GPIO 14/15](https://www.raspberrypi.com/documentation/computers/os.html#gpio-and-the-40-pin-header) on the 40-pin header.
 
 ### Reset the Compute Module EEPROM
-Enable `rpiboot` mode and flash the latest EEPROM image
+Enable `rpiboot` mode and flash the latest EEPROM image:
 ```bash
 ./rpiboot -d recovery
 ```
 
 ### Boot the example image
-Enable `rpiboot` mode and load the OS via `rpiboot` without enabling code-signing.
+Enable `rpiboot` mode and load the OS via `rpiboot` without enabling code-signing:
 ```bash
 ./rpiboot -d secure-boot-example
 ```
 The OS should load and show activity on the boot UART and HDMI console.
 
 ### Generate a signing key
-Secure-boot requires a 2048 bit RSA private key. You can either use a pre-existing
+Secure boot requires a 2048 bit RSA private key. You can either use a pre-existing
 key or generate an specific key for this example. The `KEY_FILE` environment variable
 used in the following instructions must contain the absolute path to the RSA private key in
 PEM format.
@@ -82,10 +82,10 @@ openssl genrsa 2048 > private.pem
 export KEY_FILE=$(pwd)/private.pem
 ```
 
-**In a production environment it's essential that this key-file is stored privately and securely.**
+**In a production environment it's essential that this key file is stored privately and securely.**
 
 ### Update the EEPROM to require signed OS images
-Enable `rpiboot` mode and flash the bootloader EEPROM with updated setting enables code-signing.
+Enable `rpiboot` mode and flash the bootloader EEPROM with updated setting enables code signing.
 
 The `boot.conf` file sets the `SIGNED_BOOT` property `1` which instructs the bootloader to only
 load files (firmware, kernel, overlays etc) from `boot.img` instead of the normal boot partition and verify the `boot.img` signature `boot.sig` using the public key in the EEPROM.
@@ -113,7 +113,7 @@ cd ..
 
 ### Launch the signed OS image
 Enable `rpiboot` mode and run the example OS as before. However, if the
-`boot.sig` signature does not match `boot.img` the bootloader will refuse to
+`boot.sig` signature does not match `boot.img`, the bootloader will refuse to
 load the OS.
 
 ```bash
@@ -124,35 +124,35 @@ This example OS image is minimal Linux ramdisk image. Login as `root` with the e
 
 ### Mount the CM4 SD/EMMC after enabling secure-boot
 Now that `SIGNED_BOOT` is enabled the bootloader will only load images signed with private key generated earlier. 
-To boot the Compute Module in mass-storage mode a signed version of this code must be generated.  
+To boot the Compute Module in mass storage mode a signed version of this code must be generated.  
   
-**This signed-image should not be made available for download because it gives access to the EMMC as a block device**
+**This signed image should not be made available for download because it gives access to the EMMC as a block device.**
 
 
 #### Sign the mass storage firmware image
-Sign the mass-storage drivers in the `secure-boot-msd` directory. Please see the [top level README](../Readme.md#compute-module-4-extensions) for a description of the different `usbboot` firmware drivers.
+Sign the mass storage drivers in the `secure-boot-msd` directory. Please see the [top level README](../Readme.md#compute-module-4-extensions) for a description of the different `usbboot` firmware drivers.
 ```bash
 cd secure-boot-msd
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 cd ..
 ```
 
-#### Enable MSD mode.
-A new mass-storage device should now be visible on the host-OS. On Linux check `dmesg` for something like '/dev/sda'
+#### Enable MSD mode
+A new mass storage device should now be visible on the host OS. On Linux check `dmesg` for something like '/dev/sda'.
 ```bash
 ./rpiboot -d secure-boot-msd
 ```
 
-### Loading `boot.img` from SD/EMMC.
+### Loading `boot.img` from SD/EMMC
 The bootloader can load a ramdisk `boot.img` from any of the bootable modes defined by the [BOOT_ORDER](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#BOOT_ORDER) EEPROM config setting.
 
-For example.
+For example:
 
 * Boot the CM4 in MSD mode as explained in the previous step.
-* Copy the `boot.img` and `boot.sig` files from the `secure-boot-example` stage to the mass-storage-drive. No other files are required.
+* Copy the `boot.img` and `boot.sig` files from the `secure-boot-example` stage to the mass storage drive: No other files are required.
 * Remove the `nRPIBOOT` jumper.
 * Power cycle the CM4 IO board.
 * The system should now boot into the OS.
 
-N.B. The example image is currently the same as the `mass-storage-gadget so the EMMC/SD will appear as block devices on the host PC if the micro USB cable is still connected.
+N.B. The example image is currently the same as the `mass storage-gadget`, so the EMMC/SD will appear as block devices on the host PC if the micro USB cable is still connected.
 
