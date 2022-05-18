@@ -1,26 +1,26 @@
-# USB device boot code
+# USB Device Boot Code
 
-This is the USB MSD boot code which should work on the Raspberry Pi model A, Compute Module, Compute
+This is the USB MSD boot code which supports the Raspberry Pi 1A, Compute Module, Compute
 Module 3, Compute Module 4 and Raspberry Pi Zero.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
-will treat this as a normal USB mass storage device allowing the file-system
+will treat this as a normal USB mass storage device allowing the file system
 to be accessed. If the storage has not been formatted yet (default for Compute Module)
 then the [Raspberry Pi Imager App](https://www.raspberrypi.com/software/) can be
 used to install a new operating system.
 
-Since `RPIBOOT` is a generic firmware loading interface it is possible to load
+Since `RPIBOOT` is a generic firmware loading interface, it is possible to load
 other versions of the firmware by passing the `-d` flag to specify the directory
 where the firmware should be loaded from.
 E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
 
-For more information run `rpiboot -h`
+For more information run `rpiboot -h`.
 
 ## Building
 
 ### Linux / Cygwin / WSL
-Clone this on your Pi or a Linux machine.  
+Clone this repository on your Pi or other Linux machine.  
 Make sure that the system date is set correctly, otherwise Git may produce an error.
 
 ```
@@ -31,7 +31,7 @@ make
 sudo ./rpiboot
 ```
 
-sudo isn't required if you have write permissions for the `/dev/bus/usb` device.
+`sudo` isn't required if you have write permissions for the `/dev/bus/usb` device.
 
 ### macOS
 From a macOS machine, you can also run usbboot, just follow the same steps:
@@ -63,7 +63,7 @@ Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
 
 <a name="extensions"></a>
-## Compute Module 4 extensions
+## Compute Module 4 Extensions
 In addition to the MSD functionality, there are a number of other utilities that can be loaded
 via RPIBOOT on Compute Module 4.
 
@@ -79,7 +79,7 @@ via RPIBOOT on Compute Module 4.
 **The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin`**
 
 ## Booting Linux
-The `RPIBOOT` protocol provides a virtual file-system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
+The `RPIBOOT` protocol provides a virtual file system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
 boot Linux. To do this, you will need to copy all of the files from a Raspberry Pi boot partition plus create your own
 initramfs.
 On Raspberry Pi 4 / CM4 the recommended approach is to use a `boot.img` which is a FAT disk image containing
@@ -92,12 +92,12 @@ WARNING: If the `revoke_devkey` option is used to revoke the ROM development key
 not be possible to downgrade to a bootloader older than 2022-01-06 OR disable secure-boot mode.
 
 ### Tutorial
-Creating a secure-boot system from scratch can be quite complex. The [secure-boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi specific aspects of secure-boot work.
+Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
 
-### Host setup
+### Host Setup
 Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
 
-#### Install Python Crypto support (the pycryptodomex module)
+#### Install Python Crypto Support (the pycryptodomex module)
 ```bash
 python3 -m pip install pycryptodomex
 # or
@@ -130,7 +130,7 @@ package supports secure boot. To download the firmware files directly.
 A helper script (`make-boot-image`) is provided to automate the image creation process. This
 script depends upon the `mkfs.fat` and `losetup` tools and only runs on Linux.
 
-### Root file-system
+### Root File System
 Normally, the Kernel modules and overlays for a secure-boot system would be provided
 in an [initramfs](https://www.raspberrypi.com/documentation/computers/config_txt.html#initramfs)
 and built with [buildroot](https://buildroot.org/) or [yocto](https://www.yoctoproject.org/).
