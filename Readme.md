@@ -1,7 +1,7 @@
 # USB Device Boot Code
 
-This is the USB MSD boot code which supports the Raspberry Pi 1A, Compute Module, Compute
-Module 3, Compute Module 4 and Raspberry Pi Zero.
+This is the USB MSD boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
+Module 3, 3+ and 4, Raspberry Pi Zero and Zero 2 W.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
