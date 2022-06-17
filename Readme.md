@@ -24,7 +24,7 @@ Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
 
 ```
-sudo apt install git libusb-1.0-0-dev
+sudo apt install git libusb-1.0-0-dev pkg-config
 git clone --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
