@@ -9,3 +9,7 @@ override_dh_auto_install:
 
 override_dh_strip:
 	dh_strip -Xstart.elf -Xstart4.elf
+
+override_dh_install:
+	dh_install
+	find $(CURDIR)/debian -name .gitignore -delete

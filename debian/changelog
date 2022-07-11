@@ -1,3 +1,19 @@
+rpiboot (20220708~133956) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * readme: Fix links/formatting
+  * secure-boot-example: Add step by step example / quick start
+  * bootcode4: Improved DDR setup for old (or missing) EEPROM images
+  * Update recovery/rpi-eeprom-config
+
+  [ andrum99 ]
+  * Copy edit
+
+  [ Phil Elwell ]
+  * README: pkg-config is also a dependency
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 11 Jul 2022 08:43:19 +0100
+
 rpiboot (20220504~214218) bullseye; urgency=medium
 
   [ Tim Gover ]
