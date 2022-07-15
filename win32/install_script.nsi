@@ -95,25 +95,32 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File /r redist
   
   SetOutPath "$INSTDIR\msd"
-  File /r ..\msd\*.*
+  File /r /x bootcode4.bin ..\msd\*.*
+  File ..\bootcode4.bin 
   
   SetOutPath "$INSTDIR\recovery"
-  File /r ..\recovery\*.*
+  File /r /x bootcode4.bin ..\recovery\*.*
+  File /oname=bootcode4.bin ..\recovery.bin
   
   SetOutPath "$INSTDIR\mass-storage-gadget"
-  File /r ..\mass-storage-gadget\*.*
+  File /r /x bootcode4.bin ..\mass-storage-gadget\*.*
+  File ..\bootcode4.bin 
   
   SetOutPath "$INSTDIR\rpi-imager-embedded"
-  File /r ..\rpi-imager-embedded\*.*
+  File /r /x bootcode4.bin ..\rpi-imager-embedded\*.*
+  File ..\bootcode4.bin 
   
   SetOutPath "$INSTDIR\secure-boot-example"
-  File /r ..\secure-boot-example\*.*
+  File /r /x bootcode4.bin ..\secure-boot-example\*.*
+  File ..\bootcode4.bin 
   
   SetOutPath "$INSTDIR\secure-boot-msd"
-  File /r ..\secure-boot-msd\*.*
+  File /r /x bootcode4.bin ..\secure-boot-msd\*.*
+  File ..\bootcode4.bin 
   
   SetOutPath "$INSTDIR\secure-boot-recovery"
-  File /r ..\secure-boot-recovery\*.*
+  File /r /x bootcode4.bin ..\secure-boot-recovery\*.*
+  File /oname=bootcode4.bin ..\recovery.bin
   
   SetOutPath "$INSTDIR\tools"
   File /r ..\tools\*.*
