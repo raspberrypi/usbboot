@@ -1,3 +1,17 @@
+rpiboot (20220718~085937) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * Replace duplicated bootcode4.bin with links to bootcode4.bin / recovery.bin
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 18 Jul 2022 10:00:12 +0100
+
+rpiboot (20220715~091537) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * Replace duplicated bootcode4.bin with links to bootcode4.bin / recovery.bin
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 18 Jul 2022 09:31:34 +0100
+
 rpiboot (20220708~133956) bullseye; urgency=medium
 
   [ Tim Gover ]
