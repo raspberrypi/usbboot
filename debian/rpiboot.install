@@ -10,5 +10,5 @@ secure-boot-msd usr/share/rpiboot/
 secure-boot-example usr/share/rpiboot/
 tools usr/share/rpiboot/
 debian/70-rpiboot.rules /lib/udev/rules.d
-recovery.bin
-bootcode4.bin
+recovery.bin usr/share/rpiboot/
+bootcode4.bin usr/share/rpiboot/
