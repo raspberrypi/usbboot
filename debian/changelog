@@ -1,3 +1,13 @@
+rpiboot (20220815~145439) bullseye; urgency=medium
+
+  [ Chris Burton ]
+  * Add option to look for CM with specific USB path.
+
+  [ Tim Gover ]
+  * mass-storage-gadget: Switch DWC mode from OTG to peripheral
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 15 Aug 2022 16:57:53 +0100
+
 rpiboot (20220804~165403) bullseye; urgency=medium
 
   [ Tim Gover ]
