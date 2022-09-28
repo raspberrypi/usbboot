@@ -16,7 +16,7 @@ die() {
 
 TMP_DIR=""
 cleanup() {
-   if [ -f "${TMP_DIR}" ]; then
+   if [ -d "${TMP_DIR}" ]; then
       rm -rf "${TMP_DIR}"
    fi
 }
