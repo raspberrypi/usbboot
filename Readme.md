@@ -20,8 +20,10 @@ For more information run `rpiboot -h`.
 ## Building
 
 ### Linux / Cygwin / WSL
-Clone this repository on your Pi or other Linux machine.  
+Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
+
+**This git repository uses symlinks. For Windows builds clone the repository under Cygwin**
 
 ```
 sudo apt install git libusb-1.0-0-dev pkg-config
@@ -84,6 +86,45 @@ boot Linux. To do this, you will need to copy all of the files from a Raspberry 
 initramfs.
 On Raspberry Pi 4 / CM4 the recommended approach is to use a `boot.img` which is a FAT disk image containing
 the minimal set of files required from the boot partition.
+
+## Troubleshooting
+
+This section describes how to diagnose common `rpiboot` failures for Compute Modules. Whilst `rpiboot` is tested on every Compute Module during manufacture the system relies on multiple hardware and software elements. The aim of this guide is to make it easier to identify which component is failing.
+
+### Hardware
+* Inspect the Compute Module pins and connector for signs of damage and verify that the socket is free from debris.
+* Check that the Compute Module is fully inserted.
+* Check that `nRPIBOOT` / EMMC disable is pulled low BEFORE powering on the device.
+* Remove any hubs between the Compute Module and the host.
+* Disconnect all other peripherals from the IO board.
+* Verify that the red power LED switches on when the IO board is powered.
+* Use another computer to verify that the USB cable for `rpiboot` can reliably transfer data. For example, connect it to a Raspberry Pi keyboard with other devices connected to the keyboard USB hub.
+
+#### Hardware - CM4
+* The CM4 EEPROM supports MMC, USB-MSD, USB 2.0, Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
+* If `rpiboot` is running but the mass storage device does not appear then try running the `rpiboot -d mass-storage-gadget` because this uses Linux instead of a custom VPU firmware to implement the mass-storage gadget. This also provides a login console on UART and HDMI.
+
+### Software
+The recommended host setup is Raspberry Pi with Raspberry Pi OS. Alternatively, most Linux X86 builds are also suitable. Windows adds some extra complexity for the USB drivers so we recommend debugging on Linux first.
+
+* Update to the latest software release using `apt update rpiboot` or download and rebuild this repository from Github.
+* Run `rpiboot -v | tee log` to capture verbose log output. N.B. This can be very verbose on some systems.
+
+#### Boot flow
+The `rpiboot` system runs in multiple stages. The ROM, bootcode.bin, the VPU firmware (start.elf) and for the `mass-storage-gadget` or `rpi-imager` a Linux initramfs. Each stage disconnects the USB device and presents a different USB descriptor. Each stage will appears as a new USB device connect in the `dmesg` log.
+
+See also: [Raspberry Pi4 Boot Flow](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-4-boot-flow)
+
+#### bootcode.bin
+Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executable from a different subdirectory. The `rpiboot` process simply looks for a file called `bootcode.bin` (or `bootcode4.bin` on BCM2711). However, the file in `recovery`/`secure-boot-recovery` directories is actually the `recovery.bin` EEPROM flashing tool.
+
+### Diagnostics
+* Monitor the Linux `dmesg` output and verify that a BCM boot device is detected immediately after powering on the device. If not, please check the `hardware` section.
+* Check the green activity LED. On Compute Module 4 this is activated by the software bootloader and should remain on. If not, then it's likely that the initial USB transfer to the ROM failed.
+* On Compute Module 4 connect a HDMI monitor for additional debug output. Flashing the EEPROM using `recovery.bin` will show a green screen and the `mass-storage-gadget` enables a console on the HDMI display.
+* If `rpiboot` starts to download `bootcode4.bin` but the transfer fails then can indicate a cable issue OR a corrupted file. Check the hash of `bootcode.bin` file against this repository and check `dmesg` for USB error.
+* If `bootcode.bin` or the `start.elf` detects an error then [error-code](https://www.raspberrypi.com/documentation/computers/configuration.html#led-warning-flash-codes) will be indicated by flashing the green activity LED.
+* Add `uart_2ndstage=1` to the `config.txt` file in `msd/` or `recovery/` directories to enable UART debug output.
 
 <a name="secure-boot"></a>
 ## Secure Boot
@@ -202,7 +243,7 @@ The RSA public key must be stored within the EEPROM so that it can be used by th
 By default, the RSA public key is automatically extracted from the private key PEM file. Alternatively,
 the public key may be specified separately via the `-p` argument to `update-pieeprom.sh` and `rpi-eeprom-config`.
 
-To extract the public key in PEM format from a private key PEM file, run:  
+To extract the public key in PEM format from a private key PEM file, run:
 ```bash
 openssl rsa -in private.pem -pubout -out public.pem
 ```
