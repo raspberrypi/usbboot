@@ -128,9 +128,7 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 
 <a name="secure-boot"></a>
 ## Secure Boot
-Secure Boot requires the latest stable bootloader image.
-WARNING: If the `revoke_devkey` option is used to revoke the ROM development key then it will
-not be possible to downgrade to a bootloader older than 2022-01-06 OR disable secure-boot mode.
+Secure Boot requires a recent bootloader stable image e.g. the version in this repository.
 
 ### Tutorial
 Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
@@ -156,57 +154,58 @@ openssl genrsa 2048 > private.pem
 * Please see the [secure boot MSD guide](secure-boot-msd/README.md) for instructions about to mount the EMMC via USB mass-storage once secure-boot has been enabled.
 
 ## Secure Boot - image creation
-Secure boot requires a `boot.img` FAT image to be created. This plus a signature file (boot.sig)
-must be placed in the boot partition of the Raspberry Pi.
+Secure Boot requires self-contained ramdisk (`boot.img`) FAT image to be created containing the GPU
+firmware, kernel and any other dependencies that would normally be loaded from the boot partition.
 
-The contents of the `boot.img` are the files normally present in the Raspberry Pi OS boot
-partition i.e. firmware, DTBs and kernel image. However, in order to reduce boot time
-it is advisable to remove unused files e.g. firmware or kernel images for Pi models.
+This plus a signature file (boot.sig) must be placed in the boot partition of the Raspberry Pi
+or network download location.
 
+The `boot.img` file should contain:-
+* The kernel
+* Device tree overlays
+* GPU firmware (start.elf and fixup.dat)
+* Linux initramfs containing the application OR scripts to mount/create an encrypted file-system.
+
+Secure boot is only responsible for loading a verified Linux kernel and initramfs. It does NOT
+verify the integrity of other file-systems or provide file-system encryption. This would normally be
+implemented using standard Linux tools such as [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup).
+and controlled by scripts / systemd services in an initramfs.
+
+### Building `boot.img` using buildroot
+
+The `secure-boot-example` directory contains a simple `boot.img` example with working HDMI,
+network, UART console and common tools in an initramfs.
+
+This was generated from the [raspberrypi-signed-boot](https://github.com/raspberrypi/buildroot/blob/raspberrypi-signed-boot/README.md)
+buildroot config. Whilst not a generic fully featured configuration it should be relatively
+straightforward to cherry-pick the `raspberrypi-secure-boot` package and helper scripts into
+other buildroot configurations.
+
+### Manual boot image creation
+For other systems or manual image creation a helper script `make-boot-image` in the tools
+directory is provided.
+
+To run:-
+* Copy the source firmware + other files into a temporary directory  (`temp`)
+* Run `make-boot-image -d temp -O boot.img`
+* Run `rpi-eeprom-digest -i boot.img -o boot.sig -k private-key.PEM`
+
+`make-boot-image` depends upon the `mkfs.fat` and `losetup` Linux tools.
+
+#### Minimum firmware version
 The firmware must be new enough to support secure boot. The latest firmware APT
 package supports secure boot. To download the firmware files directly.
 
-`git clone --depth 1 --branch stable https://github.com/raspberrypi/firmware`
-
-A helper script (`make-boot-image`) is provided to automate the image creation process. This
-script depends upon the `mkfs.fat` and `losetup` tools and only runs on Linux.
-
-### Root File System
-Normally, the Kernel modules and overlays for a secure-boot system would be provided
-in an [initramfs](https://www.raspberrypi.com/documentation/computers/config_txt.html#initramfs)
-and built with [buildroot](https://buildroot.org/) or [yocto](https://www.yoctoproject.org/).
-
-This ensures that all of the kernel modules and device tree dependencies are covered
-by the secure-boot signature.
-
-Since the `initramfs` is part of the `boot.img` it is possible to replace GPU firmware,
-kernel and dependencies in a single file update.
-
-Alternatively, for test/development the following instructions explain how a normal
-Raspberry Pi OS install can be modified to be booted with the secure-boot loader.
-
-#### Clone the Raspberry Pi OS boot files
-Copy the contents of `/boot` to a local directory called `secure-boot-files`
-
-#### Set the kernel root device
-Since the boot file-system for the firmware is now in a signed disk image the OS cannot write to this.
-Therefore, any changes to `cmdline.txt` must be made before the `boot.img` file is signed.
-
-* Verify that `cmdline.txt` in `secure-boot-files` points to the correct UUID for the root file-system.
-  Alternatively, for testing, you can specify the root device name e.g. `root=/dev/mmcblk0p2`.
-
-* Remove `init-resize.sh` from `cmdline.txt`
-
-
-#### Create the boot image
-The `-b` product argument (pi4,pi400,cm4) tells the script to discard files which are not required by that product. This makes the image smaller and reduces the time taken to calculate the hash of the image file thereby reducing the boot time.
 ```bash
-sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -b pi4
+git clone --depth 1 --branch stable https://github.com/raspberrypi/firmware
 ```
 
-The maximum supported size for boot.img is currently 96 megabytes.
+To check the version information within a `start4.elf` firmware file run
+```bash
+strings start4.elf | grep VC_BUILD_
+```
 
-#### Verify the boot image
+#### Verifying a boot image
 To verify that the boot image has been created correctly use losetup to mount the .img file.
 
 ```bash
@@ -224,7 +223,7 @@ losetup -d ${LOOP}
 rmdir boot-mount
 ```
 
-#### Sign the boot image
+#### Signing the boot image
 For secure-boot, `rpi-eeprom-digest` extends the current `.sig` format of
 sha256 + timestamp to include an hex format RSA bit PKCS#1 v1.5 signature. The key length
 must be 2048 bits.
@@ -232,6 +231,15 @@ must be 2048 bits.
 ```bash
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
+
+To verify the signature of an existing image set the `PUBLIC_KEY_FILE` environment variable
+to the path of the public key file in PEM format.
+
+```bash
+../tools/rpi-eeprom-digest -i boot.img -k "${PUBLIC_KEY_FILE}" -v boot.sig
+```
+
+
 #### Hardware security modules
 `rpi-eeprom-digest` is a shell script that wraps a call to `openssl dgst -sign`.
 If the private key is stored within a hardware security module instead of

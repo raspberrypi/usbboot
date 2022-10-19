@@ -28,7 +28,7 @@ more information.
 * A Raspberry Pi Compute Module 4
 * Micro USB cable for `rpiboot` connection
 * USB serial cable (for debug logs)
-* Linux or Cygwin (Windows 10)
+* Linux, WSL or Cygwin (Windows 10)
 * OpenSSL
 * Python3
 * Python `cryptodomex`
@@ -101,7 +101,7 @@ cd ..
 ```
 
 At this stage OTP has not been modified and the signed image requirement can be reverted by flashing a default, unsigned image. 
-However, once the [OTP secure-boot flags](../secure-boot-recovery/README.md#locking-secure-boot-mode) are set then `SIGNED_BOOT` is permenantely enabled and cannot be overriden via the EEPROM config.
+However, once the [OTP secure-boot flags](../secure-boot-recovery/README.md#locking-secure-boot-mode) are set then `SIGNED_BOOT` is permanently enabled and cannot be overridden via the EEPROM config.
 
 
 ### Update the signature for the example OS image
@@ -154,5 +154,5 @@ For example:
 * Power cycle the CM4 IO board.
 * The system should now boot into the OS.
 
-N.B. The example image is currently the same as the `mass storage-gadget`, so the EMMC/SD will appear as block devices on the host PC if the micro USB cable is still connected.
+The secure-boot example image can be rebuilt and modified using buildroot. See [raspberrypi-signed-boot buildroot](https://github.com/raspberrypi/buildroot/blob/raspberrypi-signed-boot/README.md)
 
