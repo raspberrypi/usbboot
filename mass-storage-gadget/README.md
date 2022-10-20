@@ -42,3 +42,34 @@ N.B. This takes a few seconds longer to initialise than the
 previous mass storage implementation. However, the write speed
 should be much faster now that all of the file-system code
 is running on the ARM processors.
+
+## Source code
+The buildroot configuration and supporting patches is available on
+the [mass-storage-gadget](https://github.com/raspberrypi/buildroot/tree/mass-storage-gadget)
+branch of the Raspberry Pi [buildroot](https://github.com/raspberrypi/buildroot) repo.
+
+### Building
+```bash
+git clone --branch mass-storage-gadget git@github.com:raspberrypi/buildroot.git
+cd buildroot
+make raspberrypicm4io_initrd_defconfig
+make
+```
+
+The output is written to `output/target/images/sdcard.img` and can be copied
+to `boot.img`
+
+Optional:
+Load time can be reduced by optmizing the size of the sdcard.img as
+follows (run as root).
+
+```bash
+mkdir -p source-files
+kpartx -av sdcard.img
+mount /dev/mapper/loop0p1 source-files/
+usbboot/tools/make-boot-image -d source-files/ -o boot.img
+umount source-files
+kpartx -dv sdcard.img
+dmsetup remove /dev/mapper/loop0p1
+losetup -D
+```
