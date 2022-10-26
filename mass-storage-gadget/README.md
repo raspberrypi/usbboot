@@ -50,6 +50,7 @@ branch of the Raspberry Pi [buildroot](https://github.com/raspberrypi/buildroot)
 
 ### Building
 ```bash
+git clone git@github.com:timg236/cm4-scripts.git cm4-msg-overlay
 git clone --branch mass-storage-gadget git@github.com:raspberrypi/buildroot.git
 cd buildroot
 make raspberrypicm4io_initrd_defconfig
