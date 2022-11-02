@@ -105,23 +105,7 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   SetOutPath "$INSTDIR\mass-storage-gadget"
   File /r /x bootcode4.bin ..\mass-storage-gadget\*.*
   File ..\bootcode4.bin 
-  
-  SetOutPath "$INSTDIR\rpi-imager-embedded"
-  File /r /x bootcode4.bin ..\rpi-imager-embedded\*.*
-  File ..\bootcode4.bin 
-  
-  SetOutPath "$INSTDIR\secure-boot-example"
-  File /r /x bootcode4.bin ..\secure-boot-example\*.*
-  File ..\bootcode4.bin 
-  
-  SetOutPath "$INSTDIR\secure-boot-msd"
-  File /r /x bootcode4.bin ..\secure-boot-msd\*.*
-  File ..\bootcode4.bin 
-  
-  SetOutPath "$INSTDIR\secure-boot-recovery"
-  File /r /x bootcode4.bin ..\secure-boot-recovery\*.*
-  File /oname=bootcode4.bin ..\recovery.bin
-  
+   
   SetOutPath "$INSTDIR\tools"
   File /r ..\tools\*.*
 
@@ -142,9 +126,11 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File cygusb-1.0.dll
   File cygwin1.dll
   File ..\rpiboot.exe
+  File rpi-mass-storage-gadget.bat
   
   CreateDirectory "$SMPROGRAMS\Raspberry Pi"
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot.lnk" "$INSTDIR\rpiboot.exe"
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\Raspberry Pi - Mass Storage Gadget.lnk" "$INSTDIR\rpi-mass-storage-gadget.bat" 
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\Uninstall rpiboot.lnk" "$INSTDIR\Uninstall.exe"
 
   ;Store installation folder
@@ -175,10 +161,6 @@ Section "Uninstall"
   RmDir /r /REBOOTOK $INSTDIR\mass-storage-gadget
   RmDir /r /REBOOTOK $INSTDIR\msd
   RmDir /r /REBOOTOK $INSTDIR\recovery
-  RmDir /r /REBOOTOK $INSTDIR\rpi-imager-embedded
-  RmDir /r /REBOOTOK $INSTDIR\secure-boot-example
-  RmDir /r /REBOOTOK $INSTDIR\secure-boot-msd
-  RmDir /r /REBOOTOK $INSTDIR\secure-boot-recovery
   RmDir /r /REBOOTOK $INSTDIR\tools
   RmDir /r /REBOOTOK $INSTDIR\usb_driver
 
