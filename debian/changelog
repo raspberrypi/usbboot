@@ -1,3 +1,32 @@
+rpiboot (20221104~153421) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * win32: Update windows installer and make it smaller
+  * Revert pieeprom.bin to previous stable release (2022-09-02)
+  * Update pieeprom to 2022-11-04
+
+ -- Serge Schneider <serge@raspberrypi.com>  Fri, 04 Nov 2022 19:07:17 +0000
+
+rpiboot (20221031~085458) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * mass-storage-gadget: Remove activity LED for CM3 compatibility
+  * secure-boot-msd: Update start4.elf to the same version as in /msd
+  * rpi-eeprom-digest: Add an option to verify RSA signed files.
+  * rpi-eeprom-digest: Fix cleanup of TMP_DIR
+  * rpi-eeprom-digest: Fix typo in default env var for OPENSSL executable
+  * readme.md: Add a troubleshooting section
+  * tools: Add rpi-bootloader-key-convert
+  * secure-boot: Update example to use the raspberrypi-secure-boot buildroot example
+  * secure-boot-example: Update the images to the new buildroot example
+  * mass-storage-gadget: Update & move source repo to official Raspberry Pi buildroot fork
+  * mass-storage-gadget: Update image and instructions
+  * Update EEPROM to 2022-10-18
+  * tools: vcmailbox wrappers for managing 256 bit OTP private key
+  * Update mass-storage-gadget build instructions
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 31 Oct 2022 11:49:39 +0000
+
 rpiboot (20220815~145439) bullseye; urgency=medium
 
   [ Chris Burton ]
