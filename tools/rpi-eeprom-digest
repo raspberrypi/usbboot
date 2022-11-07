@@ -26,13 +26,15 @@ checkDependencies() {
       die "sha256sum not found. Try installing the coreutilities package."
    fi
 
-   if ! command -v openssl > /dev/null; then
-      die "openssl not found. Try installing the openssl package."
-   fi
+   if [ -n "${KEY}" ] || [ "${VERIFY}" = 1 ]; then
+       if ! command -v openssl > /dev/null; then
+          die "openssl not found. Try installing the openssl package."
+       fi
 
-   if ! command -v xxd > /dev/null; then
-      die "xxd not found. Try installing the xxd package."
-   fi
+       if ! command -v xxd > /dev/null; then
+          die "xxd not found. Try installing the xxd package."
+       fi
+   fi    
 }
 
 usage() {
