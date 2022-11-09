@@ -1,14 +1,13 @@
 # Secure Boot Quickstart
 
 ## Overview
-Secure boot is a mechanism for verifying the integrity of the kernel image and 
+Secure boot is a mechanism for verifying the integrity of the kernel+initramfs and
 other files required during boot by storing them in a signed ramdisk image.
 These files include the GPU firmware (start.elf etc), kernel, initrd, Device Tree
 and overlays.
+
 Secure boot does not depend on a particular OS, nor does it provide services
-to the OS after startup. However, since secure boot will only load trusted 
-kernel and initrd images, the kernel/initrd can safely verify or mount an
-an encrypted file system e.g. by using a TPM.
+to the OS after the Kernel + initramfs has started.
 
 N.B. The memory for the secure ramdisk is reclaimed as soon as the CPU is started.
 
@@ -100,7 +99,7 @@ cd ..
 ./rpiboot -d secure-boot-recovery
 ```
 
-At this stage OTP has not been modified and the signed image requirement can be reverted by flashing a default, unsigned image. 
+At this stage OTP has not been modified and the signed image requirement can be reverted by flashing a default, unsigned image.
 However, once the [OTP secure-boot flags](../secure-boot-recovery/README.md#locking-secure-boot-mode) are set then `SIGNED_BOOT` is permanently enabled and cannot be overridden via the EEPROM config.
 
 
@@ -123,9 +122,9 @@ load the OS.
 This example OS image is minimal Linux ramdisk image. Login as `root` with the empty password.
 
 ### Mount the CM4 SD/EMMC after enabling secure-boot
-Now that `SIGNED_BOOT` is enabled the bootloader will only load images signed with private key generated earlier. 
-To boot the Compute Module in mass storage mode a signed version of this code must be generated.  
-  
+Now that `SIGNED_BOOT` is enabled the bootloader will only load images signed with private key generated earlier.
+To boot the Compute Module in mass storage mode a signed version of this code must be generated.
+
 **This signed image should not be made available for download because it gives access to the EMMC as a block device.**
 
 
@@ -155,4 +154,3 @@ For example:
 * The system should now boot into the OS.
 
 The secure-boot example image can be rebuilt and modified using buildroot. See [raspberrypi-signed-boot buildroot](https://github.com/raspberrypi/buildroot/blob/raspberrypi-signed-boot/README.md)
-

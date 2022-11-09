@@ -91,6 +91,9 @@ the minimal set of files required from the boot partition.
 
 This section describes how to diagnose common `rpiboot` failures for Compute Modules. Whilst `rpiboot` is tested on every Compute Module during manufacture the system relies on multiple hardware and software elements. The aim of this guide is to make it easier to identify which component is failing.
 
+### Product Information Portal
+The [Product Information Portal](https://pip.raspberrypi.com/) contains the official documentation for hardware revision changes for Raspberry Pi computers.
+
 ### Hardware
 * Inspect the Compute Module pins and connector for signs of damage and verify that the socket is free from debris.
 * Check that the Compute Module is fully inserted.
@@ -157,7 +160,7 @@ openssl genrsa 2048 > private.pem
 Secure Boot requires self-contained ramdisk (`boot.img`) FAT image to be created containing the GPU
 firmware, kernel and any other dependencies that would normally be loaded from the boot partition.
 
-This plus a signature file (boot.sig) must be placed in the boot partition of the Raspberry Pi
+This plus a signature file (`boot.sig`) must be placed in the boot partition of the Raspberry Pi
 or network download location.
 
 The `boot.img` file should contain:-
@@ -166,10 +169,39 @@ The `boot.img` file should contain:-
 * GPU firmware (start.elf and fixup.dat)
 * Linux initramfs containing the application OR scripts to mount/create an encrypted file-system.
 
-Secure boot is only responsible for loading a verified Linux kernel and initramfs. It does NOT
-verify the integrity of other file-systems or provide file-system encryption. This would normally be
-implemented using standard Linux tools such as [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup).
-and controlled by scripts / systemd services in an initramfs.
+
+### Disk encryption
+Secure-boot loads the `boot.img` from an unencrypted FAT / EFI boot partition and is responsible for
+loading the Kernel + initramfs. There is no support in the firmware or ROM for full-disk encryption.
+
+If a custom OS image needs to use an encrypted file-system then this would normally be implement
+via scripts within the initramfs.
+
+Raspberry Pi computers do not have a secure enclave, however, it's possible to store a 256 bit
+[device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key)
+in OTP. The key is accessible to any process with access to `/dev/vcio` (`vcmailbox`) so the
+secure-boot OS must ensure that access to this interface is restricted.
+
+**It's not possible to prevent code kernel code from accessing OTP directly**
+
+See also:-
+* [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
+* [cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions)
+* [rpi-otp-private-key](../tools/rpi-otp-private-key)
+
+Example script which uses a device-specific private key to create/mount an encrypted file-system.
+```bash
+export BLK_DEV=/dev/mmcblk0p3
+export KEY_FILE=$(mktemp -d)/key.bin
+rpi-otp-private-key -b > "${KEY_FILE}"
+cryptsetup luksFormat --key-file="${KEY_FILE}" --key-size=256 --type=luks2 ${BLK_DEV}
+
+cryptsetup luksOpen ${BLK_DEV} encrypted-disk --key-file="${KEY_FILE}"
+mkfs /dev/mapper/encrypted-disk
+mkdir -p /mnt/application-data
+mount /dev/mapper/encrypted-disk /mnt/application-data
+rm "${KEY_FILE}"
+```
 
 ### Building `boot.img` using buildroot
 
@@ -180,17 +212,6 @@ This was generated from the [raspberrypi-signed-boot](https://github.com/raspber
 buildroot config. Whilst not a generic fully featured configuration it should be relatively
 straightforward to cherry-pick the `raspberrypi-secure-boot` package and helper scripts into
 other buildroot configurations.
-
-### Manual boot image creation
-For other systems or manual image creation a helper script `make-boot-image` in the tools
-directory is provided.
-
-To run:-
-* Copy the source firmware + other files into a temporary directory  (`temp`)
-* Run `make-boot-image -d temp -O boot.img`
-* Run `rpi-eeprom-digest -i boot.img -o boot.sig -k private-key.PEM`
-
-`make-boot-image` depends upon the `mkfs.fat` and `losetup` Linux tools.
 
 #### Minimum firmware version
 The firmware must be new enough to support secure boot. The latest firmware APT
@@ -205,7 +226,7 @@ To check the version information within a `start4.elf` firmware file run
 strings start4.elf | grep VC_BUILD_
 ```
 
-#### Verifying a boot image
+#### Verifying the contents of a `boot.img` file
 To verify that the boot image has been created correctly use losetup to mount the .img file.
 
 ```bash
