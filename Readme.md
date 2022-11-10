@@ -93,6 +93,7 @@ This section describes how to diagnose common `rpiboot` failures for Compute Mod
 
 ### Product Information Portal
 The [Product Information Portal](https://pip.raspberrypi.com/) contains the official documentation for hardware revision changes for Raspberry Pi computers.
+Please check this first to check that the software is up to date.
 
 ### Hardware
 * Inspect the Compute Module pins and connector for signs of damage and verify that the socket is free from debris.
@@ -137,7 +138,7 @@ Secure Boot requires a recent bootloader stable image e.g. the version in this r
 Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
 
 ### Host Setup
-Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the EEPROM config and boot image.
+Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the bootloader EEPROM config and boot image.
 
 #### Install Python Crypto Support (the pycryptodomex module)
 ```bash
@@ -171,37 +172,27 @@ The `boot.img` file should contain:-
 
 
 ### Disk encryption
-Secure-boot loads the `boot.img` from an unencrypted FAT / EFI boot partition and is responsible for
-loading the Kernel + initramfs. There is no support in the firmware or ROM for full-disk encryption.
+Secure-boot is responsible for loading the Kernel + initramfs and loads all of the data
+from a single `boot.img` file stored on an unencrypted FAT/EFI partition.
 
-If a custom OS image needs to use an encrypted file-system then this would normally be implement
+**There is no support in the ROM or firmware for full-disk encryption.**
+
+If a custom OS image needs to use an encrypted file-system then this would normally be implemented
 via scripts within the initramfs.
 
 Raspberry Pi computers do not have a secure enclave, however, it's possible to store a 256 bit
 [device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key)
-in OTP. The key is accessible to any process with access to `/dev/vcio` (`vcmailbox`) so the
+in OTP. The key is accessible to any process with access to `/dev/vcio` (`vcmailbox`), therefore, the
 secure-boot OS must ensure that access to this interface is restricted.
 
-**It's not possible to prevent code kernel code from accessing OTP directly**
+**It is not possible to prevent code running in ARM supervisor mode (e.g. kernel code) from accessing OTP hardware directly**
 
 See also:-
 * [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 * [cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions)
 * [rpi-otp-private-key](../tools/rpi-otp-private-key)
 
-Example script which uses a device-specific private key to create/mount an encrypted file-system.
-```bash
-export BLK_DEV=/dev/mmcblk0p3
-export KEY_FILE=$(mktemp -d)/key.bin
-rpi-otp-private-key -b > "${KEY_FILE}"
-cryptsetup luksFormat --key-file="${KEY_FILE}" --key-size=256 --type=luks2 ${BLK_DEV}
-
-cryptsetup luksOpen ${BLK_DEV} encrypted-disk --key-file="${KEY_FILE}"
-mkfs /dev/mapper/encrypted-disk
-mkdir -p /mnt/application-data
-mount /dev/mapper/encrypted-disk /mnt/application-data
-rm "${KEY_FILE}"
-```
+The [secure boot tutorial](secure-boot-example/README.md) contains a `boot.img` that supports cryptsetup and a simple example.
 
 ### Building `boot.img` using buildroot
 
@@ -278,4 +269,5 @@ openssl rsa -in private.pem -pubout -out public.pem
 ```
 
 #### Copy the secure boot image to the boot partition on the Raspberry Pi.
-Copy `boot.img` and `boot.sig` to the chosen boot filesystem. Secure boot images can be loaded from any of the normal boot devices (e.g. SD, USB, Network).
+Copy `boot.img` and `boot.sig` to the boot filesystem.
+Secure boot images can be loaded from any of the normal boot modes (e.g. SD, USB, Network).

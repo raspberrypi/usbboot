@@ -16,12 +16,10 @@ This example includes a simple buildroot image for Compute Module 4 in order
 to demonstrate secure boot on a simple but functional OS.
 
 The example does NOT modify the OTP or make other permanent changes to the system;
- the code signing can be disabled by reflashing the default bootloader EEPROM.
+the code signing can be disabled by reflashing the default bootloader EEPROM.
 
-This tutorial does not cover how to create the `boot.img` file or permanently
-require secure boot in OTP. Please see the top level [README](../Readme.md#building) and
-[secure-boot-recovery/README](../secure-boot-recovery/README.md) guides for
-more information.
+Please see the top level [README](../Readme.md#building) and [secure-boot-recovery/README](../secure-boot-recovery/README.md) guides for
+instructions about how to permanently enable secure-boot by programming OTP.
 
 ### Requirements for running this example
 * A Raspberry Pi Compute Module 4
@@ -121,6 +119,33 @@ load the OS.
 
 This example OS image is minimal Linux ramdisk image. Login as `root` with the empty password.
 
+#### Disk encryption example
+Example script which uses a device-specific private key to create/mount an encrypted file-system.
+
+Generating a 256-bit random key for test purposes.
+```bash
+export KEY_FILE=$(mktemp -d)/key.bin
+openssl rand -hex 32 | xxd -rp > ${KEY_FILE}
+```
+
+Using [rpi-otp-private-key](../tools/rpi-otp-private-key) to extract the device private key (if programmed).
+```bash
+export KEY_FILE=$(mktemp -d)/key.bin
+rpi-otp-private-key -b > "${KEY_FILE}"
+```
+
+Creating an encrypted disk on a specified block device.
+```bash
+export BLK_DEV=/dev/mmcblk0p3
+cryptsetup luksFormat --key-file="${KEY_FILE}" --key-size=256 --type=luks2 ${BLK_DEV}
+
+cryptsetup luksOpen ${BLK_DEV} encrypted-disk --key-file="${KEY_FILE}"
+mkfs /dev/mapper/encrypted-disk
+mkdir -p /mnt/application-data
+mount /dev/mapper/encrypted-disk /mnt/application-data
+rm "${KEY_FILE}"
+```
+
 ### Mount the CM4 SD/EMMC after enabling secure-boot
 Now that `SIGNED_BOOT` is enabled the bootloader will only load images signed with private key generated earlier.
 To boot the Compute Module in mass storage mode a signed version of this code must be generated.
@@ -153,4 +178,5 @@ For example:
 * Power cycle the CM4 IO board.
 * The system should now boot into the OS.
 
-The secure-boot example image can be rebuilt and modified using buildroot. See [raspberrypi-signed-boot buildroot](https://github.com/raspberrypi/buildroot/blob/raspberrypi-signed-boot/README.md)
+### Modifying / rebuilding `boot.img`
+The secure-boot example image can be rebuilt and modified using buildroot. See [raspberrypi-signed-boot](https://github.com/raspberrypi/buildroot/blob/raspberrypi-signed-boot/README.md) buildroot configuration.
