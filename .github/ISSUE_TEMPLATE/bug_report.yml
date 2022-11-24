@@ -76,3 +76,13 @@ body:
        * `sudo dmesg | grep -i usb`
   validations:
     required: false
+
+- type: textarea
+  id: device_logs
+  attributes:
+    label: Device UART logs
+    description: |
+      Compute Module 4 will typically output debug information to the UART when updating the EEPROM or loading the mass-storage gadget. Please add any device logs here.
+      * The UART pins are `14` and `15` on the [40-pin GPIO header](https://www.raspberrypi.com/documentation/computers/os.html#gpio-and-the-40-pin-header)
+  validations:
+    required: false
