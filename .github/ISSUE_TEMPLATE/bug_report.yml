@@ -1,0 +1,78 @@
+name: "Bug report"
+description: Create a report to help us fix your issue
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Is this the right place for my bug report?**
+
+      This repository contains the host tools for booting a Raspberry Pi computer into mass-storage device mode. It also provides tools for updating the bootloader EEPROM and enabling secure-boot on CM4.
+
+      * Please check the [rpiboot troubleshooting guide](https://github.com/raspberrypi/usbboot#troubleshooting) for advice about diagnosing problems with rpiboot.
+      * If you simply have a question, then [the Raspberry Pi forums](https://www.raspberrypi.org/forums) are the best place to ask it.
+
+- type: textarea
+  id: description
+  attributes:
+    label: Describe the bug
+    description: |
+      Add a clear and concise description of what you think the bug is.
+  validations:
+    required: true
+
+- type: textarea
+  id: reproduce
+  attributes:
+    label: Steps to reproduce the behaviour
+    description: |
+      List the steps required to reproduce the issue.
+  validations:
+    required: true
+
+- type: dropdown
+  id: model
+  attributes:
+    label: Device(s)
+    description: On which device(s) you are facing the bug? Please see the ["Product Information Portal"](https://pip.raspberrypi.com/) for information about products and hardware revisions.
+
+    multiple: true
+    options:
+      - Raspberry Pi CM1
+      - Raspberry Pi CM3
+      - Raspberry Pi CM3+
+      - Raspberry Pi CM4
+      - Raspberry Pi CM4 Lite
+      - Raspberry Pi CM4 Revision 5
+      - Raspberry Pi CM4 Revision 5 Lite
+      - Raspberry Pi CM4S
+      - Other
+  validations:
+    required: true
+
+- type: textarea
+  id: io_board
+  attributes:
+    label: Compute Module IO board.
+    description: |
+      For Compute Module issues please specify the type of the IO board.
+  validations:
+    required: false
+
+- type: textarea
+  id: rpiboot_logs
+  attributes:
+    label: RPIBOOT logs
+    description: |
+       Please paste the output of the rpiboot command here.
+  validations:
+    required: false
+
+- type: textarea
+  id: kernel_logs
+  attributes:
+    label: Kernel logs
+    description: |
+       In order to diagnose USB connection issues please check the Linux `dmesg` log for USB messages
+       * `sudo dmesg | grep -i usb`
+  validations:
+    required: false
