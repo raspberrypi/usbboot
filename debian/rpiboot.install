@@ -8,7 +8,10 @@ mass-storage-gadget usr/share/rpiboot/
 secure-boot-recovery usr/share/rpiboot/
 secure-boot-msd usr/share/rpiboot/
 secure-boot-example usr/share/rpiboot/
-tools usr/share/rpiboot/
+tools/update-pieeprom.sh usr/share/rpiboot/tools/
+rpi-eeprom/rpi-eeprom-config usr/share/rpiboot/tools/
+rpi-eeprom/rpi-eeprom-digest usr/share/rpiboot/tools/
 debian/70-rpiboot.rules /lib/udev/rules.d
-recovery.bin usr/share/rpiboot/
+rpi-eeprom/firmware/stable/recovery.bin usr/share/rpiboot/
+rpi-eeprom/firmware/stable/pieeprom-2021-11-22.bin usr/share/rpiboot/pieeprom.original.bin
 bootcode4.bin usr/share/rpiboot/

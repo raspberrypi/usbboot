@@ -137,6 +137,12 @@ while getopts "c:hi:o:k:p:" option; do
     esac
 done
 
+submodule_check="${script_dir}/../rpi-eeprom/firmware-2711/default/recovery.bin"
+if [ ! -f "${submodule_check}" ]; then
+   echo "WARNING:${submodule_check} not found. To update the rpi-eeprom submodule run:"
+   echo "git submodule init && git submodule update"
+fi
+
 [ -f "${SRC_IMAGE}" ] || die "Source image \"${SRC_IMAGE}\" not found"
 [ -f "${CONFIG}" ] || die "Bootloader config file \"${CONFIG}\" not found"
 if [ -n "${PEM_FILE}" ]; then

@@ -59,7 +59,7 @@ Function .onInit
   StrCmp $R0 "" done
 
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-  "'Compute Module Boot' is already installed. $\n$\nClick `OK` to remove the \
+  "'Raspberry Pi USB boot' is already installed. $\n$\nClick `OK` to remove the \
   previous version or `Cancel` to cancel this upgrade." \
   IDOK uninst
   Abort
@@ -108,11 +108,8 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
 
   SetOutPath "$INSTDIR\mass-storage-gadget64"
   File /r /x bootfiles.bin ..\mass-storage-gadget64\*.*
-  File ..\bootfiles.bin 
+  File ..\firmware\bootfiles.bin
    
-  SetOutPath "$INSTDIR\tools"
-  File /r ..\tools\*.*
-
   SetOutPath "$INSTDIR"
   DetailPrint "Installing BCM2708 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0' $0 
@@ -172,7 +169,6 @@ Section "Uninstall"
   RmDir /r /REBOOTOK $INSTDIR\mass-storage-gadget64
   RmDir /r /REBOOTOK $INSTDIR\msd
   RmDir /r /REBOOTOK $INSTDIR\recovery
-  RmDir /r /REBOOTOK $INSTDIR\tools
   RmDir /r /REBOOTOK $INSTDIR\usb_driver
 
   Delete $INSTDIR\Uninstall.exe
