@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Create git tags that match the APT releases
+
+git blame debian/changelog | egrep "rpiboot .*urgency=" | sed 's/[()]//g' | sed 's/~/-/g' | awk '{print "git tag " $9 " " $1}'
