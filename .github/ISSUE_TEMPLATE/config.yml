@@ -1,0 +1,6 @@
+blank_issues_enabled: true
+
+contact_links:
+  - name: "⛔ Question"
+    url: https://www.raspberrypi.org/forums
+    about: "Please do not use GitHub for asking questions. If you simply have a question, then the Raspberry Pi forums are the best place to ask it. Thanks in advance for helping us keep the issue tracker clean!"
