@@ -132,7 +132,23 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				const char *second_stage;
 
 				if(verbose == 2)
-					printf("Found candidate Compute Module...");
+					printf("Found candidate Compute Module...\n");
+
+				// Check if we should match against a specific port number or path
+				if ((targetPortNo == 99 || portNo == targetPortNo) &&
+					(targetpathname == NULL || strcmp(targetpathname, pathname) == 0))
+				{
+					if(verbose)
+						printf("Device located successfully\n");
+					found = dev;
+				}
+				else
+				{
+					if(verbose == 2)
+						printf("Device port / path does not match, trying again\n");
+
+					continue;
+				}
 
 				bcm2711 = (desc.idProduct == 0x2711);
 				if (bcm2711)
@@ -169,21 +185,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				if (fp_sign)
 					fclose(fp_sign);
 
-				///////////////////////////////////////////////////////////////////////
-				// Check if we should match against a specific port number
-				///////////////////////////////////////////////////////////////////////
-				if ((targetPortNo == 99 || portNo == targetPortNo) &&
-					(targetpathname==NULL||strcmp(targetpathname,pathname)==0))
-				{
-					if(verbose) printf("Device located successfully\n");
-					found = dev;
+				if (found)
 					break;
-				}
-				else
-				{
-					if(verbose == 2)
-					      printf("...Wrong Port/Path, Trying again\n");
-				}
 			}
 		}
 	}
