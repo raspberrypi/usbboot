@@ -587,7 +587,8 @@ int file_server(libusb_device_handle * usb_device)
 					file_size = ftell(fp);
 					fseek(fp, 0, SEEK_SET);
 
-					if(verbose) printf("File size = %d bytes\n", file_size);
+					if(verbose || !file_size)
+						printf("File size = %d bytes\n", file_size);
 
 					int sz = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
 					    file_size & 0xffff, file_size >> 16, NULL, 0, 1000);
@@ -598,7 +599,7 @@ int file_server(libusb_device_handle * usb_device)
 				else
 				{
 					ep_write(NULL, 0, usb_device);
-					if(verbose) printf("Cannot open file %s\n", message.fname);
+					printf("Cannot open file %s\n", message.fname);
 					break;
 				}
 				break;
@@ -614,6 +615,9 @@ int file_server(libusb_device_handle * usb_device)
 					fseek(fp, 0, SEEK_END);
 					file_size = ftell(fp);
 					fseek(fp, 0, SEEK_SET);
+
+					if (!file_size)
+						printf("WARNING: %s is empty\n", message.fname);
 
 					buf = malloc(file_size);
 					if(buf == NULL)
