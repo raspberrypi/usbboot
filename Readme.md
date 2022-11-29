@@ -99,6 +99,7 @@ Please check this first to check that the software is up to date.
 * Inspect the Compute Module pins and connector for signs of damage and verify that the socket is free from debris.
 * Check that the Compute Module is fully inserted.
 * Check that `nRPIBOOT` / EMMC disable is pulled low BEFORE powering on the device.
+   * On BCM2711, if the USB cable is disconected and the nRPIBOOT jumper is fitted then the green LED should be OFF. If the LED is on then the ROM is detecting that the GPIO for nRPIBOOT is high.
 * Remove any hubs between the Compute Module and the host.
 * Disconnect all other peripherals from the IO board.
 * Verify that the red power LED switches on when the IO board is powered.
