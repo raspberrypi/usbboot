@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
 	fprintf(fp_out, "/* Automatically generated file from %s */\n", argv[1]);
 	strcpy(fname, argv[1]);
 	for(p = fname; *p; p++)
-		if(!isalnum(*p))
+		if(!isalnum((int) *p))
 			*p = '_';
 	fprintf(fp_out, "unsigned int %s_len = %d;\n", fname, length);
 	fprintf(fp_out, "unsigned char %s[] = {\n\t", fname);
