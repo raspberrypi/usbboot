@@ -16,7 +16,7 @@ usage() {
     cat <<EOF
    $(basename "$0") [-cfwy] <key>
 
-   No args - reads the current private key from OTP. These values are NOT visible via 'vcgencmd otp_dump'
+   No args - reads the current private key from OTP. These values are NOT visible via 'vcgencmd otp_dump'.
 
    -b Output the key in binary format.
    -c Reads key and exits with 1 if it is all zeros i.e. not set.
@@ -32,7 +32,7 @@ usage() {
    to any user in the 'video' group via vcmailbox. Therefore this functionality is only suitable for key
    storage if the OS has already been restricted using the signed boot functionality.
 
-   WARNING: Changes to OTP memory are permenant and cannot be undone.
+   WARNING: Changes to OTP memory are permanent and cannot be undone.
 EOF
 exit 1
 }
@@ -69,9 +69,9 @@ write_key() {
     if [ "${YES}" = 0 ] && [ -t 0 ]; then
        echo "Write ${key} to OTP?"
        echo
-       echo "WARNING: Updates to OTP registers are permenant and cannot be undone."
+       echo "WARNING: Updates to OTP registers are permanent and cannot be undone."
 
-       echo "Type YES (in upper-case) to continue or press return to exit."
+       echo "Type YES (in upper case) to continue or press return to exit."
        read -r confirm
        if [ "${confirm}" != "YES" ]; then
           echo "Cancelled"
