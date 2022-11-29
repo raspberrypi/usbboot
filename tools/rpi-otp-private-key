@@ -14,7 +14,7 @@ die() {
 
 usage() {
     cat <<EOF
-   $(basename "$0") [-cfw] <key>
+   $(basename "$0") [-cfwy] <key>
 
    No args - reads the current private key from OTP. These values are NOT visible via 'vcgencmd otp_dump'
 
@@ -24,6 +24,7 @@ usage() {
       The vcmailbox API checks that the new key is equal to the bitwise OR of the current OTP and the new key.
       N.B. OTP bits can never change from 1 to 0.
    -w Writes the new key to OTP memory.
+   -y Skip the confirmation prompt when writing to OTP.
 
    <key> is a 64 digit hex number (256 bit) e.g. to generate a 256 random number run 'openssl rand -hex 32'
 
@@ -64,12 +65,27 @@ write_key() {
     key_params="${key_params} 0x$(echo -n "${key}" | cut -c${start}-${end})"
     count=$((count + 1))
     done
+
+    if [ "${YES}" = 0 ] && [ -t 0 ]; then
+       echo "Write ${key} to OTP?"
+       echo
+       echo "WARNING: Updates to OTP registers are permenant and cannot be undone."
+
+       echo "Type YES (in upper-case) to continue or press return to exit."
+       read -r confirm
+       if [ "${confirm}" != "YES" ]; then
+          echo "Cancelled"
+          exit
+       fi
+    fi
+
     vcmailbox 0x38081 40 40 0 8 ${key_params} || die "Failed to write key"
     read_key
     [ "${READ_KEY}" = "${key}" ] || die "Key readback check failed. ${out}"
 }
 
-while getopts bcfhw: option; do
+YES=0
+while getopts bcfhw:y option; do
     case "${option}" in
         b) OUTPUT_BINARY=1
             ;;
@@ -85,6 +101,8 @@ while getopts bcfhw: option; do
             ;;
         w) WRITE_KEY="${OPTARG}"
             ;;
+        y) YES=1
+           ;;
         *) echo "Unknown argument \"${option}\""
             usage
             ;;
