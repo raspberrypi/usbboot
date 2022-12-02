@@ -41,8 +41,9 @@ From a macOS machine, you can also run usbboot, just follow the same steps:
 1. Clone the `usbboot` repository
 2. Install `libusb` (`brew install libusb`)
 3. Install `pkg-config` (`brew install pkg-config`)
-4. Build using make
-5. Run the binary
+4. (Optional) Export the `PKG_CONFIG_PATH` so that it includes the directory enclosing `libusb-1.0.pc`
+5. Build using make
+6. Run the binary
 
 ```
 git clone --depth=1 https://github.com/raspberrypi/usbboot
@@ -52,6 +53,10 @@ brew install pkg-config
 make
 sudo ./rpiboot
 ```
+
+If the build is unable to find the header file `libusb.h` then most likely the `PKG_CONFIG_PATH` is not set properly.
+This should be set via `export PKG_CONFIG_PATH="$(brew --prefix libusb)/lib/pkgconfig"`.
+
 
 ## Running
 
