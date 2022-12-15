@@ -1,3 +1,30 @@
+rpiboot (20221215~105525) bullseye; urgency=medium
+
+  [ Tim Gover ]
+  * rpi-eeprom-digest: Only require openssl + xxd for RSA operations
+  * verifySig tidyup
+  * docs: Update mass-storage gadget + secure-boot
+  * secure-boot-example: Update boot.img and docs for cryptsetup example
+  * Update issue templates
+  * git: Create tags that match the APT releases
+  * bin2c: Add cast to silence isalnum warning
+  * usbboot: Indicate when a file is missing / empty.
+  * rpi-otp-private-key: Add an interactive warning prompt for writes
+  * readme: Add note about activity LED / nRPIBOOT
+  * pieeprom: Update to latest default release (2022-12-07)
+  * rpiboot: Reduce libusb verbosity level with -v
+
+  [ Nicolai Buchwitz ]
+  * Skip devices which don't match filter criteria
+
+  [ andrum99 ]
+  * rpi-otp-private-key: fix typo
+
+  [ connorfuhrman ]
+  * Updated README for PKG_CONFIG_PATH env variable
+
+ -- Serge Schneider <serge@raspberrypi.com>  Thu, 15 Dec 2022 20:53:04 +0000
+
 rpiboot (20221104~153421) bullseye; urgency=medium
 
   [ Tim Gover ]
