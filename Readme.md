@@ -57,6 +57,17 @@ sudo ./rpiboot
 If the build is unable to find the header file `libusb.h` then most likely the `PKG_CONFIG_PATH` is not set properly.
 This should be set via `export PKG_CONFIG_PATH="$(brew --prefix libusb)/lib/pkgconfig"`.
 
+If the build fails on an ARM-based Mac with a linker error such as `ld: warning: ignoring file /usr/local/Cellar/libusb/1.0.26/lib/libusb-1.0.dylib, building for macOS-arm64 but attempting to link with file built for macOS-x86_64` then you may need to build and install `libusb-1.0` yourself:
+```
+$ wget https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26.tar.bz2
+$ tar -xf libusb-1.0.26.tar.bz2
+$ cd libusb-1.0.26
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+```
+Running `make` again should now succeed.
 
 ## Running
 
