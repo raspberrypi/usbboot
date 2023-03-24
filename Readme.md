@@ -154,6 +154,15 @@ Secure Boot requires a recent bootloader stable image e.g. the version in this r
 ### Tutorial
 Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
 
+### Additional documentation
+
+* Secure boot [chain of trust diagram](docs/secure-boot-train-of-trust.pdf).
+* Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+* Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-specific-bootloader-properties-chosenbootloader).
+* Device tree [public key - NVMEM property](https://www.raspberrypi.com/documentation/computers/configuration.html#nvmem-nodes).
+* Raspberry Pi [OTP registers](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#otp-register-and-bit-definitions).
+* Raspberry Pi [device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key).
+
 ### Host Setup
 Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the bootloader EEPROM config and boot image.
 
