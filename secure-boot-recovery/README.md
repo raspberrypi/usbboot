@@ -70,7 +70,7 @@ onwards:
 
 * The bootloader will only load OS images signed with the customer private key.
 * The EEPROM configuration file must be signed with the customer private key.
-* It is not possible to install an old version of the bootloader that does
+* It is not possible to downgrade to an old version of the bootloader that doesn't
   support secure boot.
 * This option requires EEPROM version 2022-01-06 or newer.
 * BETA bootloader releases are not signed with the ROM secure boot key and will
