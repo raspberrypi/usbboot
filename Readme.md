@@ -26,7 +26,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 **This git repository uses symlinks. For Windows builds clone the repository under Cygwin**
 
 ```
-sudo apt install git libusb-1.0-0-dev pkg-config
+sudo apt install git libusb-1.0-0-dev pkg-config build-essential
 git clone --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
