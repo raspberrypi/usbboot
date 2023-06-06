@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 
+#include "bootfiles.h"
 #include "msd/bootcode.h"
 #include "msd/start.h"
 #include "msd/bootcode4.h"
@@ -34,6 +35,11 @@ int out_ep;
 int in_ep;
 int bcm2711;
 
+#define MAX_PATH_LEN 256
+
+static char bootfiles_path[MAX_PATH_LEN];
+static int use_bootfiles;
+static void *bootfile_data;
 static FILE * check_file(const char * dir, const char *fname, int use_fmem);
 static int second_stage_prep(FILE *fp, FILE *fp_sig);
 
@@ -481,7 +487,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	FILE * fp = NULL;
-	char path[256];
+	char path[MAX_PATH_LEN];
 
 	// Prevent USB device from requesting files in parent directories
 	if(strstr(fname, ".."))
@@ -490,17 +496,29 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 		return NULL;
 	}
 
+	if (use_bootfiles && use_fmem)
+	{
+		const char *prefix = bcm2711 ? "2711" : "2710";
+		unsigned long length = 0;
+		snprintf(path, sizeof(path), "%s/%s", prefix, fname);
+		path[sizeof(path) - 1] = 0;
+		if (bootfile_data)
+			free(bootfile_data);
+		bootfile_data = bootfiles_read(bootfiles_path, path, &length);
+		if (bootfile_data)
+			fp = fmemopen(bootfile_data, length, "rb");
+		if (fp)
+			return fp;
+	}
+
 	if(dir)
 	{
 		if(overlay && (pathname[0] != 0) &&
 				(strcmp(fname, "bootcode4.bin") != 0) &&
 				(strcmp(fname, "bootcode.bin") != 0))
 		{
-			strcpy(path, dir);
-			strcat(path, "/");
-			strcat(path, pathname);
-			strcat(path, "/");
-			strcat(path, fname);
+			snprintf(path, sizeof(path), "%s/%s/%s", dir, pathname, fname);
+			path[sizeof(path) - 1] = 0;
 			fp = fopen(path, "rb");
 			if (fp)
 				printf("Loading: %s\n", path);
@@ -509,9 +527,8 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 
 		if (fp == NULL)
 		{
-			strcpy(path, dir);
-			strcat(path, "/");
-			strcat(path, fname);
+			snprintf(path, sizeof(path), "%s/%s", dir, fname);
+			path[sizeof(path) - 1] = 0;
 			fp = fopen(path, "rb");
 			if (fp)
 				printf("Loading: %s\n", path);
@@ -548,7 +565,7 @@ int file_server(libusb_device_handle * usb_device)
 	int going = 1;
 	struct file_message {
 		int command;
-		char fname[256];
+		char fname[MAX_PATH_LEN];
 	} message;
 	static FILE * fp = NULL;
 
@@ -688,12 +705,23 @@ int main(int argc, char *argv[])
 		if (verbose)
 			printf("Boot directory '%s'\n", directory);
 
-		f = check_file(directory, "bootcode.bin", 0);
-		f4 = check_file(directory, "bootcode4.bin", 0);
-		if (!f && !f4)
+		f = check_file(directory, "bootfiles.bin", 0);
+		if (f)
 		{
-			fprintf(stderr, "No 'bootcode' files found in '%s'\n", directory);
-			usage(1);
+			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s/%s", directory, "bootfiles.bin");
+			bootfiles_path[sizeof(bootfiles_path) - 1] = 0;
+			use_bootfiles = 1;
+			fclose(f);
+		}
+		else
+		{
+			f = check_file(directory, "bootcode.bin", 0);
+			f4 = check_file(directory, "bootcode4.bin", 0);
+			if (!f && !f4)
+			{
+				fprintf(stderr, "No 'bootcode' files found in '%s'\n", directory);
+				usage(1);
+			}
 		}
 
 		if (f)

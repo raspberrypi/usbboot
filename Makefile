@@ -1,7 +1,8 @@
 PKG_VER=$(shell grep rpiboot debian/changelog | head -n1 | sed 's/.*(\(.*\)).*/\1/g')
 GIT_VER=$(shell git rev-parse HEAD 2>/dev/null | cut -c1-8 || echo "")
-rpiboot: main.c msd/bootcode.h msd/start.h msd/bootcode4.h msd/start4.h
-	$(CC) -Wall -Wextra -g -o $@ $< `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\""
+
+rpiboot: main.c bootfiles.c msd/bootcode.h msd/start.h msd/bootcode4.h msd/start4.h
+	$(CC) -Wall -Wextra -g -o $@ main.c bootfiles.c `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\""
 
 %.h: %.bin ./bin2c
 	./bin2c $< $@
