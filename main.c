@@ -10,6 +10,7 @@
 #include "msd/start.h"
 #include "msd/bootcode4.h"
 #include "msd/start4.h"
+// 2712 doesn't use start5.elf
 
 /*
  * Old OS X/BSD do not implement fmemopen().  If the version of POSIX
@@ -34,6 +35,7 @@ uint8_t targetPortNo = 99;
 int out_ep;
 int in_ep;
 int bcm2711;
+int bcm2712;
 
 #define MAX_PATH_LEN 256
 
@@ -131,7 +133,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (desc.idVendor == vendor_id) {
 			if(desc.idProduct == 0x2763 ||
 			   desc.idProduct == 0x2764 ||
-			   desc.idProduct == 0x2711)
+			   desc.idProduct == 0x2711 ||
+			   desc.idProduct == 0x2712)
 			{
 				FILE *fp_second_stage = NULL;
 				FILE *fp_sign = NULL;
@@ -157,8 +160,11 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				}
 
 				bcm2711 = (desc.idProduct == 0x2711);
+				bcm2712 = (desc.idProduct == 0x2712);
 				if (bcm2711)
 					second_stage = "bootcode4.bin";
+				else if (bcm2712)
+					second_stage = "bootcode5.bin";
 				else
 					second_stage = "bootcode.bin";
 
@@ -169,7 +175,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 					exit(1);
 				}
 
-				if (signed_boot && !bcm2711) // Signed boot use a different mechanism on BCM2711
+				if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
 				{
 					const char *sig_file = "bootcode.sig";
 					fp_sign = check_file(directory, sig_file, 1);
@@ -498,7 +504,7 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 
 	if (use_bootfiles && use_fmem)
 	{
-		const char *prefix = bcm2711 ? "2711" : "2710";
+		const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 		unsigned long length = 0;
 		snprintf(path, sizeof(path), "%s/%s", prefix, fname);
 		path[sizeof(path) - 1] = 0;
@@ -514,6 +520,7 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 	if(dir)
 	{
 		if(overlay && (pathname[0] != 0) &&
+				(strcmp(fname, "bootcode5.bin") != 0) &&
 				(strcmp(fname, "bootcode4.bin") != 0) &&
 				(strcmp(fname, "bootcode.bin") != 0))
 		{
@@ -670,6 +677,7 @@ int file_server(libusb_device_handle * usb_device)
 				break;
 
 			case 2: // Done, exit file server
+				if(verbose) printf("CMD exit\n");
 				going = 0;
 				break;
 
@@ -709,9 +717,11 @@ int main(int argc, char *argv[])
 		if (f)
 		{
 			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s/%s", directory, "bootfiles.bin");
+			printf("Using %s\n", bootfiles_path);
 			bootfiles_path[sizeof(bootfiles_path) - 1] = 0;
 			use_bootfiles = 1;
 			fclose(f);
+			f = NULL;
 		}
 		else
 		{
@@ -722,12 +732,11 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "No 'bootcode' files found in '%s'\n", directory);
 				usage(1);
 			}
+			if (f)
+				fclose(f);
+			if (f4)
+				fclose(f4);
 		}
-
-		if (f)
-			fclose(f);
-		if (f4)
-			fclose(f4);
 
 		if (signed_boot)
 		{
@@ -762,7 +771,7 @@ int main(int argc, char *argv[])
 	{
 		int last_serial = -1;
 
-		printf("Waiting for BCM2835/6/7/2711...\n");
+		printf("Waiting for BCM2835/6/7/2711/2712...\n");
 
 		// Wait for a device to get plugged in
 		do
@@ -792,6 +801,7 @@ int main(int argc, char *argv[])
 		}
 		while (ret);
 
+		if (verbose) printf("last_serial %d serial %d", last_serial, desc.iSerialNumber);
 		last_serial = desc.iSerialNumber;
 		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
@@ -806,6 +816,7 @@ int main(int argc, char *argv[])
 
 		libusb_close(usb_device);
 		sleep(1);
+
 	}
 	while(loop || desc.iSerialNumber == 0 || desc.iSerialNumber == 3);
 
