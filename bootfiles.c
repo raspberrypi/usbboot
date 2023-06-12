@@ -10,6 +10,7 @@
 // maybe added to the package.
 
 extern int verbose;
+#define BLOCK_SIZE 512
 
 struct tar_header{
    char filename[100];
@@ -21,14 +22,14 @@ struct tar_header{
    char csum[8];
    char link[1];
    char lname[100];
-};
+} __attribute__((packed));
 
 unsigned char *bootfiles_read(const char *archive, const char *filename, unsigned long *psize)
 {
    FILE *fp = NULL;
    struct tar_header hdr;
    unsigned char *data = NULL;
-   unsigned archive_size;
+   long archive_size;
 
    fp = fopen(archive, "rb");
    if (fseek(fp, 0, SEEK_END) < 0)
@@ -40,24 +41,28 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
    do
    {
       unsigned long size;
-      unsigned long offset;
+      long offset;
 
+      offset = ftell(fp);
       if (fread(&hdr, sizeof(hdr), 1, fp) != 1)
          goto fail;
 
-      if (fseek(fp, 512 - sizeof(hdr), SEEK_CUR) < 0)
+      if (fseek(fp, BLOCK_SIZE - sizeof(hdr), SEEK_CUR) < 0)
          goto fail;
       offset = ftell(fp);
 
+      if (offset == archive_size)
+          break;
+
       size = strtoul(hdr.size, NULL, 8);
-      if (offset + size > archive_size)
+      if (offset + size > (unsigned long) archive_size)
       {
          fprintf(stderr, "Corrupted archive");
          goto fail;
       }
       hdr.filename[sizeof(hdr.filename) - 1] = 0;
-      if (verbose > 1)
-          printf("%s position %lu size %lu\n", hdr.filename, ftell(fp), size);
+      if (verbose)
+          printf("%s position %08lx size %lu\n", hdr.filename, ftell(fp), size);
 
       if (strcasecmp(hdr.filename, filename) == 0)
       {
@@ -69,14 +74,15 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
       }
       else
       {
-         if (fseek(fp, (size + 511) &~ 511, SEEK_CUR) < 0)
+         if (fseek(fp, (size + BLOCK_SIZE -1) & ~(BLOCK_SIZE -1), SEEK_CUR) < 0)
             goto fail;
       }
    } while (!feof(fp));
 
-   if (verbose > 1)
-      printf("File %s not found in %s\n", filename, archive);
-    goto end;
+   if (verbose)
+       printf("File %s not found in %s\n", filename, archive);
+
+   goto end;
 
 fail:
    if (data)
@@ -86,6 +92,6 @@ end:
    if (fp)
       fclose(fp);
    if (verbose && data)
-      printf("Read file %s in archive %s length %lu\n", archive, filename, *psize);
+      printf("Completed file-read %s in archive %s length %lu\n", filename, archive, *psize);
    return data;
 }
