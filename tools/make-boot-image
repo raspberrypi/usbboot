@@ -6,8 +6,6 @@ TMP_DIR=""
 TMP_IMAGE=""
 IMAGE_SIZE=${IMAGE_SIZE:-0}
 MEGABYTE=$((1024 * 1024))
-BOOT_MOUNT=""
-LOOP=""
 NAME="$(basename "$0")"
 
 # Define these environment variables to override mkfs options
@@ -19,8 +17,6 @@ ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
 FAT_OVERHEAD=${FAT_OVERHEAD:-64}
 
 cleanup() {
-   unmount_image
-
    if [ -d "${TMP_DIR}" ]; then
       rm -rf "${TMP_DIR}"
    fi
@@ -52,34 +48,6 @@ createfs() {
       -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${sectors} || \
       die "Failed to create FAT filesystem"
 }
-
-mountfs() {
-   image="$1"
-
-   LOOP=$(losetup -f)
-   losetup "${LOOP}" "${image}"
-   [ -e "${LOOP}" ] ||  die "Failed to create loop device ${LOOP}"
-
-   BOOT_MOUNT=$(mktemp -d)
-   mount "${LOOP}" "${BOOT_MOUNT}"
-   [ -d "${BOOT_MOUNT}" ] || die "Failed to mount bootfs @ ${BOOT_MOUNT}"
-
-   echo "Mounted ${LOOP} @ ${BOOT_MOUNT}"
-}
-
-unmount_image() {
-   if [ -d "${BOOT_MOUNT}" ]; then
-       umount "${BOOT_MOUNT}" > /dev/null 2>&1 || true
-       rmdir "${BOOT_MOUNT}"
-       BOOT_MOUNT=""
-   fi
-
-   if [ -n "${LOOP}" ]; then
-      losetup -d "${LOOP}"
-      LOOP=""
-   fi
-}
-
 
 createstaging() {
    source_dir="$1"
@@ -134,6 +102,10 @@ createstaging() {
 }
 
 checkDependencies() {
+   if ! command -v mcopy > /dev/null; then
+       die "mtools is required. Run this script on Linux"
+   fi
+
    if ! command -v mkfs.fat > /dev/null; then
        die "mkfs.fat is required. Run this script on Linux"
    fi
@@ -141,7 +113,7 @@ checkDependencies() {
 
 usage() {
 cat <<EOF
-sudo ${NAME} -d SOURCE_DIR -o OUTPUT
+${NAME} -d SOURCE_DIR -o OUTPUT
 
 Options:
    -a Select 32 or 64 bit kernel
@@ -151,10 +123,10 @@ Options:
 
 Examples:
 # Include all files in bootfs/
-sudo ${NAME} -d bootfs/ -o boot.img
+${NAME} -d bootfs/ -o boot.img
 
 # Include only the files from bootfs/ required by Pi 4B
-sudo ${NAME} -b pi4 -d bootfs/ -o boot.img
+${NAME} -b pi4 -d bootfs/ -o boot.img
 
 Environment variables:
 The following environment variables may be specified to optionally override mkfs.vfat
@@ -195,9 +167,6 @@ checkDependencies
 
 [ -d "${SOURCE_DIR}" ] || usage
 [ -n "${OUTPUT}" ] || usage
-[ "$(id -u)" = "0" ] || die "\"${NAME}\" must be run as root. Try \"sudo ${NAME}\""
-[ -n "${SUDO_UID}" ] || die "SUDO_UID not defined"
-[ -n "${SUDO_GID}" ] || die "SUDO_GID not defined"
 
 trap cleanup EXIT
 TMP_DIR="$(mktemp -d)"
@@ -210,19 +179,10 @@ echo "Creating FAT file system"
 TMP_IMAGE="${TMP_DIR}/boot.img"
 createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
 
-echo "Copying files to temporary mount ${BOOT_MOUNT}"
-mountfs "${TMP_IMAGE}"
-cp -rv "${staging}"/* "${BOOT_MOUNT}"
-sync
-
-echo "Sync"
-sync
-
-echo "Unmount"
-unmount_image
+echo "Copying files to image"
+mcopy -v -i "${TMP_IMAGE}" -s "${staging}"/* ::
 
 cp -f "${TMP_IMAGE}" "${OUTPUT}"
-chown "${SUDO_UID}:${SUDO_GID}" "${OUTPUT}"
 
 echo "Created image ${OUTPUT}"
 file "${OUTPUT}"
