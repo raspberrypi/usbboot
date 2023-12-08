@@ -55,7 +55,7 @@
 ; Initialisation functions
 Function .onInit
 
-  ReadRegStr $R0 HKCU "Software\Compute Module Boot" ""
+  ReadRegStr $R0 HKCU "Software\Raspberry Pi" ""
   StrCmp $R0 "" done
 
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
