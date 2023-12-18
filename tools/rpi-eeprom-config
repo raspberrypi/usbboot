@@ -14,11 +14,8 @@ import sys
 import tempfile
 import time
 
-IMAGE_SIZE = 512 * 1024
+VALID_IMAGE_SIZES = [512 * 1024, 2 * 1024 * 1024]
 
-# Larger files won't with with "vcgencmd bootloader_config"
-MAX_FILE_SIZE = 2024
-ALIGN_SIZE = 4096
 BOOTCONF_TXT = 'bootconf.txt'
 BOOTCONF_SIG = 'bootconf.sig'
 PUBKEY_BIN = 'pubkey.bin'
@@ -39,6 +36,11 @@ FILE_HDR_LEN = 20
 FILENAME_LEN = 12
 TEMP_DIR = None
 
+# Modifiable files are stored in a single 4K erasable sector.
+# The max content 4076 bytes because of the file header.
+ERASE_ALIGN_SIZE = 4096
+MAX_FILE_SIZE = ERASE_ALIGN_SIZE - FILE_HDR_LEN
+
 DEBUG = False
 def debug(s):
     if DEBUG:
@@ -50,6 +52,15 @@ def rpi4():
         with open(compatible_path, "rb") as f:
             compatible = f.read().decode('utf-8')
             if "bcm2711" in compatible:
+                return True
+    return False
+
+def rpi5():
+    compatible_path = "/sys/firmware/devicetree/base/compatible"
+    if os.path.exists(compatible_path):
+        with open(compatible_path, "rb") as f:
+            compatible = f.read().decode('utf-8')
+            if "bcm2712" in compatible:
                 return True
     return False
 
@@ -98,7 +109,7 @@ def exit_error(msg):
     sys.stderr.write("ERROR: %s\n" % msg)
     sys.exit(1)
 
-def shell_cmd(args):
+def shell_cmd(args, timeout=5, echo=False):
     """
     Executes a shell command waits for completion returning STDOUT. If an
     error occurs then exit and output the subprocess stdout, stderr messages
@@ -106,9 +117,14 @@ def shell_cmd(args):
     """
     start = time.time()
     arg_str = ' '.join(args)
-    result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    bufsize = 0 if echo else -1
+    result = subprocess.Popen(args, bufsize=bufsize, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    while time.time() - start < 5:
+    while time.time() - start < timeout:
+        if echo:
+            s = result.stdout.read(80).decode('utf-8')
+            if s != "":
+                sys.stdout.write(s)
         if result.poll() is not None:
             break
 
@@ -117,8 +133,8 @@ def shell_cmd(args):
 
     if result.returncode != 0:
         exit_error("%s failed: %d\n %s\n %s\n" %
-                   (arg_str, result.returncode, result.stdout.read(), result.stderr.read()))
-    else:
+                   (arg_str, result.returncode, result.stdout.read().decode('utf-8'), result.stderr.read().decode('utf-8')))
+    elif not echo:
         return result.stdout.read().decode('utf-8')
 
 def get_latest_eeprom():
@@ -159,8 +175,10 @@ def apply_update(config, eeprom=None, config_src=None):
     # with EEPROMs with configs delivered outside of APT.
     # The checksums are really just a safety check for automatic updates.
     args = ['rpi-eeprom-update', '-d', '-i', '-f', tmp_update]
-    resp = shell_cmd(args)
-    sys.stdout.write(resp)
+
+    # If flashrom is used then the command will not return until the EEPROM
+    # has been updated so use a larger timeout.
+    shell_cmd(args, timeout=20, echo=True)
 
 def edit_config(eeprom=None):
     """
@@ -221,7 +239,7 @@ class ImageSection:
         self.offset = offset
         self.length = length
         self.filename = filename
-        debug("ImageSection %x %x %x %s" % (magic, offset, length, filename))
+        debug("ImageSection %x offset %d length %d %s" % (magic, offset, length, filename))
 
 class BootloaderImage(object):
     def __init__(self, filename, output=None):
@@ -231,6 +249,7 @@ class BootloaderImage(object):
         """
         self._filename = filename
         self._sections = []
+        self._image_size = 0
         try:
             self._bytes = bytearray(open(filename, 'rb').read())
         except IOError as err:
@@ -239,9 +258,10 @@ class BootloaderImage(object):
         if output is not None:
             self._out = open(output, 'wb')
 
-        if len(self._bytes) != IMAGE_SIZE:
+        self._image_size = len(self._bytes)
+        if self._image_size not in VALID_IMAGE_SIZES:
             exit_error("%s: Expected size %d bytes actual size %d bytes" %
-                       (filename, IMAGE_SIZE, len(self._bytes)))
+                       (filename, self._image_size, len(self._bytes)))
         self.parse()
 
     def parse(self):
@@ -250,8 +270,7 @@ class BootloaderImage(object):
         """
         offset = 0
         magic = 0
-        found = False
-        while offset < IMAGE_SIZE:
+        while offset < self._image_size:
             magic, length = struct.unpack_from('>LL', self._bytes, offset)
             if magic == 0x0 or magic == 0xffffffff:
                 break # EOF
@@ -262,6 +281,7 @@ class BootloaderImage(object):
             if magic == FILE_MAGIC: # Found a file
                 # Discard trailing null characters used to pad filename
                 filename = self._bytes[offset + 8: offset + FILE_HDR_LEN].decode('utf-8').replace('\0', '')
+            debug("section at %d length %d magic %08x %s" % (offset, length, magic, filename))
             self._sections.append(ImageSection(magic, offset, length, filename))
 
             offset += 8 + length # length + type
@@ -272,26 +292,46 @@ class BootloaderImage(object):
         Returns the offset, length and whether this is the last section in the
         EEPROM for a modifiable file within the image.
         """
-        ret = (-1, -1, False)
+        offset = -1
+        length = -1
+        is_last = False
+
+        next_offset = self._image_size - ERASE_ALIGN_SIZE # Don't create padding inside the bootloader scratch page
         for i in range(0, len(self._sections)):
             s = self._sections[i]
             if s.magic == FILE_MAGIC and s.filename == filename:
                 is_last = (i == len(self._sections) - 1)
-                ret = (s.offset, s.length, is_last)
+                offset = s.offset
+                length = s.length
                 break
-        debug('%s offset %d length %d last %s' % (filename, ret[0], ret[1], ret[2]))
+
+        # Find the start of the next non padding section
+        i += 1
+        while i < len(self._sections):
+            if self._sections[i].magic == PAD_MAGIC:
+                i += 1
+            else:
+                next_offset = self._sections[i].offset
+                break
+        ret = (offset, length, is_last, next_offset)
+        debug('%s offset %d length %d is-last %d next %d' % (filename, ret[0], ret[1], ret[2], ret[3]))
         return ret
 
     def update(self, src_bytes, dst_filename):
         """
         Replaces a modifiable file with specified byte array.
         """
-        hdr_offset, length, is_last = self.find_file(dst_filename)
+        hdr_offset, length, is_last, next_offset = self.find_file(dst_filename)
+        update_len = len(src_bytes) + FILE_HDR_LEN
+
+        if hdr_offset + update_len > self._image_size - ERASE_ALIGN_SIZE:
+            raise Exception('No space available - image past EOF.')
+
         if hdr_offset < 0:
             raise Exception('Update target %s not found' % dst_filename)
 
-        if hdr_offset + len(src_bytes) + FILE_HDR_LEN > IMAGE_SIZE:
-            raise Exception('EEPROM image size exceeded')
+        if hdr_offset + update_len > next_offset:
+            raise Exception('Update %d bytes is larger than section size %d' % (update_len, next_offset - hdr_offset))
 
         new_len = len(src_bytes) + FILENAME_LEN + 4
         struct.pack_into('>L', self._bytes, hdr_offset + 4, new_len)
@@ -312,7 +352,7 @@ class BootloaderImage(object):
         # by convention bootconf.txt is the last section and there's no need to
         # pad to the end of the sector. This also ensures that the loopback
         # config read/write tests produce identical binaries.
-        pad_bytes = ALIGN_SIZE - (pad_start % ALIGN_SIZE)
+        pad_bytes = next_offset - pad_start
         if pad_bytes > 8 and not is_last:
             pad_bytes -= 8
             struct.pack_into('>i', self._bytes, pad_start, PAD_MAGIC)
@@ -344,6 +384,15 @@ class BootloaderImage(object):
                             % (src_filename, len(src_bytes), MAX_FILE_SIZE))
         self.update(src_bytes, dst_filename)
 
+    def set_timestamp(self, timestamp):
+        """
+        Sets the self-update timestamp in an EEPROM image file. This is useful when
+        using flashrom to write to SPI flash instead of using the bootloader self-update mode.
+        """
+        ts = int(timestamp)
+        struct.pack_into('<L', self._bytes, len(self._bytes) - 4, ts)
+        struct.pack_into('<L', self._bytes, len(self._bytes) - 8, ~ts & 0xffffffff)
+
     def write(self):
         """
         Writes the updated EEPROM image to stdout or the specified output file.
@@ -358,10 +407,17 @@ class BootloaderImage(object):
                 sys.stdout.write(self._bytes)
 
     def get_file(self, filename):
-        hdr_offset, length, is_last = self.find_file(filename)
+        hdr_offset, length, is_last, next_offset = self.find_file(filename)
         offset = hdr_offset + 4 + FILE_HDR_LEN
-        config_bytes = self._bytes[offset:offset+length-FILENAME_LEN-4]
-        return config_bytes
+        file_bytes = self._bytes[offset:offset+length-FILENAME_LEN-4]
+        return file_bytes
+
+    def extract_files(self):
+        for i in range(0, len(self._sections)):
+            s = self._sections[i]
+            if s.magic == FILE_MAGIC:
+                file_bytes = self.get_file(s.filename)
+                open(s.filename, 'wb').write(file_bytes)
 
     def read(self):
         config_bytes = self.get_file('bootconf.txt')
@@ -377,10 +433,10 @@ class BootloaderImage(object):
 def main():
     """
     Utility for reading and writing the configuration file in the
-    Raspberry Pi 4 bootloader EEPROM image.
+    Raspberry Pi bootloader EEPROM image.
     """
     description = """\
-Bootloader EEPROM configuration tool for the Raspberry Pi 4.
+Bootloader EEPROM configuration tool for the Raspberry Pi 4 and Raspberry Pi 5.
 Operating modes:
 
 1. Outputs the current bootloader configuration to STDOUT if no arguments are
@@ -457,23 +513,30 @@ See 'rpi-eeprom-update -h' for more information about the available EEPROM image
     parser.add_argument('-o', '--out', help='Name of output file', required=False)
     parser.add_argument('-d', '--digest', help='Signed boot only. The name of the .sig file generated by rpi-eeprom-dgst for config.txt ', required=False)
     parser.add_argument('-p', '--pubkey', help='Signed boot only. The name of the RSA public key file to store in the EEPROM', required=False)
+    parser.add_argument('-x', '--extract', action='store_true', default=False, help='Extract the modifiable files (boot.conf, pubkey, signature)', required=False)
+    parser.add_argument('-t', '--timestamp', help='Set the timestamp in the EEPROM image file', required=False)
     parser.add_argument('eeprom', nargs='?', help='Name of EEPROM file to use as input')
     args = parser.parse_args()
 
     if (args.edit or args.apply is not None) and os.getuid() != 0:
         exit_error("--edit/--apply must be run as root")
 
-    if (args.edit or args.apply is not None) and not rpi4():
-        exit_error("--edit/--apply must run on a Raspberry Pi 4")
+    if (args.edit or args.apply is not None) and not rpi4() and not rpi5():
+        exit_error("--edit/--apply must run on a Raspberry Pi 4 or Raspberry Pi 5")
 
     if args.edit:
         edit_config(args.eeprom)
+    elif args.eeprom is not None and args.extract:
+        image = BootloaderImage(args.eeprom, args.out)
+        image.extract_files()
     elif args.apply is not None:
         if not os.path.exists(args.apply):
             exit_error("config file '%s' not found" % args.apply)
         apply_update(args.apply, args.eeprom, args.apply)
     elif args.eeprom is not None:
         image = BootloaderImage(args.eeprom, args.out)
+        if args.timestamp is not None:
+            image.set_timestamp(args.timestamp)
         if args.config is not None:
             if not os.path.exists(args.config):
                 exit_error("config file '%s' not found" % args.config)
@@ -482,6 +545,8 @@ See 'rpi-eeprom-update -h' for more information about the available EEPROM image
                 image.update_file(args.digest, BOOTCONF_SIG)
             if args.pubkey is not None:
                 image.update_key(args.pubkey, PUBKEY_BIN)
+            image.write()
+        elif args.config is None and args.timestamp is not None:
             image.write()
         else:
             image.read()

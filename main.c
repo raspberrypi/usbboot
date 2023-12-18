@@ -708,7 +708,7 @@ int main(int argc, char *argv[])
 	// If the boot directory is specified then check that it contains bootcode files.
 	if (directory)
 	{
-		FILE *f, *f4;
+		FILE *f, *f4, *f5;
 
 		if (verbose)
 			printf("Boot directory '%s'\n", directory);
@@ -727,7 +727,8 @@ int main(int argc, char *argv[])
 		{
 			f = check_file(directory, "bootcode.bin", 0);
 			f4 = check_file(directory, "bootcode4.bin", 0);
-			if (!f && !f4)
+			f5 = check_file(directory, "bootcode5.bin", 0);
+			if (!f && !f4 && !f5)
 			{
 				fprintf(stderr, "No 'bootcode' files found in '%s'\n", directory);
 				usage(1);
@@ -736,6 +737,8 @@ int main(int argc, char *argv[])
 				fclose(f);
 			if (f4)
 				fclose(f4);
+			if (f5)
+				fclose(f5);
 		}
 
 		if (signed_boot)
