@@ -79,6 +79,10 @@ or connecting the USB cable.
 On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
+### Raspberry Pi 5
+* Disconnect the USB-C cable. Power must be removed rather than just running "sudo shutdown now"
+* Hold the power button down
+* Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
 <a name="extensions"></a>
 ## Compute Module 4 Extensions
@@ -88,8 +92,10 @@ via RPIBOOT on Compute Module 4.
 | Directory | Description |
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
+| [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [mass-storage-gadget](mass-storage-gadget/README.md) | Replacement for MSD firmware. Uses Linux USB gadgetfs drivers to export all block devices (e.g. NVMe, EMMC) as MSD devices |
+| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Scripts that extend the `recovery` process to enable secure-boot, sign images etc |
 | [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
@@ -125,6 +131,12 @@ Please check this first to check that the software is up to date.
 * The CM4 EEPROM supports MMC, USB-MSD, USB 2.0, Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
 * If `rpiboot` is running but the mass storage device does not appear then try running the `rpiboot -d mass-storage-gadget` because this uses Linux instead of a custom VPU firmware to implement the mass-storage gadget. This also provides a login console on UART and HDMI.
 
+#### Hardware - Raspberry Pi 5
+* Press, and hold the power button before supplying power to the device.
+* Release the power button immediately after supplying power to the device.
+* Remove any non-essential USB peripherals or HATs.
+* Use a USB-3 port capable of supplying at least 900mA and use a high quality USB-C cable OR supply additional power via the 40-pin header.
+
 ### Software
 The recommended host setup is Raspberry Pi with Raspberry Pi OS. Alternatively, most Linux X86 builds are also suitable. Windows adds some extra complexity for the USB drivers so we recommend debugging on Linux first.
 
@@ -150,6 +162,8 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 <a name="secure-boot"></a>
 ## Secure Boot
 Secure Boot requires a recent bootloader stable image e.g. the version in this repository.
+
+NOTE: Secure Boot is not currently supported on Raspberry Pi 5.
 
 ### Tutorial
 Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
