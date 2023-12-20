@@ -105,6 +105,10 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   SetOutPath "$INSTDIR\mass-storage-gadget"
   File /r /x bootcode4.bin ..\mass-storage-gadget\*.*
   File ..\bootcode4.bin 
+
+  SetOutPath "$INSTDIR\mass-storage-gadget64"
+  File /r /x bootfiles.bin ..\mass-storage-gadget64\*.*
+  File ..\bootfiles.bin 
    
   SetOutPath "$INSTDIR\tools"
   File /r ..\tools\*.*
@@ -121,16 +125,22 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   DetailPrint "Installing BCM2711 driver..."
   ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2711 -t 0' $0 
   DetailPrint "Driver install returned $0"
+
+  DetailPrint "Installing BCM2712 driver..."
+  ExecWait '"$INSTDIR\redist\wdi-simple.exe" -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2712 -t 0' $0 
+  DetailPrint "Driver install returned $0"
   
   File cyggcc_s-1.dll
   File cygusb-1.0.dll
   File cygwin1.dll
   File ..\rpiboot.exe
   File rpi-mass-storage-gadget.bat
+  File rpi-mass-storage-gadget64.bat
   
   CreateDirectory "$SMPROGRAMS\Raspberry Pi"
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot.lnk" "$INSTDIR\rpiboot.exe"
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\Raspberry Pi - Mass Storage Gadget.lnk" "$INSTDIR\rpi-mass-storage-gadget.bat" 
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\Raspberry Pi 5 - Mass Storage Gadget.lnk" "$INSTDIR\rpi-mass-storage-gadget64.bat" 
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\Uninstall rpiboot.lnk" "$INSTDIR\Uninstall.exe"
 
   ;Store installation folder
@@ -159,6 +169,7 @@ Section "Uninstall"
 
   RmDir /r /REBOOTOK $INSTDIR\redist
   RmDir /r /REBOOTOK $INSTDIR\mass-storage-gadget
+  RmDir /r /REBOOTOK $INSTDIR\mass-storage-gadget64
   RmDir /r /REBOOTOK $INSTDIR\msd
   RmDir /r /REBOOTOK $INSTDIR\recovery
   RmDir /r /REBOOTOK $INSTDIR\tools
