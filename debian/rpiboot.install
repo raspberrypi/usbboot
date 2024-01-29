@@ -6,6 +6,7 @@ recovery5 usr/share/rpiboot/
 mass-storage-gadget usr/share/rpiboot/
 mass-storage-gadget64 usr/share/rpiboot/
 secure-boot-recovery usr/share/rpiboot/
+secure-boot-recovery5 usr/share/rpiboot/
 secure-boot-msd usr/share/rpiboot/
 tools/update-pieeprom.sh usr/share/rpiboot/tools/
 debian/70-rpiboot.rules /lib/udev/rules.d

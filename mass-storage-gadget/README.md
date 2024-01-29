@@ -7,6 +7,8 @@ USB mass storage devices using the Linux gadget-fs drivers.
 This allows Raspberry Pi Imager to be run on the host computer
 and write OS images to the Compute Module block devices.
 
+WARNING: This image used a 32-bit kernel and is NOT compatible with Pi5.
+
 ## Running
 To run load the USB MSD device drivers via RPIBOOT run
 ```bash
@@ -26,7 +28,7 @@ The mass-storage-gadget image automatically enables a UART console for debugging
 If secure-boot is enabled then `boot.img` must be signed with the customer private key file.
 ```bash
 KEY_FILE=$HOME/private.pem
-../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
+rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
 
 ## Source code

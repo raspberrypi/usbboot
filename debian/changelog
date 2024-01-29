@@ -1,3 +1,75 @@
+rpiboot (20240419~110800) UNRELEASED; urgency=medium
+
+  [ Tim Gover ]
+  * bootloader: Update to 2023-01-11 release
+  * secure-boot-recovery: boot.conf - Update BOOT_ORDER to include NVMe
+  * Update secure-boot docs - add chain of trust diagram
+  * Update EEPROM image to pieeprom-2023-05-11
+  * bootfiles: Load EEPROM DDR FW from bootfiles.bin
+  * recovery5: Preliminary support for EEPROM updates on Pi5
+  * mass-storage-gadget64: Add 64-bit mass-storage-gadget for BCM2711 BCM2712
+  * rpiboot: Update top level docs for Raspberry Pi 5
+  * windows: Add windows support for Raspberry Pi 5
+  * gitignore: Ignore Vi .swp files
+  * rpiboot: Read firmware from a package (.tar) file
+  * rpiboot: Add support for 2712 USB descriptors
+  * bootfiles: Move to firmware sub-directory
+  * documentation: Fixup .org URLs
+  * Update 2712 firmware to pieeprom-2024-02-16 release
+  * mass-storage-gadget64: Update for preliminary BCM2712D0 and CM5 support
+  * docs: Note that CM4S is compatible with CM4S RPIBOOT software
+  * mass-storage-gadget64: Reduce image size, fix DHCP and autologin to consoles
+  * rpi-eeprom: debian: Import rpi-eeprom tools as a submodule
+  * Readme.md: Fix some markdown issues
+  * bootloader: Use rpi-eeprom submodule for bootloader binaries
+  * update-pieeprom: Use system versions of rpi-eeprom tools in APT installs
+  * Update debian package following submodule reorg
+  * Makefile: Update install to use same msd path as APT
+  * Makefile: Add support for INSTALL_PREFIX
+  * 2712: Default to mass-storage-gadget64 if no direcoty is specified
+  * win32: Update for submodules and drop recovery
+  * readme: Specify the python3-cryptodome library instead of pip install
+  * recovery5: pieeprom.original.bin should be a symlink
+  * firmware: Update the 2711 bootloader to pieeprom-2024-04-15
+  * firmware: Update 2711 firmware in bootfiles.bin with secure-boot support
+  * bootfiles: Use the bootfiles loader for mass-storage gadget images
+  * secure-boot-recovery: Document the reboot flag
+  * mass-storage-gadget64: Update for CM5
+  * BCM2712: Preliminary tool support for secure-boot
+
+  [ Torben Woltjen ]
+  * Fix typo that resulted in opposite meaning (does -> doesn't)
+
+  [ Phil Elwell ]
+  * README: Include build-essential as a pre-requisite
+
+  [ TM ]
+  * Fix typo
+
+  [ mennovf ]
+  * Update install_script.nsi
+
+  [ Peter Harper ]
+  * Increase timeout for libusb_control_transfer
+  * Add options to set the key offset and length
+
+  [ axel simon ]
+  * fix link to ./tools/rpi-otp-private-key
+
+  [ Rory B ]
+  * fix typo
+
+  [ Tom Dewey ]
+  * rpiboot: Allow selecting by serial number
+  * rpiboot: review feedback
+  * rpiboot: review second round
+  * rpiboot: Close libusb handles during search
+  * rpiboot: Use libusb without prefix
+  * rpiboot: Fixup USB VID typo
+  * rpiboot: Update 05ac log message
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Fri, 19 Apr 2024 11:02:47 +0100
+
 rpiboot (20221215~105525) bullseye; urgency=medium
 
   [ Tim Gover ]
