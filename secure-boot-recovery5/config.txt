@@ -1,0 +1,36 @@
+uart_2ndstage=1
+
+# Mark the EEPROM as write protected when the EEPROM /WIP pin is pulled low.
+# See https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711_bootloader_config.md#eeprom_write_protect
+
+eeprom_write_protect=0
+
+# Uncomment to write to enable secure-boot by writing. This
+# locks the device to the public key in the EEPROM by storing the
+# sha256 hash of the public key in OTP.
+#
+# This option also prevents the ROM from loading recovery.bin from SD/EMMC
+# which means that the bootloader can only be updated via RPIBOOT or self-update.
+#
+# Uncomment program_pubkey=1 to enable this
+# WARNING: THIS OPTION MODIFIES THE BCM2712 CHIP AND IS IRREVERSIBLE.
+
+program_pubkey=1
+
+# Permanently disable VideoCore JTAG access.
+# Warning: This option limits the ability to do failure analysis on
+# boards returned to resellers or Raspberry Pi.
+#program_jtag_lock=1
+
+# INFORMATION ONLY - NOT IMPLEMENTED YET
+# Programs the anti-rollback firmware version number associated with the customer
+# key.
+# The NEW value is checked against the CURRENT firmware number and will be rejected
+# if it exceeds the CURRENT firmware version number.
+# The range is 0-32 and it is not possible to decrease the version number after programming.
+#program_fw_minver=0
+
+# If recovery_reboot is set then the Pi will disconnect USB and 
+# reboot after the flashing the firmware.
+#recovery_reboot=1
+

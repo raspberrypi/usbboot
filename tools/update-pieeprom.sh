@@ -19,14 +19,17 @@ DST_IMAGE="pieeprom.bin"
 PEM_FILE=""
 PUBLIC_PEM_FILE=""
 TMP_CONFIG_SIG=""
+SIGN_RECOVERY=0
+TMP_DIR=""
 
 die() {
    echo "$@" >&2
-   exit ${EXIT_FAILED}
+   exit 1
 }
 
 cleanup() {
    if [ -f "${TMP_CONFIG}" ]; then rm -f "${TMP_CONFIG}"; fi
+   if [ -d "${TMP_DIR}" ]; then rm -rf "${TMP_DIR}"; fi
 }
 
 usage() {
@@ -47,6 +50,12 @@ cat <<EOF
     -o Output EEPROM image - default: "${DST_IMAGE}"
     -k Optional RSA private key PEM file.
     -p Optional RSA public key PEM file.
+
+    Flags:
+    -f Countersign the EEPROM firmware
+    -r Countersign recovery.bin. Once secure-boot has been enabled (but not
+       before!) the recovery.bin file must be countersign in addition to
+       bootcode.bin.
 
 The -k argument signs the EEPROM configuration using the specified RSA 2048
 bit private key in PEM format. It also embeds the public portion of the RSA
@@ -115,9 +124,54 @@ image_digest() {
     rpi-eeprom-digest -i "${1}" -o "${2}"
 }
 
+sign_firmware_blob() {
+   [ -f "${PEM_FILE}" ] || die "sign-firmware: key-file ${PEM_FILE} not found"
+   rpi-sign-bootcode \
+      -c 2712 \
+      -i "${1}" \
+      -o "${2}" \
+      -n 16 \
+      -v 0 \
+      -k "${PEM_FILE}"
+}
+
+sign_firmware() {
+   if [ "${SIGN_FIRMWARE}" = 1 ]; then
+      echo "SIGN_RECOVERY: ${SIGN_RECOVERY}"
+
+      if [ "${SIGN_RECOVERY}" = 1 ]; then
+         # Run from the secure-boot-recovery directory so sign recovery.bin as well
+         recovery_src="recovery.original.bin"
+         if [ -f "${recovery_src}" ]; then
+            echo "Signing ${recovery_src} as bootcode5.bin"
+            rm -f "bootcode5.bin"
+            sign_firmware_blob "${recovery_src}" bootcode5.bin
+         fi
+      else
+         echo "Using unsigned recovery.bin"
+         cp -fv recovery.original.bin bootcode5.bin
+      fi
+
+      # Extract bootcode.bin from the bootloader image and sign it
+      pieeprom_src="pieeprom.original.bin"
+      pieeprom_dst="pieeprom.signed_boot.bin"
+      if [ -f "${pieeprom_src}" ]; then
+         echo "Signing ${pieeprom_src} as ${pieeprom_dst}"
+         (
+            cp -f "${pieeprom_src}" "${TMP_DIR}"
+            cd ${TMP_DIR}
+            rpi-eeprom-config -x "${pieeprom_src}"
+         )
+         sign_firmware_blob "${TMP_DIR}/bootcode.bin" "${TMP_DIR}/bootcode.bin.signed"
+         rpi-eeprom-config --bootcode "${TMP_DIR}/bootcode.bin.signed" -o "${pieeprom_dst}" "${pieeprom_src}"
+         SRC_IMAGE="${pieeprom_dst}"
+      fi
+   fi
+}
+
 trap cleanup EXIT
 
-while getopts "c:hi:o:k:p:" option; do
+while getopts "c:i:o:k:p:fhr" option; do
     case "${option}" in
         c) CONFIG="${OPTARG}"
             ;;
@@ -126,11 +180,18 @@ while getopts "c:hi:o:k:p:" option; do
         o) DST_IMAGE="${OPTARG}"
             ;;
         k) PEM_FILE="${OPTARG}"
+           [ -n "${PEM_FILE}" ] || die "Private key not specified [-k]"
+           [ -f "${PEM_FILE}" ] || die "Private key file ${PEM_FILE} not found"
             ;;
         p) PUBLIC_PEM_FILE="${OPTARG}"
             ;;
-        h) usage
+        f) SIGN_FIRMWARE=1
             ;;
+        r) SIGN_RECOVERY=1
+           ;;
+        h) usage
+           exit 0
+           ;;
         *) echo "Unknown argument \"${option}\""
             usage
             ;;
@@ -161,7 +222,8 @@ if [ -z "${PUBLIC_PEM_FILE}" ]; then
 fi
 
 DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\.[^./]*$//').sig"
-
+TMP_DIR="$(mktemp -d)"
+rm -f "${DST_IMAGE}" "${DST_IMAGE_SIG}"
+sign_firmware
 update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}"
 image_digest "${DST_IMAGE}" "${DST_IMAGE_SIG}"
-

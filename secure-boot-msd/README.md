@@ -15,10 +15,12 @@ containing the firmware mass storage drivers.
 N.B. The signed image should normally be kept secure because can
 be used on any device signed with the same customer key.
 
+WARNING: This image is NOT compatible with Pi5.
+
 To sign the mass storage mode boot image run:-
 ```bash
 KEY_FILE=$HOME/private.pem
-../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
+rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
 
 To run load the USB MSD device drivers via RPIBOOT run

@@ -70,7 +70,7 @@ cd libusb-1.0.26
 ./configure
 make
 make check
-sudo make install
+sudo make INSTALL_PREFIX=/usr/local install
 ```
 Running `make` again should now succeed.
 
@@ -109,11 +109,9 @@ via RPIBOOT on Compute Module 4.
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [mass-storage-gadget](mass-storage-gadget/README.md) | 32-bit mass storage gadget for BCM2711 |
 | [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
-| [secure-boot-recovery](secure-boot-recovery/README.md) | Scripts that extend the `recovery` process to enable secure-boot, sign images etc |
-| [secure-boot-msd](secure-boot-msd/README.md) | DEPRECATED - Scripts for signing the MSD firmware so that it can be used on a secure-boot device.|
-| [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
-
-**The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin`**
+| [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
+| [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
+| [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
 
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
@@ -176,22 +174,24 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 ## Secure Boot
 Secure Boot requires a recent bootloader stable image e.g. the version in this repository.
 
-NOTE: Secure Boot is not currently supported on Raspberry Pi 5.
-
 ### Tutorial
 Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
 
 ### Additional documentation
 
-* Secure boot [chain of trust diagram](docs/secure-boot-train-of-trust.pdf).
-* Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+* Secure boot BCM2711
+** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
+** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+* Secure boot BCM2712
+** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
+** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
 * Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-specific-bootloader-properties-chosenbootloader).
 * Device tree [public key - NVMEM property](https://www.raspberrypi.com/documentation/computers/configuration.html#nvmem-nodes).
 * Raspberry Pi [OTP registers](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#otp-register-and-bit-definitions).
 * Raspberry Pi [device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key).
 
 ### Host Setup
-Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodomex` module to sign the bootloader EEPROM config and boot image.
+Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodome` module to sign the bootloader EEPROM config and boot image.
 
 #### Install Python Crypto Support (the pycryptodomex module)
 ```bash
@@ -206,7 +206,7 @@ openssl genrsa 2048 > private.pem
 
 ### Secure Boot - configuration
 * Please see the [secure boot EEPROM guide](secure-boot-recovery/README.md) to enable via rpiboot `recovery.bin`.
-* Please see the [secure boot MSD guide](secure-boot-msd/README.md) for instructions about to mount the EMMC via USB mass-storage once secure-boot has been enabled.
+* Please see the [secure boot MSD guide](mass-storage-gadget64/README.md) for instructions about to mount the EMMC via USB mass-storage once secure-boot has been enabled.
 
 ## Secure Boot - image creation
 Secure Boot requires self-contained ramdisk (`boot.img`) FAT image to be created containing the GPU
