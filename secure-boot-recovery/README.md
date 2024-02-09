@@ -1,7 +1,10 @@
 # Raspberry Pi 4 - secure boot
 
-This directory contains the beta bootcode4.bin (recovery.bin) and pieeprom-2021-05-19.bin
-bootloader release. Older bootloader and recovery.bin releases do not support secure boot.
+This directory contains the latest stable versions of the bootloader EEPROM
+and recovery.bin files that support secure-boot.
+
+Firmware older than 2021-05-19 or beta releases do not support secure-boot.
+
 
 Steps for enabling secure boot:
 
@@ -39,7 +42,7 @@ export KEY_FILE="${HOME}/private.pem"
 
 ## Optional. Customize the EEPROM config.
 Custom with the desired bootloader settings. 
-See: [Bootloader configuration](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711_bootloader_config.md)
+See: [Bootloader configuration](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-bootloader-configuration)
 
 Setting `SIGNED_BOOT=1` enables signed-boot mode so that the bootloader will only
 boot.img files signed with the specified RSA key. Since this is an EEPROM config

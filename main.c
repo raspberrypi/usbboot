@@ -62,7 +62,7 @@ void usage(int error)
 	fprintf(dest, "To flash the default bootloader EEPROM image on Compute Module 4 run\n");
 	fprintf(dest, "rpiboot -d recovery\n\n");
 	fprintf(dest, "For more information about the bootloader EEPROM please see:\n");
-	fprintf(dest, "https://www.raspberrypi.org/documentation/hardware/raspberrypi/booteeprom.md\n\n");
+	fprintf(dest, "https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-bootloader-configuration\n\n");
 	fprintf(dest, "rpiboot                  : Boot the device into mass storage device\n");
 	fprintf(dest, "rpiboot -d [directory]   : Boot the device using the boot files in 'directory'\n");
 	fprintf(dest, "Further options:\n");

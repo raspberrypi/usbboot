@@ -1,7 +1,7 @@
 uart_2ndstage=1
 
 # Mark the EEPROM as write protected when the EEPROM /WIP pin is pulled low.
-# See https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711_bootloader_config.md#eeprom_write_protect
+# See https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom_write_protect
 
 eeprom_write_protect=1
 
