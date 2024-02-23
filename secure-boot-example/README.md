@@ -22,7 +22,7 @@ Please see the top level [README](../Readme.md#building) and [secure-boot-recove
 instructions about how to permanently enable secure-boot by programming OTP.
 
 ### Requirements for running this example
-* A Raspberry Pi Compute Module 4
+* A Raspberry Pi Compute Module 4 / 4S.
 * Micro USB cable for `rpiboot` connection
 * USB serial cable (for debug logs)
 * Linux, WSL or Cygwin (Windows 10)

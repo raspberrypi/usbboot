@@ -1,7 +1,8 @@
 # USB Device Boot Code
 
-This is the USB MSD boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
-Module 3, 3+ and 4, Raspberry Pi Zero and Zero 2 W.
+This is the USB device boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
+Module 3, 3+ 4S, and 4, Raspberry Pi Zero and Zero 2 W.
+N.B. In regards to this document CM4 and CM4S have identical software support.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
@@ -14,6 +15,8 @@ Since `RPIBOOT` is a generic firmware loading interface, it is possible to load
 other versions of the firmware by passing the `-d` flag to specify the directory
 where the firmware should be loaded from.
 E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
+
+From Raspberry Pi5 onwards the MSD firmware has been replaced with a Linux initramfs providing a mass-storage-gadget.
 
 For more information run `rpiboot -h`.
 
