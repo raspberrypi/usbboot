@@ -233,7 +233,7 @@ secure-boot OS must ensure that access to this interface is restricted.
 See also:-
 * [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 * [cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions)
-* [rpi-otp-private-key](../tools/rpi-otp-private-key)
+* [rpi-otp-private-key](./tools/rpi-otp-private-key)
 
 The [secure boot tutorial](secure-boot-example/README.md) contains a `boot.img` that supports cryptsetup and a simple example.
 
