@@ -92,7 +92,7 @@ To enable this edit the `config.txt` file in this directory and set
 ## Disabling VideoCore JTAG
 
 VideoCore JTAG may be permanently disabled by setting `program_jtag_lock` in
-`config.txt`. This option has no effect unless `revoke_revkey=1` is set and
+`config.txt`. This option has no effect unless `revoke_devkey=1` is set and
 the EEPROM and customer OTP key were programmed successfully.
 
 See [config.txt](config.txt)
