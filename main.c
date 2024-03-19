@@ -87,7 +87,7 @@ void usage(int error)
 }
 
 libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
-	libusb_context *ctx, char* serialno)
+	libusb_context *ctx, char *serialno)
 {
 	struct libusb_device **devices;
 	struct libusb_device *cursor;
@@ -208,8 +208,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	uint8_t path[8];	// Needed for libusb_get_port_numbers
 	uint8_t portNo = 0;
 
-	ssize_t device_count = libusb_get_device_list(ctx, &devs);
-	if (device_count < 0)
+	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
