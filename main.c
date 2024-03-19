@@ -115,6 +115,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 		if (handle != NULL) {
 			if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, serial_buffer, 31) >= 0) {
 				if (strncmp(serialno, (char *)serial_buffer, 32)) {
+					libusb_close(handle);
 					handle = NULL;
 					continue;
 				}
@@ -171,17 +172,20 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 					} else {
 						// Serial number matches, VID matches, but we don't know about this product. Abort.
 						fprintf(stderr, "Unknown Raspberry Pi Product, wanted 2763, 2764, 2711 or 2712. Got: %04x\n", desc.idProduct);
+						libusb_close(handle);
 						handle = NULL;
 						continue;
 					}
 				} else {
 					// Serial number matches, but the VID doesn't. Invalid action.
 					fprintf(stderr, "Unknown USB Vendor ID. Wanted 05ac. Got: %04x\n", desc.idVendor);
+					libusb_close(handle);
 					handle = NULL;
 					continue;
 				}
 			} else {
 				// No serial number specified, not a good sign at all.
+				libusb_close(handle);
 				handle = NULL;
 				continue;
 			}
