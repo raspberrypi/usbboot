@@ -22,8 +22,8 @@
 #include "fmemopen.c"
 #endif
 
-#define SELECTION_MODE_VID 		0
-#define SELECTION_MODE_SERIAL 	1
+#define SELECTION_MODE_VID		0
+#define SELECTION_MODE_SERIAL	1
 
 int selection_mode = SELECTION_MODE_VID;
 char * target_serialno = NULL;
@@ -79,7 +79,7 @@ void usage(int error)
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
-	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");\
+	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
 	fprintf(dest, "        -h               : This help\n");
 
@@ -87,8 +87,8 @@ void usage(int error)
 }
 
 libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
-	libusb_context *ctx, char* serialno
-) {
+	libusb_context *ctx, char* serialno)
+{
 	struct libusb_device **devices;
 	struct libusb_device *cursor;
 	struct libusb_device_handle *handle = NULL;
@@ -99,21 +99,18 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 
 	uint32_t device_index = 0;
 	unsigned char *serial_buffer = calloc(33, sizeof(uint8_t));
-	if (serial_buffer == NULL) {
+	if (serial_buffer == NULL)
 		goto out_serialno;
-	}
 
 	while ((cursor = devices[device_index++]) != NULL) {
 		struct libusb_device_descriptor desc;
 		r = libusb_get_device_descriptor(cursor, &desc);
-		if (r < 0) {
+		if (r < 0)
 			goto out_serialno;
-		}
 
 		r = libusb_open(cursor, &handle);
-		if (r < 0) {
+		if (r < 0)
 			goto out_serialno;
-		}
 		
 		if (handle != NULL) {
 			if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, serial_buffer, 31) >= 0) {
@@ -143,14 +140,12 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 							second_stage = "bootcode.bin";
 
 						fp_second_stage = check_file(directory, second_stage, 1);
-						if (!fp_second_stage)
-						{
+						if (!fp_second_stage) {
 							fprintf(stderr, "Failed to open %s\n", second_stage);
 							exit(EXIT_FAILURE);
 						}
 
-						if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
-						{
+						if (signed_boot && !bcm2711 && !bcm2712) { // Signed boot uses a different mechanism on BCM2711 and BCM2712
 							const char *sig_file = "bootcode.sig";
 							fp_sign = check_file(directory, sig_file, 1);
 							if (!fp_sign)
@@ -161,11 +156,11 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 							}
 						}
 
-						if (second_stage_prep(fp_second_stage, fp_sign) != 0)
-						{
+						if (second_stage_prep(fp_second_stage, fp_sign) != 0) {
 							fprintf(stderr, "Failed to prepare the second stage bootcode\n");
 							exit(EXIT_FAILURE);
 						}
+
 						if (fp_second_stage)
 							fclose(fp_second_stage);
 
@@ -194,9 +189,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 	}
 
 out_serialno:
-	if (serial_buffer) {
+	if (serial_buffer)
 		free(serial_buffer);
-	}
 
 	libusb_free_device_list(devices, 1);
 	return handle;
@@ -847,7 +841,7 @@ int main(int argc, char *argv[])
 
 	get_options(argc, argv);
 
-	//printf("RPIBOOT: build-date %s version %s %s\n", __DATE__, PKG_VER, GIT_VER);
+	printf("RPIBOOT: build-date %s version %s %s\n", __DATE__, PKG_VER, GIT_VER);
 
 	// flush immediately
 	setbuf(stdout, NULL);
