@@ -30,7 +30,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
   is included as a (git submodule)[https://git-scm.com/book/en/v2/Git-Tools-Submodules]
 
-bash```
+```bash
 sudo apt install git libusb-1.0-0-dev pkg-config build-essential
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
@@ -50,7 +50,7 @@ From a macOS machine, you can also run usbboot, just follow the same steps:
 5. Build using make
 6. Run the binary
 
-bash```
+```bash
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 brew install libusb
@@ -78,7 +78,7 @@ Running `make` again should now succeed.
 After updating the usbboot repo (`git pull --rebase origin master`) update the
 submodules by running 
 
-bash```
+```bash
 git submodule update --init
 ```
 
