@@ -1,4 +1,4 @@
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +22,11 @@
 #include "fmemopen.c"
 #endif
 
+#define SELECTION_MODE_VID		0
+#define SELECTION_MODE_SERIAL	1
+
+int selection_mode = SELECTION_MODE_VID;
+char * target_serialno = NULL;
 int signed_boot = 0;
 int verbose = 0;
 int loop = 0;
@@ -75,9 +80,124 @@ void usage(int error)
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
+	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
+}
+
+libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
+	libusb_context *ctx, char *serialno)
+{
+	struct libusb_device **devices;
+	struct libusb_device *cursor;
+	struct libusb_device_handle *handle = NULL;
+	int r = 0;
+
+	if (libusb_get_device_list(ctx, &devices) < 0)
+		return NULL;
+
+	uint32_t device_index = 0;
+	unsigned char *serial_buffer = calloc(33, sizeof(uint8_t));
+	if (serial_buffer == NULL)
+		goto out_serialno;
+
+	while ((cursor = devices[device_index++]) != NULL) {
+		struct libusb_device_descriptor desc;
+		r = libusb_get_device_descriptor(cursor, &desc);
+		if (r < 0)
+			goto out_serialno;
+
+		r = libusb_open(cursor, &handle);
+		if (r < 0)
+			goto out_serialno;
+		
+		if (handle != NULL) {
+			if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, serial_buffer, 31) >= 0) {
+				if (strncmp(serialno, (char *)serial_buffer, 32)) {
+					libusb_close(handle);
+					handle = NULL;
+					continue;
+				}
+				
+				// Match the magic numbers for Raspberry Pi generations
+				if (desc.idVendor == 0x05ac) {
+					if (desc.idProduct == 0x2763 ||
+						desc.idProduct == 0x2764 ||
+						desc.idProduct == 0x2711 ||
+						desc.idProduct == 0x2712)
+					{
+						FILE *fp_second_stage = NULL;
+						FILE *fp_sign = NULL;
+						const char *second_stage;
+
+						bcm2711 = (desc.idProduct == 0x2711);
+						bcm2712 = (desc.idProduct == 0x2712);
+						if (bcm2711)
+							second_stage = "bootcode4.bin";
+						else if (bcm2712)
+							second_stage = "bootcode5.bin";
+						else
+							second_stage = "bootcode.bin";
+
+						fp_second_stage = check_file(directory, second_stage, 1);
+						if (!fp_second_stage) {
+							fprintf(stderr, "Failed to open %s\n", second_stage);
+							exit(EXIT_FAILURE);
+						}
+
+						if (signed_boot && !bcm2711 && !bcm2712) { // Signed boot uses a different mechanism on BCM2711 and BCM2712
+							const char *sig_file = "bootcode.sig";
+							fp_sign = check_file(directory, sig_file, 1);
+							if (!fp_sign)
+							{
+								fprintf(stderr, "Unable to open '%s'\n", sig_file);
+								usage(1);
+								exit(EXIT_FAILURE);
+							}
+						}
+
+						if (second_stage_prep(fp_second_stage, fp_sign) != 0) {
+							fprintf(stderr, "Failed to prepare the second stage bootcode\n");
+							exit(EXIT_FAILURE);
+						}
+
+						if (fp_second_stage)
+							fclose(fp_second_stage);
+
+						if (fp_sign)
+							fclose(fp_sign);
+
+						break;
+					} else {
+						// Serial number matches, VID matches, but we don't know about this product. Abort.
+						fprintf(stderr, "Unknown Raspberry Pi Product, wanted 2763, 2764, 2711 or 2712. Got: %04x\n", desc.idProduct);
+						libusb_close(handle);
+						handle = NULL;
+						continue;
+					}
+				} else {
+					// Serial number matches, but the VID doesn't. Invalid action.
+					fprintf(stderr, "Unknown USB Vendor ID. Wanted 05ac. Got: %04x\n", desc.idVendor);
+					libusb_close(handle);
+					handle = NULL;
+					continue;
+				}
+			} else {
+				// No serial number specified, not a good sign at all.
+				libusb_close(handle);
+				handle = NULL;
+				continue;
+			}
+		}
+	}
+
+out_serialno:
+	if (serial_buffer)
+		free(serial_buffer);
+
+	libusb_free_device_list(devices, 1);
+	return handle;
 }
 
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
@@ -230,11 +350,25 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	int interface;
 	struct libusb_config_descriptor *config;
 
-	*usb_device = open_device_with_vid(*ctx, 0x0a5c);
-	if (*usb_device == NULL)
-	{
-		usleep(200);
-		return -1;
+	switch (selection_mode) {
+		case SELECTION_MODE_SERIAL: {
+			*usb_device = open_device_with_serialno(*ctx, target_serialno);
+			if (*usb_device == NULL)
+			{
+				usleep(200);
+				return -1;
+			}
+		}
+		break;
+		case SELECTION_MODE_VID: {
+			*usb_device = open_device_with_vid(*ctx, 0x0a5c);
+			if (*usb_device == NULL)
+			{
+				usleep(200);
+				return -1;
+			}
+		}
+		break;
 	}
 
 	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
@@ -367,6 +501,16 @@ void get_options(int argc, char *argv[])
 		else if(strcmp(*argv, "-s") == 0)
 		{
 			signed_boot = 1;
+		}
+		else if (strcmp(*argv, "-i") == 0)
+		{
+			selection_mode = SELECTION_MODE_SERIAL;
+			argv++; argc--;
+			if (argc < 1) {
+				usage(1);
+			} else {
+				target_serialno = *argv;
+			}
 		}
 		else if(strcmp(*argv, "-0") == 0)
 		{
