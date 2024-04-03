@@ -16,18 +16,15 @@ bin2c: bin2c.c
 install: rpiboot
 	install -m 755 rpiboot /usr/bin/
 	install -d /usr/share/rpiboot
-	install -m 644 msd/bootcode.bin  /usr/share/rpiboot/
-	install -m 644 msd/bootcode4.bin /usr/share/rpiboot/
-	install -m 644 msd/start.elf  /usr/share/rpiboot/
-	install -m 644 msd/start4.elf /usr/share/rpiboot/
+	install -d /usr/share/rpiboot/msd
+	install -m 644 msd/bootcode.bin  /usr/share/rpiboot/msd
+	install -m 644 msd/bootcode4.bin /usr/share/rpiboot/msd
+	install -m 644 msd/start.elf  /usr/share/rpiboot/msd
+	install -m 644 msd/start4.elf /usr/share/rpiboot/msd
 
 uninstall:
 	rm -f /usr/bin/rpiboot
-	rm -f /usr/share/rpiboot/bootcode.bin
-	rm -f /usr/share/rpiboot/bootcode4.bin
-	rm -f /usr/share/rpiboot/start.elf
-	rm -f /usr/share/rpiboot/start4.elf
-	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
+	rm -rf /usr/share/rpiboot
 
 clean:
 	rm -f rpiboot msd/*.h bin2c
