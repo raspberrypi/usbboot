@@ -137,10 +137,14 @@ while getopts "c:hi:o:k:p:" option; do
     esac
 done
 
-submodule_check="${script_dir}/../rpi-eeprom/firmware-2711/default/recovery.bin"
-if [ ! -f "${submodule_check}" ]; then
-   echo "WARNING:${submodule_check} not found. To update the rpi-eeprom submodule run:"
-   echo "git submodule init && git submodule update"
+# If this is run from the source repo the check that the submodule has been update.
+# The APT installed version does not contain an rpi-eeprom directory.
+if [ -d ../rpi-eeprom ]; then
+   submodule_check="${script_dir}/../rpi-eeprom/firmware-2711/default/recovery.bin"
+   if [ ! -f "${submodule_check}" ]; then
+      echo "WARNING:${submodule_check} not found. To update the rpi-eeprom submodule run:"
+      echo "git submodule init && git submodule update"
+   fi
 fi
 
 [ -f "${SRC_IMAGE}" ] || die "Source image \"${SRC_IMAGE}\" not found"
