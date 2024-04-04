@@ -14,20 +14,20 @@ bin2c: bin2c.c
 	$(CC) -Wall -Wextra -g -o $@ $<
 
 install: rpiboot
-	install -m 755 rpiboot /usr/bin/
-	install -d /usr/share/rpiboot
-	install -m 644 msd/bootcode.bin  /usr/share/rpiboot/
-	install -m 644 msd/bootcode4.bin /usr/share/rpiboot/
-	install -m 644 msd/start.elf  /usr/share/rpiboot/
-	install -m 644 msd/start4.elf /usr/share/rpiboot/
+	install -m 755 rpiboot /usr/local/bin/
+	install -d /usr/local/share/rpiboot
+	install -m 644 msd/bootcode.bin  /usr/local/share/rpiboot/
+	install -m 644 msd/bootcode4.bin /usr/local/share/rpiboot/
+	install -m 644 msd/start.elf  /usr/local/share/rpiboot/
+	install -m 644 msd/start4.elf /usr/local/share/rpiboot/
 
 uninstall:
-	rm -f /usr/bin/rpiboot
-	rm -f /usr/share/rpiboot/bootcode.bin
-	rm -f /usr/share/rpiboot/bootcode4.bin
-	rm -f /usr/share/rpiboot/start.elf
-	rm -f /usr/share/rpiboot/start4.elf
-	rmdir --ignore-fail-on-non-empty /usr/share/rpiboot/
+	rm -f /usr/local/bin/rpiboot
+	rm -f /usr/local/share/rpiboot/bootcode.bin
+	rm -f /usr/local/share/rpiboot/bootcode4.bin
+	rm -f /usr/local/share/rpiboot/start.elf
+	rm -f /usr/local/share/rpiboot/start4.elf
+	rmdir --ignore-fail-on-non-empty /usr/local/share/rpiboot/
 
 clean:
 	rm -f rpiboot msd/*.h bin2c
