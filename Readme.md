@@ -195,9 +195,7 @@ Secure boot require a 2048 bit RSA asymmetric keypair and the Python `pycrytodom
 
 #### Install Python Crypto Support (the pycryptodomex module)
 ```bash
-python3 -m pip install pycryptodomex
-# or
-pip install pycryptodomex
+sudo apt install python3-pycryptodome
 ```
 
 #### Create an RSA key-pair using OpenSSL. Must be 2048 bits
