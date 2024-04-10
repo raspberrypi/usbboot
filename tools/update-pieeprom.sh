@@ -9,6 +9,7 @@
 set -e
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+export PATH=${script_dir}:${PATH}
 
 # Minimum version for secure-boot support
 BOOTLOADER_SECURE_BOOT_MIN_VERSION=1632136573
@@ -82,7 +83,7 @@ update_eeprom() {
 
         TMP_CONFIG_SIG="$(mktemp)"
         echo "Signing bootloader config"
-        "${script_dir}/rpi-eeprom-digest" \
+        rpi-eeprom-digest \
             -i "${config}" -o "${TMP_CONFIG_SIG}" \
             -k "${pem_file}" || die "Failed to sign EEPROM config"
 
@@ -97,7 +98,7 @@ update_eeprom() {
 
     rm -f "${dst_image}"
     set -x
-    ${script_dir}/rpi-eeprom-config \
+    rpi-eeprom-config \
         --config "${config}" \
         --out "${dst_image}" ${sign_args} \
         "${src_image}" || die "Failed to update EEPROM image"
@@ -111,8 +112,7 @@ EOF
 }
 
 image_digest() {
-    "${script_dir}/rpi-eeprom-digest" \
-        -i "${1}" -o "${2}"
+    rpi-eeprom-digest -i "${1}" -o "${2}"
 }
 
 trap cleanup EXIT
