@@ -22,7 +22,7 @@
 #include "fmemopen.c"
 #endif
 
-#define SELECTION_MODE_VID		0
+#define SELECTION_MODE_VID	0
 #define SELECTION_MODE_SERIAL	1
 
 int selection_mode = SELECTION_MODE_VID;
@@ -178,7 +178,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 					}
 				} else {
 					// Serial number matches, but the VID doesn't. Invalid action.
-					fprintf(stderr, "Unknown USB Vendor ID. Wanted 05ac. Got: %04x\n", desc.idVendor);
+					fprintf(stderr, "Unknown USB Vendor ID. Wanted 0a5c. Got: %04x\n", desc.idVendor);
 					libusb_close(handle);
 					handle = NULL;
 					continue;
