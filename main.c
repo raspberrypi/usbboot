@@ -121,7 +121,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 				}
 				
 				// Match the magic numbers for Raspberry Pi generations
-				if (desc.idVendor == 0x05ac) {
+				if (desc.idVendor == 0x0a5c) {
 					if (desc.idProduct == 0x2763 ||
 						desc.idProduct == 0x2764 ||
 						desc.idProduct == 0x2711 ||
