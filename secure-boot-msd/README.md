@@ -1,4 +1,8 @@
-# USB MSD device mode drivers for signed-boot
+# USB MSD FIRMWARE device mode drivers for signed-boot
+
+NOTE: This module is deprecated. Please use the Linux based
+mass-storage-gadget64 which provides better performance and
+support for NVMe and MSD devices.
 
 If secure-boot mode has been locked (via OTP) then both the
 bootloader and rpiboot `bootcode4.bin` will only load `boot.img`

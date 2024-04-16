@@ -99,8 +99,8 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File ..\firmware\2711\bootcode4.bin
 
   SetOutPath "$INSTDIR\mass-storage-gadget"
-  File /r /x bootcode4.bin ..\mass-storage-gadget\*.*
-  File ..\firmware\2711\bootcode4.bin
+  File /r /x bootfiles.bin ..\mass-storage-gadget\*.*
+  File ..\firmware\bootfiles.bin
 
   SetOutPath "$INSTDIR\mass-storage-gadget64"
   File /r /x bootfiles.bin ..\mass-storage-gadget64\*.*

@@ -22,8 +22,12 @@ is running on the ARM processors.
 ### Debug
 The mass-storage-gadget image automatically enables a UART console for debugging (user `root` empty password).
 
-## secure-boot
-Not supported in this test version.
+## Secure boot
+If secure-boot is enabled then `boot.img` must be signed with the customer private key file.
+```bash
+KEY_FILE=$HOME/private.pem
+../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
+```
 
 ## Source code
 The buildroot configuration and supporting patches is available on

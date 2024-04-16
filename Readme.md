@@ -107,10 +107,10 @@ via RPIBOOT on Compute Module 4.
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
-| [mass-storage-gadget](mass-storage-gadget/README.md) | Replacement for MSD firmware. Uses Linux USB gadgetfs drivers to export all block devices (e.g. NVMe, EMMC) as MSD devices |
+| [mass-storage-gadget](mass-storage-gadget/README.md) | 32-bit mass storage gadget for BCM2711 |
 | [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Scripts that extend the `recovery` process to enable secure-boot, sign images etc |
-| [secure-boot-msd](secure-boot-msd/README.md) | Scripts for signing the MSD firmware so that it can be used on a secure-boot device |
+| [secure-boot-msd](secure-boot-msd/README.md) | DEPRECATED - Scripts for signing the MSD firmware so that it can be used on a secure-boot device.|
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console.
 
 **The `secure-boot-msd`, `rpi-imager-embedded` and `mass-storage-gadget` extensions require that the `2022-04-26` (or newer) bootloader EEPROM release has already been written to the EEPROM using `recovery.bin`**
