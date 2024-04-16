@@ -34,6 +34,12 @@ eeprom_write_protect=1
 #program_rpiboot_gpio=8
 
 # Permanently disable VideoCore JTAG access.
-# Warning: This option limits the ability to do failure analysis on 
+# Warning: This option limits the ability to do failure analysis on
 # boards returned to resellers or Raspberry Pi Trading Ltd.
 #program_jtag_lock=1
+
+# rpiboot - only
+# If recovery_reboot is set then the Pi will disconnect USB and
+# reboot after the flashing the firmware.
+#recovery_reboot=1
+
