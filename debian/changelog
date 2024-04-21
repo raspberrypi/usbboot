@@ -1,4 +1,4 @@
-rpiboot (20240419~110800) UNRELEASED; urgency=medium
+rpiboot (20240422~085300) bookworm; urgency=medium
 
   [ Tim Gover ]
   * bootloader: Update to 2023-01-11 release
@@ -36,6 +36,7 @@ rpiboot (20240419~110800) UNRELEASED; urgency=medium
   * secure-boot-recovery: Document the reboot flag
   * mass-storage-gadget64: Update for CM5
   * BCM2712: Preliminary tool support for secure-boot
+  * firmware: Update 2712 to 2024-04-20 release
 
   [ Torben Woltjen ]
   * Fix typo that resulted in opposite meaning (does -> doesn't)
@@ -68,7 +69,7 @@ rpiboot (20240419~110800) UNRELEASED; urgency=medium
   * rpiboot: Fixup USB VID typo
   * rpiboot: Update 05ac log message
 
- -- Tim Gover <tim.gover@raspberrypi.com>  Fri, 19 Apr 2024 11:02:47 +0100
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 22 Apr 2024 08:53:16 +0100
 
 rpiboot (20221215~105525) bullseye; urgency=medium
 

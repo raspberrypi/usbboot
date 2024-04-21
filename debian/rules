@@ -11,15 +11,15 @@ override_dh_strip:
 	dh_strip -Xstart.elf -Xstart4.elf
 
 override_dh_install:
-	# Replace the symlinks with specific EEPROM versions
-	rm -rf firmware/2711/recovery.bin firmware/2711/pieeprom.bin
-	rm -rf firmware/2712/recovery.bin firmware/2712/pieeprom.bin
+	# Copy the pinned firmware version
+	rm -rf temp
+	mkdir -p temp/firmware/2711
+	mkdir -p temp/firmware/2712
 
-	cp /lib/firmware/raspberrypi/bootloader-2711/default/pieeprom-2024-04-15.bin firmware/2711/pieeprom.bin
-	cp /lib/firmware/raspberrypi/bootloader-2711/default/recovery.bin firmware/2711/recovery.bin
-
-	cp /lib/firmware/raspberrypi/bootloader-2712/default/pieeprom-2024-04-17.bin firmware/2712/pieeprom.bin
-	cp /lib/firmware/raspberrypi/bootloader-2712/default/recovery.bin firmware/2712/recovery.bin
+	cp firmware/2711/pieeprom.bin temp/firmware/2711/pieeprom.bin
+	cp firmware/2711/recovery.bin temp/firmware/2711/recovery.bin
+	cp firmware/2712/pieeprom.bin temp/firmware/2712/pieeprom.bin
+	cp firmware/2712/recovery.bin temp/firmware/2712/recovery.bin
 	dh_install
 	find $(CURDIR)/debian -name .gitignore -delete
 	rm -rf temp
