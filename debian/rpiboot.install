@@ -11,4 +11,4 @@ secure-boot-msd usr/share/rpiboot/
 tools/update-pieeprom.sh usr/share/rpiboot/tools/
 debian/70-rpiboot.rules /lib/udev/rules.d
 firmware/bootfiles.bin usr/share/rpiboot/firmware/
-firmware/* usr/share/rpiboot/firmware
+temp/firmware/* usr/share/rpiboot/firmware
