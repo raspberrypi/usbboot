@@ -30,7 +30,7 @@ Pass the `f` flag to enable firmware counter-signing.
 ```
 
 If secure-boot has already been enabled on the device then `recovery.bin` must then also be counter-signed.
-However, a counter-signing `recovery.bin` images on a fresh board without secure-boot enabled will fail
+However, booting a counter-signed `recovery.bin` image on a fresh board without secure-boot enabled will fail
 because the ROM is effectively checking this against a key hash of zero.
 ```
 ../tools/update-pieeprom.sh -fr -k "${KEY_FILE}"
