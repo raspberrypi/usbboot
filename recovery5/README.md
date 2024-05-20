@@ -8,7 +8,7 @@ N.B The `bootcode5.bin` file in this directory is actually the `recovery.bin`
 file used on Raspberry Pi 5 bootloader update cards.
 
 ```bash
-cd recovery
+cd recovery5
 ./update-pieeprom.sh
 ../rpiboot -d .
 ```
