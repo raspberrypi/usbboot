@@ -645,14 +645,14 @@ int second_stage_boot(libusb_device_handle *usb_device)
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	// Check if directory exists
-	DIR* directory = opendir(dir);
+	DIR * directory = opendir(dir);
 	if (directory)
 	{
 		closedir(directory);
 	}
 	else
 	{
-		fprintf(stderr, "Directory '%s' does not exists\n", dir);
+		fprintf(stderr, "Directory '%s' does not exist\n", dir);
 		exit(1);
 	}
 
