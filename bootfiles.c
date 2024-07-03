@@ -32,6 +32,9 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
    long archive_size;
 
    fp = fopen(archive, "rb");
+   if (!fp){
+      goto fail;
+   }
    if (fseek(fp, 0, SEEK_END) < 0)
       goto fail;
    archive_size = ftell(fp);
