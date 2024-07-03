@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include <unistd.h>
 
@@ -643,6 +644,18 @@ int second_stage_boot(libusb_device_handle *usb_device)
 
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
+	// Check if directory exists
+	DIR * directory = opendir(dir);
+	if (directory)
+	{
+		closedir(directory);
+	}
+	else
+	{
+		fprintf(stderr, "Directory '%s' does not exist\n", dir);
+		exit(1);
+	}
+
 	FILE * fp = NULL;
 	char path[MAX_PATH_LEN];
 
