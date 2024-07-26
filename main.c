@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "bootfiles.h"
+#include "decode_duid.h"
 #include "msd/bootcode.h"
 #include "msd/start.h"
 #include "msd/bootcode4.h"
@@ -29,10 +30,12 @@ int selection_mode = SELECTION_MODE_VID;
 char * target_serialno = NULL;
 int signed_boot = 0;
 int verbose = 0;
+int metadata = 0;
 int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
+char * metadata_path = NULL;
 char pathname[18] = {0};
 char * targetpathname = NULL;
 uint8_t targetPortNo = 99;
@@ -43,7 +46,10 @@ int bcm2711;
 int bcm2712;
 
 #define MAX_PATH_LEN 256
+#define FILE_NAME_LENGTH 250
+#define DUID_LENGTH 36
 
+unsigned char serial_num[MAX_PATH_LEN];
 static char bootfiles_path[MAX_PATH_LEN];
 static int use_bootfiles;
 static void *bootfile_data;
@@ -81,6 +87,7 @@ void usage(int error)
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
+	fprintf(dest, "        -j [path]        : Enable output of metadata JSON files in a given directory for BCM2712/2711\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -509,6 +516,14 @@ void get_options(int argc, char *argv[])
 		{
 			signed_boot = 1;
 		}
+		else if(strcmp(*argv, "-j") == 0)
+		{
+			argv++; argc--;
+			if(argc < 1)
+				usage(1);
+			metadata_path = *argv;
+			metadata = 1;
+		}
 		else if (strcmp(*argv, "-i") == 0)
 		{
 			selection_mode = SELECTION_MODE_SERIAL;
@@ -718,6 +733,61 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 	return fp;
 }
 
+void close_metadata_file(FILE ** fp){
+	fprintf(*fp, "\n}");
+	fclose(*fp);
+}
+
+void write_metadata_file(char *metadata_str, FILE **fp, int index)
+{
+	char *token, *property, *value;
+
+	token = strtok(metadata_str, "*");
+	if(!token) return;
+	property = strdup(token);
+	token = strtok(NULL, "*");
+
+	if(token)
+	{
+		value = strdup(token);
+		if (index != 0)
+			fprintf(*fp, ",");
+
+		if (strcmp(property, "FACTORY_UUID") == 0)
+		{
+			char c40_str[DUID_LENGTH];
+			if (duid_decode_c40(value, c40_str) == -1)
+				fprintf(stderr, "Failed to decode a FACTORY_UUID: invalid input\n");
+			else
+				fprintf(*fp, "\n\t\"%s\" : \"%s\"", property, c40_str);
+		}
+		else
+		{
+			fprintf(*fp, "\n\t\"%s\" : \"%s\"", property, value);
+		}
+		free(value);
+	}
+	free(property);
+}
+
+void create_metadata_file(FILE ** fp)
+{
+	char fname[MAX_PATH_LEN + FILE_NAME_LENGTH + 5]; // 5 for extension .json
+	snprintf(fname, sizeof(fname), "%s/%s.json", metadata_path, (char *)serial_num);
+
+	*fp = fopen(fname, "w");
+	if (*fp)
+	{
+		printf("Created metadata file: %s\n", fname);
+		fprintf(*fp, "{");
+	}
+	else
+	{
+		fprintf(stderr, "Failed to create metadata file: %s\n", fname);
+		metadata = 0;
+	}
+}
+
 int file_server(libusb_device_handle * usb_device)
 {
 	int going = 1;
@@ -726,6 +796,22 @@ int file_server(libusb_device_handle * usb_device)
 		char fname[MAX_PATH_LEN];
 	} message;
 	static FILE * fp = NULL;
+	FILE * metadata_fp = NULL;
+	char metadata_fname[FILE_NAME_LENGTH];
+	int metadata_index = 0;
+
+	if (metadata)
+	{
+		if (bcm2711 || bcm2712)
+		{
+			create_metadata_file(&metadata_fp);
+		}
+		else
+		{
+			fprintf(stderr, "Failed to create metadata file: expected BCM2712/2711");
+			metadata = 0;
+		}
+	}
 
 	while(going)
 	{
@@ -746,6 +832,18 @@ int file_server(libusb_device_handle * usb_device)
 		{
 			ep_write(NULL, 0, usb_device);
 			break;
+		}
+
+		// Metadata files
+		if ((message.fname[0] == '*') && (message.command != 2))
+		{
+			if (metadata)
+			{
+				strcpy(metadata_fname, message.fname);
+				write_metadata_file(metadata_fname + 1, &metadata_fp, metadata_index++);
+			}
+			ep_write(NULL, 0, usb_device);
+			continue;
 		}
 
 		switch(message.command)
@@ -837,6 +935,9 @@ int file_server(libusb_device_handle * usb_device)
 				return -1;
 		}
 	}
+
+	if (metadata)
+		close_metadata_file(&metadata_fp);
 
 	printf("Second stage boot server done\n");
 	return 0;
@@ -954,6 +1055,12 @@ int main(int argc, char *argv[])
 			}
 		}
 		while (ret);
+
+		ret = libusb_get_string_descriptor_ascii(usb_device, desc.iSerialNumber, serial_num, sizeof(serial_num));
+		// if metadata output is enabled and could not get serial number
+		if (metadata && (ret <= 0)) {
+			metadata = 0; // disable metadata
+		}
 
 		if (verbose) printf("last_serial %d serial %d\n", last_serial, desc.iSerialNumber);
 		last_serial = desc.iSerialNumber;
