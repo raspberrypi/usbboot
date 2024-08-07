@@ -626,6 +626,11 @@ int second_stage_boot(libusb_device_handle *usb_device)
 
 	sleep(1);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
+	if (size == -4)
+	{
+		printf("Disconnected !\n");
+		return 0;
+	}
 
 	if (size > 0 && retcode == 0)
 	{
@@ -633,7 +638,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 	}
 	else
 	{
-		printf("Failed : 0x%x\n", retcode);
+		printf("Failed : %d,0x%x\n", size, retcode);
 	}
 
 	return retcode;
