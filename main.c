@@ -955,7 +955,7 @@ int main(int argc, char *argv[])
 		}
 		while (ret);
 
-		if (verbose) printf("last_serial %d serial %d", last_serial, desc.iSerialNumber);
+		if (verbose) printf("last_serial %d serial %d\n", last_serial, desc.iSerialNumber);
 		last_serial = desc.iSerialNumber;
 		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
