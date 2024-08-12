@@ -172,10 +172,19 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 
 <a name="secure-boot"></a>
 ## Secure Boot
-Secure Boot requires a recent bootloader stable image e.g. the version in this repository.
+This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 plus preliminary support for Compute Module 5.
 
 ### Tutorial
-Creating a secure boot system from scratch can be quite complex. The [secure boot tutorial](secure-boot-example/README.md) uses a minimal example OS image to demonstrate how the Raspberry Pi-specific aspects of secure boot work.
+
+Creating a secure-boot system with encrypted file-system support from scratch can be a complicated process.
+
+The recommended starting point is the [Raspberry Pi Secure Boot Provisioner](https://github.com/raspberrypi/rpi-sb-provisioner)
+which provides an automated mechanism for installing [Raspberry Pi OS - pi-gen](https://github.com/RPi-Distro/pi-gen) images
+with secure-boot and root file-system encryption.
+
+If you are porting an existing Buildroot/Yocto image then please see the
+[secure boot code signing tutorial](secure-boot-example/README.md) uses a minimal buildroot initramfs OS image
+to demonstrate the low-level code-signing aspects.
 
 ### Additional documentation
 
