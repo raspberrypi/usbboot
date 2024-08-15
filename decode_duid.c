@@ -43,7 +43,7 @@ int duid_decode_c40(char * str_of_words, char *c40_str)
 	uint32_t word;
 	uint16_t msig;
 
-	char *word_str = strtok(str_of_words, " ");
+	char *word_str = strtok(str_of_words, "_");
 	while (word_str != NULL)
 	{
 		word = strtoul(word_str, NULL, 16);
@@ -54,7 +54,7 @@ int duid_decode_c40(char * str_of_words, char *c40_str)
 		if (msig > 0)
 			decode_half_word(msig, c40_list, &i);
 
-		word_str = strtok(NULL, " ");
+		word_str = strtok(NULL, "_");
 	}
 
 	for (c = 0; c < i; c++)
