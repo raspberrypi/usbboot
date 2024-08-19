@@ -1,3 +1,39 @@
+rpiboot (20240816~170020) bookworm; urgency=medium
+
+  [ Tom Dewey ]
+  * secure-boot-recovery5: Fixup wording around recovery.bin
+
+  [ Giampiero Baggiani ]
+  * recovery5 README minor fix
+
+  [ Tim Gover ]
+  * firmware: 2711: Update to latest Pi4 firmware pieeprom-2024-05-17.bin
+  * mass-storage-gadget64-cm3: Create a 64-bit mass-storage gadget for CM3
+  * recovery: Add config.txt with example options
+  * firmware: Update to the latest 2712 firmware - 2024-06-05
+  * firmware: 2711: Move to the 2024-07-30 release
+  * mass-storage-gadget64: boot.img: Add USB serial gadget
+  * firmware: bootfiles: Update for preliminary CM5 Lite support
+  * docs: Guide users towards Raspberry Pi secure-boot provisioner
+  * firmware: Update 2711/2712 firmware for OTP metadata and use latest 2712
+    bootloader
+  * recovery: recovery5: Fixup meta-data comments in config.txt
+  * debian: Pull the firmware files from installed rpi-eeprom package
+  * debian: Require rpi-eeprom version >= 24
+
+  [ martamomotko ]
+  * rpiboot: Update to check if directory exists
+  * rpiboot: Add metadata output option
+  * Fix parsing of the DUID metadata string
+
+  [ Chris Burton ]
+  * Add missing newline.
+
+  [ Serge Schneider ]
+  * Lintian fixes
+
+ -- Serge Schneider <serge@raspberrypi.com>  Mon, 19 Aug 2024 23:21:53 +0100
+
 rpiboot (20240422~085300) bookworm; urgency=medium
 
   [ Tim Gover ]
