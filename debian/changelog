@@ -1,3 +1,10 @@
+rpiboot (20240820~105714) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * rpiboot: Increase ep_read control transfer timeout
+
+ -- Serge Schneider <serge@raspberrypi.com>  Tue, 20 Aug 2024 12:02:35 +0100
+
 rpiboot (20240816~170020) bookworm; urgency=medium
 
   [ Tom Dewey ]
