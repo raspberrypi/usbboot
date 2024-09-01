@@ -1,6 +1,4 @@
-# Raspberry Pi 5 - secure boot - WORK IN PROGRESS
-
-WARNING: THIS IS A BETA RELEASE AND COULD PERMENANTLY STOP YOUR PI FROM BOOTING.
+# Raspberry Pi 5 - secure boot
 
 This directory contains the beta bootcode5.bin (recovery.bin) and a pre-release pieeprom.bin
 bootloader release. Older bootloader and recovery.bin releases do not support secure boot.
