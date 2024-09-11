@@ -194,8 +194,6 @@ to demonstrate the low-level code-signing aspects.
 ** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
 * Secure boot BCM2712
 
-*** WARNING: Secure boot firmware and tooling is currently in BETA on 2712 ***
-
 ** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
 ** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
 * Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-specific-bootloader-properties-chosenbootloader).
