@@ -18,7 +18,7 @@ override_dh_install:
 
 	cp /lib/firmware/raspberrypi/bootloader-2711/latest/pieeprom-2024-07-30.bin temp/firmware/2711/pieeprom.bin
 	cp /lib/firmware/raspberrypi/bootloader-2711/latest/recovery.bin temp/firmware/2711/recovery.bin
-	cp /lib/firmware/raspberrypi/bootloader-2712/latest/pieeprom-2024-07-30.bin temp/firmware/2712/pieeprom.bin
+	cp /lib/firmware/raspberrypi/bootloader-2712/latest/pieeprom-2024-09-10.bin temp/firmware/2712/pieeprom.bin
 	cp /lib/firmware/raspberrypi/bootloader-2712/latest/recovery.bin temp/firmware/2712/recovery.bin
 	dh_install
 	find $(CURDIR)/debian -name .gitignore -delete
