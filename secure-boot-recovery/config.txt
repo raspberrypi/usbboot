@@ -42,3 +42,7 @@ uart_2ndstage=1
 # reboot after the flashing the firmware.
 #recovery_reboot=1
 
+# Uncomment to instruct recovery.bin to send metadata including OTP fields
+# Specify -j dirname on the command line to specify the directory where
+# metadata should be stored (JSON format)
+#recovery_metadata=1
