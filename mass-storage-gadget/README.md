@@ -1,5 +1,7 @@
 # USB mass-storage drivers for Compute Module 4
 
+WARNING: This image is deprecated. Please use the mass-storage-gadget64 release instead
+
 This directory provides a bootloader image that loads a Linux
 initramfs that exports common block devices (EMMC, NVMe) as
 USB mass storage devices using the Linux gadget-fs drivers.
