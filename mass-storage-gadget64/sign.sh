@@ -52,4 +52,6 @@ TMP_DIR="$(mktemp -d)"
 rm -f bootfiles.bin
 ln -sf ../firmware/bootfiles.bin bootfiles.original.bin
 sign_bootfiles "$(pwd)/bootfiles.original.bin" "$(pwd)/bootfiles.bin" "${KEY_FILE}"
+
+echo "Signing boot.img with ${KEY_FILE}"
 rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
