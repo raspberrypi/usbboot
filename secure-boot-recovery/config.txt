@@ -1,9 +1,8 @@
 uart_2ndstage=1
 
-# Mark the EEPROM as write protected when the EEPROM /WIP pin is pulled low.
+# Uncomment to mark the EEPROM as write protected when the EEPROM /WIP pin is pulled low.
 # See https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom_write_protect
-
-eeprom_write_protect=1
+#eeprom_write_protect=1
 
 # Uncomment to write to enable secure-boot by writing. This
 # locks the device to the public key in the EEPROM by storing the
@@ -43,3 +42,7 @@ eeprom_write_protect=1
 # reboot after the flashing the firmware.
 #recovery_reboot=1
 
+# Uncomment to instruct recovery.bin to send metadata including OTP fields
+# Specify -j dirname on the command line to specify the directory where
+# metadata should be stored (JSON format)
+#recovery_metadata=1

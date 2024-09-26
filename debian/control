@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Serge Schneider <serge@raspberrypi.com>
 Build-Depends: debhelper-compat (= 13), libusb-1.0-0-dev, pkg-config,
- rpi-eeprom (>= 24)
+ rpi-eeprom (>= 26)
 Standards-Version: 4.5.1
 Homepage: https://github.com/raspberrypi/usbboot
 
