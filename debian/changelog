@@ -1,3 +1,20 @@
+rpiboot (20240926~102326) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * Delete state pieeprom.bin files for recovery / recovery5
+  * docs: Update Pi5 secure-boot docs
+  * secure-boot: 2712: Update to docs to indicate BETA status
+  * docs: Remove BETA tag from secure-boot on Pi5
+  * recovery: Remove the stale pieeprom.sig and pieeprom.bin files
+  * firmware: 2712: Update to the 2024-09-10 default release
+  * mass-storage-gadget: Deprecate this in favour of the 64-bit image
+  * secure-boot-recovery: Disable write-protect in the reference config.txt file
+  * secure-boot-recovery: Include the recovery_metadata documentation
+  * sign.sh: Add a log message to indicate that boot.img is being signed
+  * firmware: 2712: Update to the 2024-09-23 default release
+
+ -- Serge Schneider <serge@raspberrypi.com>  Thu, 26 Sep 2024 13:46:50 +0100
+
 rpiboot (20240820~105714) bookworm; urgency=medium
 
   [ Tim Gover ]
