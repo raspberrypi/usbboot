@@ -46,7 +46,7 @@ createfs() {
 
    sectors=$((size_mb * MEGABYTE / SECTOR_SIZE))
    sectors=$((sectors / 2))
-   /sbin/mkfs.fat -C -f 1 \
+   mkfs.fat -C -f 1 \
       ${SECTORS_PER_CLUSTER} -n "${volume_label}" \
       ${fat_size} \
       -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${sectors} || \
@@ -134,7 +134,7 @@ createstaging() {
 }
 
 checkDependencies() {
-   if [ ! -f /sbin/mkfs.fat ]; then
+   if ! mkfs.fat --help > /dev/null 2> /dev/null ; then
        die "mkfs.fat is required. Run this script on Linux"
    fi
 }
