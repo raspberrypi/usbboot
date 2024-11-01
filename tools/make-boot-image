@@ -18,6 +18,8 @@ ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
 # directory entries and rounding up files to cluster sizes.
 FAT_OVERHEAD=${FAT_OVERHEAD:-64}
 
+HAVE_MCOPY=false
+
 cleanup() {
    unmount_image
 
@@ -80,6 +82,24 @@ unmount_image() {
    fi
 }
 
+copyfiles() {
+   image="$1"
+   shift
+   if ${HAVE_MCOPY} ; then
+      mcopy -i "${image}" -vsmpQ "$@" ::/
+   else
+      mountfs "${image}"
+      cp -rv "$@" "${BOOT_MOUNT}"
+      sync
+
+      echo "Sync"
+      sync
+
+      echo "Unmount"
+      unmount_image
+   fi
+}
+
 
 createstaging() {
    source_dir="$1"
@@ -136,6 +156,9 @@ createstaging() {
 checkDependencies() {
    if ! mkfs.fat --help > /dev/null 2> /dev/null ; then
        die "mkfs.fat is required. Run this script on Linux"
+   fi
+   if mcopy --help > /dev/null 2> /dev/null ; then
+       HAVE_MCOPY=true
    fi
 }
 
@@ -195,9 +218,7 @@ checkDependencies
 
 [ -d "${SOURCE_DIR}" ] || usage
 [ -n "${OUTPUT}" ] || usage
-[ "$(id -u)" = "0" ] || die "\"${NAME}\" must be run as root. Try \"sudo ${NAME}\""
-[ -n "${SUDO_UID}" ] || die "SUDO_UID not defined"
-[ -n "${SUDO_GID}" ] || die "SUDO_GID not defined"
+$HAVE_MCOPY || [ "$(id -u)" = "0" ] || die "Install mtools or use \"sudo ${NAME}\""
 
 trap cleanup EXIT
 TMP_DIR="$(mktemp -d)"
@@ -210,19 +231,13 @@ echo "Creating FAT file system"
 TMP_IMAGE="${TMP_DIR}/boot.img"
 createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
 
-echo "Copying files to temporary mount ${BOOT_MOUNT}"
-mountfs "${TMP_IMAGE}"
-cp -rv "${staging}"/* "${BOOT_MOUNT}"
-sync
-
-echo "Sync"
-sync
-
-echo "Unmount"
-unmount_image
+echo "Copying files to file system image ${TMP_IMAGE}"
+copyfiles "${TMP_IMAGE}" "${staging}"/*
 
 cp -f "${TMP_IMAGE}" "${OUTPUT}"
-chown "${SUDO_UID}:${SUDO_GID}" "${OUTPUT}"
+if [ -n "${SUDO_UID}" ] && [ -n "${SUDO_GID}" ] ; then
+   chown "${SUDO_UID}:${SUDO_GID}" "${OUTPUT}"
+fi
 
 echo "Created image ${OUTPUT}"
 file "${OUTPUT}"
