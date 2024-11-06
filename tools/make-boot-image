@@ -89,7 +89,7 @@ copyfiles() {
       mcopy -i "${image}" -vsmpQ "$@" ::/
    else
       mountfs "${image}"
-      cp -rv "$@" "${BOOT_MOUNT}"
+      cp -rpv "$@" "${BOOT_MOUNT}"
       sync
 
       echo "Sync"
@@ -107,7 +107,7 @@ createstaging() {
    board="$3"
 
    mkdir -p "${staging}" || die "Failed to create ${staging}"
-   cp -r "${source_dir}/"* "${staging}"
+   cp -rp "${source_dir}/"* "${staging}"
 
    # Remove files for previous hardware version
    if [ "${board}" = "pi4" ] || [ "${board}" = "pi400" ] || [ "${board}" = "cm4" ]; then
