@@ -1,3 +1,27 @@
+rpiboot (20241107~183156) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * win32: Switch to 64-bit Cygwin and update to latest 2711/2712 firmware
+  * firmware: Update the rpi-eeprom submodule
+  * debian: Require rpi-eeprom 26.3 or newer for CM5 / Pi500 support
+
+  [ wa1tf0r.me ]
+  * fix typo
+  * fix formatting
+
+  [ Rasmus Villemoes ]
+  * make-boot-image: remove hard-coded path to mkfs.fat utility
+  * make-boot-image: use mcopy if available
+  * make-boot-image: preserve file attributes
+
+  [ Richard Oliver ]
+  * debian: Package rpi-make-boot-image
+
+  [ Thomas Petazzoni ]
+  * Makefile: allow passing CFLAGS/LDFLAGS
+
+ -- Serge Schneider <serge@raspberrypi.com>  Thu, 07 Nov 2024 18:42:58 +0000
+
 rpiboot (20240926~102326) bookworm; urgency=medium
 
   [ Tim Gover ]
