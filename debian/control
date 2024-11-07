@@ -12,3 +12,9 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, python3, rpi-eeprom (>= 24)
 Description: Raspberry Pi USB booting code
  USB MSD boot code which should work on the Raspberry Pi model A,
  Compute Module, Compute Module 3, Compute Module 4, Compute Module 5, Raspberry Pi 5 and Raspberry Pi Zero.
+
+Package: rpi-make-boot-image
+Architecture: any
+Depends: coreutils, dosfstools, file, mount, tar
+Recommends: mtools
+Description: Utility to create minimal boot ramdisk files.
