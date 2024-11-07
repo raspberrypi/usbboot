@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Serge Schneider <serge@raspberrypi.com>
 Build-Depends: debhelper-compat (= 13), libusb-1.0-0-dev, pkg-config,
- rpi-eeprom (>= 26)
+ rpi-eeprom (>= 26.3)
 Standards-Version: 4.5.1
 Homepage: https://github.com/raspberrypi/usbboot
 
@@ -14,3 +14,9 @@ Description: Raspberry Pi USB booting code
  USB MSD boot code which should work on the Raspberry Pi model A,
  Compute Module, Compute Module 3, Compute Module 4, Compute Module 5,
  Raspberry Pi 5 and Raspberry Pi Zero.
+
+Package: rpi-make-boot-image
+Architecture: any
+Depends: coreutils, dosfstools, file, mount, tar
+Recommends: mtools
+Description: Utility to create minimal boot ramdisk files.

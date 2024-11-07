@@ -37,7 +37,7 @@ branch of the Raspberry Pi [buildroot](https://github.com/raspberrypi/buildroot)
 
 ### Building
 ```bash
-git clone --branch mass-storage-gadget git@github.com:raspberrypi/buildroot.git
+git clone --branch mass-storage-gadget64 git@github.com:raspberrypi/buildroot.git
 cd buildroot
 make raspberrypi64-mass-storage-gadget_defconfig
 make

@@ -23,7 +23,7 @@ option secure-boot can be tested and reverted via `RPIBOOT` at this stage.
 ## Sign the EEPROM and the second stage bootloader
 The BCM2712 boot ROM requires the second stage firmware (recovery.bin / bootcode5.bin) to be counter-signed with the customer private key in secure-mode.
 Pass the `f` flag to enable firmware counter-signing.
-
+```
 ../tools/update-pieeprom.sh -f -k "${KEY_FILE}"
 ```
 
