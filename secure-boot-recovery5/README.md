@@ -4,7 +4,9 @@ This directory contains the beta bootcode5.bin (recovery.bin) and a pre-release 
 bootloader release. Older bootloader and recovery.bin releases do not support secure boot.
 
 # Required packages
+```bash
 sudo apt install xxd python3-pycryptodome
+```
 
 ## Optional. Specify the private key file in an environment variable.
 Alternatively, specify the path when invoking the helper scripts.
