@@ -28,7 +28,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 
 * This git repository uses symlinks. For Windows builds clone the repository under Cygwin.
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
-  is included as a (git submodule)[https://git-scm.com/book/en/v2/Git-Tools-Submodules]
+  is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ```bash
 sudo apt install git libusb-1.0-0-dev pkg-config build-essential
@@ -62,15 +62,16 @@ sudo ./rpiboot
 If the build is unable to find the header file `libusb.h` then most likely the `PKG_CONFIG_PATH` is not set properly.
 This should be set via `export PKG_CONFIG_PATH="$(brew --prefix libusb)/lib/pkgconfig"`.
 
-If the build fails on an ARM-based Mac with a linker error such as `ld: warning: ignoring file /usr/local/Cellar/libusb/1.0.26/lib/libusb-1.0.dylib, building for macOS-arm64 but attempting to link with file built for macOS-x86_64` then you may need to build and install `libusb-1.0` yourself:
+If the build fails on an ARM-based Mac with a linker error such as `ld: warning: ignoring file '/usr/local/Cellar/libusb/1.0.27/lib/libusb-1.0.0.dylib': found architecture 'x86_64', required architecture 'arm64'` then you may need to build and install `libusb-1.0` yourself:
 ```
-wget https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26.tar.bz2
-tar -xf libusb-1.0.26.tar.bz2
-cd libusb-1.0.26
+curl -OL https://github.com/libusb/libusb/releases/download/v1.0.27/libusb-1.0.27.tar.bz2
+tar -xf libusb-1.0.27.tar.bz2
+cd libusb-1.0.27
 ./configure
 make
 make check
 sudo make INSTALL_PREFIX=/usr/local install
+cd ..
 ```
 Running `make` again should now succeed.
 
@@ -245,7 +246,7 @@ secure-boot OS must ensure that access to this interface is restricted.
 
 **It is not possible to prevent code running in ARM supervisor mode (e.g. kernel code) from accessing OTP hardware directly**
 
-See also:-
+See also:
 * [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 * [cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions)
 * [rpi-otp-private-key](./tools/rpi-otp-private-key)
@@ -285,7 +286,7 @@ LOOP=$(losetup -f)
 losetup -f boot.img
 mount ${LOOP} boot-mount/
 
- echo boot.img contains
+echo boot.img contains
 find boot-mount/
 
 umount boot-mount
