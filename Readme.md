@@ -189,13 +189,9 @@ to demonstrate the low-level code-signing aspects.
 
 ### Additional documentation
 
-* Secure boot BCM2711
-** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
-** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/config_txt.html#secure-boot-configuration-properties).
-* Secure boot BCM2712
-
-** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
-** Secure boot [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+* Secure boot BCM2711 [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
+* Secure boot BCM2712 [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
+* Secure boot [configuration properties](https://www.raspberrypi.com/documentation/computers/config_txt.html#secure-boot-configuration-properties).
 * Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-and-bcm2712-specific-bootloader-properties-chosenbootloader).
 * Device tree [public key - NVMEM property](https://www.raspberrypi.com/documentation/computers/configuration.html#nvmem-nodes).
 * Raspberry Pi [OTP registers](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#otp-register-and-bit-definitions).
