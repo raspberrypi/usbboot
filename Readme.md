@@ -157,7 +157,7 @@ The recommended host setup is Raspberry Pi with Raspberry Pi OS. Alternatively, 
 #### Boot flow
 The `rpiboot` system runs in multiple stages. The ROM, bootcode.bin, the VPU firmware (start.elf) and for the `mass-storage-gadget` or `rpi-imager` a Linux initramfs. Each stage disconnects the USB device and presents a different USB descriptor. Each stage will appears as a new USB device connect in the `dmesg` log.
 
-See also: [Raspberry Pi4 Boot Flow](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-4-boot-flow)
+See also: [EEPROM boot flow](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom-boot-flow)
 
 #### bootcode.bin
 Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executable from a different subdirectory. The `rpiboot` process simply looks for a file called `bootcode.bin` (or `bootcode4.bin` on BCM2711). However, the file in `recovery`/`secure-boot-recovery` directories is actually the `recovery.bin` EEPROM flashing tool.
@@ -191,12 +191,12 @@ to demonstrate the low-level code-signing aspects.
 
 * Secure boot BCM2711
 ** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
-** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/config_txt.html#secure-boot-configuration-properties).
 * Secure boot BCM2712
 
 ** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
-** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
-* Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-specific-bootloader-properties-chosenbootloader).
+** Secure boot [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
+* Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-and-bcm2712-specific-bootloader-properties-chosenbootloader).
 * Device tree [public key - NVMEM property](https://www.raspberrypi.com/documentation/computers/configuration.html#nvmem-nodes).
 * Raspberry Pi [OTP registers](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#otp-register-and-bit-definitions).
 * Raspberry Pi [device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key).
