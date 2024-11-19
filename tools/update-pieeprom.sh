@@ -149,6 +149,7 @@ sign_firmware() {
          fi
       else
          echo "Using unsigned recovery.bin"
+         rm -f bootcode5.bin
          cp -fv recovery.original.bin bootcode5.bin
       fi
 
