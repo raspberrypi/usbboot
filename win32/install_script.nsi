@@ -125,8 +125,8 @@ Section "Raspberry Pi USB Boot" Sec_rpiboot
   File rpi-mass-storage-gadget64.bat
 
   CreateDirectory "$SMPROGRAMS\Raspberry Pi"
-  CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot.lnk" "$INSTDIR\rpiboot.exe"
-  CreateShortcut "$SMPROGRAMS\Raspberry Pi\Raspberry Pi - Mass Storage Gadget - 64-bit.lnk" "$INSTDIR\rpi-mass-storage-gadget64.bat"
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot-CM-CM2-CM3.lnk" "$INSTDIR\rpiboot.exe"
+  CreateShortcut "$SMPROGRAMS\Raspberry Pi\rpiboot-CM4-CM5 - Mass Storage Gadget.lnk" "$INSTDIR\rpi-mass-storage-gadget64.bat"
   CreateShortcut "$SMPROGRAMS\Raspberry Pi\Uninstall rpiboot.lnk" "$INSTDIR\Uninstall.exe"
 
   ;Store installation folder
