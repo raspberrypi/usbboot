@@ -1,8 +1,7 @@
 # USB Device Boot Code
 
 This is the USB device boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
-Module 3, 3+ 4S, and 4, Raspberry Pi Zero and Zero 2 W.
-N.B. In regards to this document CM4 and CM4S have identical software support.
+Module 3, 3+ 4S, 4 and 5, Raspberry Pi Zero and Zero 2 W.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
@@ -16,7 +15,7 @@ other versions of the firmware by passing the `-d` flag to specify the directory
 where the firmware should be loaded from.
 E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
 
-From Raspberry Pi5 onwards the MSD firmware has been replaced with a Linux initramfs providing a mass-storage-gadget.
+From Raspberry Pi 4 onwards the MSD VPU firmware has been replaced with the Linux based mass storage gadget.
 
 For more information run `rpiboot -h`.
 
@@ -93,25 +92,28 @@ or connecting the USB cable.
 On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
+### Compute Module 5
+On Compute Module 5 EMMC-DISABLE / nRPIBOOT (BCM2712 GPIO 20) must be fitted to switch the ROM to usbboot mode.
+Otherwise, the SPI EEPROM bootloader image will be loaded instead.
+
 ### Raspberry Pi 5
 * Disconnect the USB-C cable. Power must be removed rather than just running "sudo shutdown now"
 * Hold the power button down
 * Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
 <a name="extensions"></a>
-## Compute Module 4 Extensions
+## Compute Module provisioning extensions
 In addition to the MSD functionality, there are a number of other utilities that can be loaded
-via RPIBOOT on Compute Module 4.
+via RPIBOOT on Compute Module 4 and Compute Module 5.
 
 | Directory | Description |
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
-| [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
-| [mass-storage-gadget](mass-storage-gadget/README.md) | 32-bit mass storage gadget for BCM2711 |
 | [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
+| [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
 
 ## Booting Linux
@@ -139,11 +141,11 @@ Please check this first to check that the software is up to date.
 * Verify that the red power LED switches on when the IO board is powered.
 * Use another computer to verify that the USB cable for `rpiboot` can reliably transfer data. For example, connect it to a Raspberry Pi keyboard with other devices connected to the keyboard USB hub.
 
-#### Hardware - CM4
-* The CM4 EEPROM supports MMC, USB-MSD, USB 2.0, Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
+#### Hardware - CM4 / CM5
+* The CM5 EEPROM supports MMC, USB-MSD, USB 2.0 (CM4 only), Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
 * If `rpiboot` is running but the mass storage device does not appear then try running the `rpiboot -d mass-storage-gadget` because this uses Linux instead of a custom VPU firmware to implement the mass-storage gadget. This also provides a login console on UART and HDMI.
 
-#### Hardware - Raspberry Pi 5
+#### Hardware - Raspberry Pi 5 / Compute Module 5
 * Press, and hold the power button before supplying power to the device.
 * Release the power button immediately after supplying power to the device.
 * Remove any non-essential USB peripherals or HATs.
@@ -174,7 +176,7 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 
 <a name="secure-boot"></a>
 ## Secure Boot
-This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 plus preliminary support for Compute Module 5.
+This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 and  Compute Module 5.
 
 ### Tutorial
 

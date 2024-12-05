@@ -1,4 +1,4 @@
-# AARCH64 USB mass-storage gadget for BCM2711 and BCM2712
+# USB mass-storage gadget for BCM2711 and BCM2712
 
 This directory provides a bootloader image that loads a Linux
 initramfs that exports common block devices (EMMC, NVMe) as
@@ -10,8 +10,7 @@ and write OS images to the Raspberry Pi or Compute Module block devices.
 ## Running
 To run load the USB MSD device drivers via RPIBOOT run
 ```bash
-cd mass-storage-gadget64
-../rpiboot -d .
+rpiboot -d mass-storage-gadget64
 
 ```
 
