@@ -953,6 +953,7 @@ int main(int argc, char *argv[])
 	get_options(argc, argv);
 
 	printf("RPIBOOT: build-date %s version %s %s\n", __DATE__, PKG_VER, GIT_VER);
+	printf("If the device fails to connect then please see https://rpltd.co/rpiboot for debugging tips.\n");
 
 	// flush immediately
 	setbuf(stdout, NULL);
