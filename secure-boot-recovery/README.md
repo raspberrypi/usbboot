@@ -42,7 +42,7 @@ export KEY_FILE="${HOME}/private.pem"
 ```
 
 ## Optional. Customize the EEPROM config.
-Custom with the desired bootloader settings. 
+Custom with the desired bootloader settings.
 See: [Bootloader configuration](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-bootloader-configuration)
 
 Setting `SIGNED_BOOT=1` enables signed-boot mode so that the bootloader will only
