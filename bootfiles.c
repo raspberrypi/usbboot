@@ -6,7 +6,7 @@
 
 // Reads bootloader files (e.g. DDR init) from a single packaged file
 // to ensure that the DDR init code, firmware and next stage are in sync.
-// For simplicty the implemenation uses .tar and other files e.g. config.txt
+// For simplicity the implementation uses .tar and other files e.g. config.txt
 // maybe added to the package.
 
 extern int verbose;

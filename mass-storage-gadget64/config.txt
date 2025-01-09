@@ -1,4 +1,4 @@
-# Load boot.img containg the Linux initramfs for the mass-storage-gadget
+# Load boot.img containing the Linux initramfs for the mass-storage-gadget
 # In signed-boot or secure-boot mode the bootloader checks the
 # RSA signature of the ramdisk. The signature is located in boot.sig
 boot_ramdisk=1
