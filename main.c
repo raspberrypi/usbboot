@@ -298,14 +298,26 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 				if (bcm2712 && !directory) {
 					directory = INSTALL_PREFIX "/share/rpiboot/mass-storage-gadget64/";
 					use_bootfiles = 1;
-					snprintf(bootfiles_path, sizeof(bootfiles_path),"%s/%s", directory, "bootfiles.bin");
-					printf("2712: Directory not specified using default %s\n", directory);
+					snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+					printf("2712: Directory not specified - trying default %s\n", directory);
+
+					fp_second_stage = check_file(directory, second_stage, 1);
+					if (!fp_second_stage)
+					{
+						directory = "mass-storage-gadget64/";
+						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+						printf("2712: trying local path %s\n", directory);
+						fp_second_stage = check_file(directory, second_stage, 1);
+					}
+				}
+				else {
+					fp_second_stage = check_file(directory, second_stage, 1);
 				}
 
-				fp_second_stage = check_file(directory, second_stage, 1);
 				if (!fp_second_stage)
 				{
-					fprintf(stderr, "Failed to open %s\n", second_stage);
+					fprintf(stderr, "Failed to open second stage bootloader (%s)\n", second_stage);
+					fprintf(stderr, "\nPlease try specifying the directory e.g. rpiboot -d mass-storage-gadget64\n");
 					exit(1);
 				}
 
@@ -953,6 +965,7 @@ int main(int argc, char *argv[])
 	get_options(argc, argv);
 
 	printf("RPIBOOT: build-date %s version %s %s\n", __DATE__, PKG_VER, GIT_VER);
+	printf("If the device fails to connect then please see https://rpltd.co/rpiboot for debugging tips.\n");
 
 	// flush immediately
 	setbuf(stdout, NULL);
@@ -1026,7 +1039,7 @@ int main(int argc, char *argv[])
 	{
 		int last_serial = -1;
 
-		printf("Waiting for BCM2835/6/7/2711/2712...\n");
+		printf("Waiting for BCM2835/6/7/2711/2712...\n\n");
 
 		// Wait for a device to get plugged in
 		do

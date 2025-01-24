@@ -1,8 +1,7 @@
 # USB Device Boot Code
 
 This is the USB device boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
-Module 3, 3+ 4S, and 4, Raspberry Pi Zero and Zero 2 W.
-N.B. In regards to this document CM4 and CM4S have identical software support.
+Module 3, 3+ 4S, 4 and 5, Raspberry Pi Zero and Zero 2 W.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
@@ -16,7 +15,7 @@ other versions of the firmware by passing the `-d` flag to specify the directory
 where the firmware should be loaded from.
 E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
 
-From Raspberry Pi5 onwards the MSD firmware has been replaced with a Linux initramfs providing a mass-storage-gadget.
+From Raspberry Pi 4 onwards the MSD VPU firmware has been replaced with the Linux based mass storage gadget.
 
 For more information run `rpiboot -h`.
 
@@ -28,7 +27,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 
 * This git repository uses symlinks. For Windows builds clone the repository under Cygwin.
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
-  is included as a (git submodule)[https://git-scm.com/book/en/v2/Git-Tools-Submodules]
+  is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ```bash
 sudo apt install git libusb-1.0-0-dev pkg-config build-essential
@@ -62,15 +61,16 @@ sudo ./rpiboot
 If the build is unable to find the header file `libusb.h` then most likely the `PKG_CONFIG_PATH` is not set properly.
 This should be set via `export PKG_CONFIG_PATH="$(brew --prefix libusb)/lib/pkgconfig"`.
 
-If the build fails on an ARM-based Mac with a linker error such as `ld: warning: ignoring file /usr/local/Cellar/libusb/1.0.26/lib/libusb-1.0.dylib, building for macOS-arm64 but attempting to link with file built for macOS-x86_64` then you may need to build and install `libusb-1.0` yourself:
+If the build fails on an ARM-based Mac with a linker error such as `ld: warning: ignoring file '/usr/local/Cellar/libusb/1.0.27/lib/libusb-1.0.0.dylib': found architecture 'x86_64', required architecture 'arm64'` then you may need to build and install `libusb-1.0` yourself:
 ```
-wget https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26.tar.bz2
-tar -xf libusb-1.0.26.tar.bz2
-cd libusb-1.0.26
+curl -OL https://github.com/libusb/libusb/releases/download/v1.0.27/libusb-1.0.27.tar.bz2
+tar -xf libusb-1.0.27.tar.bz2
+cd libusb-1.0.27
 ./configure
 make
 make check
 sudo make INSTALL_PREFIX=/usr/local install
+cd ..
 ```
 Running `make` again should now succeed.
 
@@ -92,25 +92,28 @@ or connecting the USB cable.
 On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
+### Compute Module 5
+On Compute Module 5 EMMC-DISABLE / nRPIBOOT (BCM2712 GPIO 20) must be fitted to switch the ROM to usbboot mode.
+Otherwise, the SPI EEPROM bootloader image will be loaded instead.
+
 ### Raspberry Pi 5
 * Disconnect the USB-C cable. Power must be removed rather than just running "sudo shutdown now"
 * Hold the power button down
 * Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
 <a name="extensions"></a>
-## Compute Module 4 Extensions
+## Compute Module provisioning extensions
 In addition to the MSD functionality, there are a number of other utilities that can be loaded
-via RPIBOOT on Compute Module 4.
+via RPIBOOT on Compute Module 4 and Compute Module 5.
 
 | Directory | Description |
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
-| [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
-| [mass-storage-gadget](mass-storage-gadget/README.md) | 32-bit mass storage gadget for BCM2711 |
 | [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
+| [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
 
 ## Booting Linux
@@ -132,17 +135,17 @@ Please check this first to check that the software is up to date.
 * Inspect the Compute Module pins and connector for signs of damage and verify that the socket is free from debris.
 * Check that the Compute Module is fully inserted.
 * Check that `nRPIBOOT` / EMMC disable is pulled low BEFORE powering on the device.
-   * On BCM2711, if the USB cable is disconected and the nRPIBOOT jumper is fitted then the green LED should be OFF. If the LED is on then the ROM is detecting that the GPIO for nRPIBOOT is high.
+   * On BCM2711, if the USB cable is disconnected and the nRPIBOOT jumper is fitted then the green LED should be OFF. If the LED is on then the ROM is detecting that the GPIO for nRPIBOOT is high.
 * Remove any hubs between the Compute Module and the host.
 * Disconnect all other peripherals from the IO board.
 * Verify that the red power LED switches on when the IO board is powered.
 * Use another computer to verify that the USB cable for `rpiboot` can reliably transfer data. For example, connect it to a Raspberry Pi keyboard with other devices connected to the keyboard USB hub.
 
-#### Hardware - CM4
-* The CM4 EEPROM supports MMC, USB-MSD, USB 2.0, Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
+#### Hardware - CM4 / CM5
+* The CM5 EEPROM supports MMC, USB-MSD, USB 2.0 (CM4 only), Network and NVMe boot by default. Try booting to Linux from an alternate boot mode (e.g. network) to verify the `nRPIBOOT` GPIO can be pulled low and that the USB 2.0 interface is working.
 * If `rpiboot` is running but the mass storage device does not appear then try running the `rpiboot -d mass-storage-gadget` because this uses Linux instead of a custom VPU firmware to implement the mass-storage gadget. This also provides a login console on UART and HDMI.
 
-#### Hardware - Raspberry Pi 5
+#### Hardware - Raspberry Pi 5 / Compute Module 5
 * Press, and hold the power button before supplying power to the device.
 * Release the power button immediately after supplying power to the device.
 * Remove any non-essential USB peripherals or HATs.
@@ -157,7 +160,7 @@ The recommended host setup is Raspberry Pi with Raspberry Pi OS. Alternatively, 
 #### Boot flow
 The `rpiboot` system runs in multiple stages. The ROM, bootcode.bin, the VPU firmware (start.elf) and for the `mass-storage-gadget` or `rpi-imager` a Linux initramfs. Each stage disconnects the USB device and presents a different USB descriptor. Each stage will appears as a new USB device connect in the `dmesg` log.
 
-See also: [Raspberry Pi4 Boot Flow](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-4-boot-flow)
+See also: [EEPROM boot flow](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom-boot-flow)
 
 #### bootcode.bin
 Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executable from a different subdirectory. The `rpiboot` process simply looks for a file called `bootcode.bin` (or `bootcode4.bin` on BCM2711). However, the file in `recovery`/`secure-boot-recovery` directories is actually the `recovery.bin` EEPROM flashing tool.
@@ -173,7 +176,7 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 
 <a name="secure-boot"></a>
 ## Secure Boot
-This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 plus preliminary support for Compute Module 5.
+This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 and  Compute Module 5.
 
 ### Tutorial
 
@@ -189,14 +192,10 @@ to demonstrate the low-level code-signing aspects.
 
 ### Additional documentation
 
-* Secure boot BCM2711
-** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
-** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
-* Secure boot BCM2712
-
-** Secure boot [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
-** Secure boot setup [configuration properties](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#secure-boot-configuration-properties-in-config-txt).
-* Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-specific-bootloader-properties-chosenbootloader).
+* Secure boot BCM2711 [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
+* Secure boot BCM2712 [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
+* Secure boot [configuration properties](https://www.raspberrypi.com/documentation/computers/config_txt.html#secure-boot-configuration-properties).
+* Device tree [bootloader signed-boot property](https://www.raspberrypi.com/documentation/computers/configuration.html#bcm2711-and-bcm2712-specific-bootloader-properties-chosenbootloader).
 * Device tree [public key - NVMEM property](https://www.raspberrypi.com/documentation/computers/configuration.html#nvmem-nodes).
 * Raspberry Pi [OTP registers](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#otp-register-and-bit-definitions).
 * Raspberry Pi [device specific private key](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#device-specific-private-key).
@@ -249,7 +248,7 @@ secure-boot OS must ensure that access to this interface is restricted.
 
 **It is not possible to prevent code running in ARM supervisor mode (e.g. kernel code) from accessing OTP hardware directly**
 
-See also:-
+See also:
 * [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 * [cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions)
 * [rpi-otp-private-key](./tools/rpi-otp-private-key)
@@ -289,7 +288,7 @@ LOOP=$(losetup -f)
 losetup -f boot.img
 mount ${LOOP} boot-mount/
 
- echo boot.img contains
+echo boot.img contains
 find boot-mount/
 
 umount boot-mount

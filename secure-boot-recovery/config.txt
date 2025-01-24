@@ -1,7 +1,7 @@
 uart_2ndstage=1
 
 # Uncomment to mark the EEPROM as write protected when the EEPROM /WIP pin is pulled low.
-# See https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom_write_protect
+# See https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#eeprom-write-protect
 #eeprom_write_protect=1
 
 # Uncomment to write to enable secure-boot by writing. This

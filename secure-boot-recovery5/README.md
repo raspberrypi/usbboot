@@ -4,7 +4,9 @@ This directory contains the beta bootcode5.bin (recovery.bin) and a pre-release 
 bootloader release. Older bootloader and recovery.bin releases do not support secure boot.
 
 # Required packages
+```bash
 sudo apt install xxd python3-pycryptodome
+```
 
 ## Optional. Specify the private key file in an environment variable.
 Alternatively, specify the path when invoking the helper scripts.
@@ -57,8 +59,6 @@ onwards:
 * The EEPROM configuration file must be signed with the customer private key.
 * It is not possible to downgrade to an old version of the bootloader that doesn't
   support secure boot.
-* BETA bootloader releases are not signed with the ROM secure boot key and will
-  not boot on a system where `revoke_devkey` has been set.
 
 **WARNING: Modifications to OTP are irreversible. Once `revoke_devkey` has been set it is not possible to unlock secure-boot mode or use a different private key.**
 

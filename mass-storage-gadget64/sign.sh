@@ -47,6 +47,7 @@ trap cleanup EXIT
 KEY_FILE="${1}"
 [ -f "${KEY_FILE}" ] || die "KEY_FILE: ${KEY_FILE} not found"
 
+PATH="${script_dir}/../tools:${PATH}"
 KEY_FILE="${1}"
 TMP_DIR="$(mktemp -d)"
 rm -f bootfiles.bin
