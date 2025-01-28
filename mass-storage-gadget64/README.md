@@ -35,6 +35,8 @@ the [mass-storage-gadget64](https://github.com/raspberrypi/buildroot/tree/mass-s
 branch of the Raspberry Pi [buildroot](https://github.com/raspberrypi/buildroot) repo.
 
 ### Building
+
+In order to build directly on a Linux host that has the needed dependencies, run:
 ```bash
 git clone --branch mass-storage-gadget64 git@github.com:raspberrypi/buildroot.git
 cd buildroot
@@ -42,4 +44,11 @@ make raspberrypi64-mass-storage-gadget_defconfig
 make
 ```
 
-The output is written to `output/target/images/sdcard.img` and can be copied to `boot.img`
+The output is written to `output/images/sdcard.img` and can be copied to `boot.img`
+
+Alternatively, if you have docker installed and would like to use the upstream buildroot CI docker image for a build environment, use its `utils/docker-run` helper script:
+```bash
+$ git clone --branch mass-storage-gadget64 git@github.com:raspberrypi/buildroot.git
+$ cd buildroot
+$ ./utils/docker-run /bin/bash -c "make raspberrypi64-mass-storage-gadget_defconfig && make"
+```
