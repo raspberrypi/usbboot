@@ -1,3 +1,53 @@
+rpiboot (20250129~123632) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * recovery5: Remove redundant recovery.bin file
+  * secure-boot-recovery5: Fixup recovery.bin link
+  * win32: Remove the redundant .bat file for 32-bit mass-storage gadget
+  * win32: Include product names in rpiboot shortcut links
+  * win32: Add a help message to the mass-storage-gadget batch file
+  * win32: Update the installer executable
+  * mass-storage-gadget64: Add mmc-utils and other useful commands
+  * 2712: Update recommended boot.conf for default provisioning setup
+  * Remvove the 32-bit mass-storage-gadget
+  * Make mass-storage-gadget a symlink to mass-storage-gadget64
+  * rpi-imager-embedded: Remove the old version of the imager boot.img
+  * readme: Assorted update for Compute Module 5
+  * mass-storage-gadget64: docs - Fix comments in config.txt
+  * secure-boot-recovery: Update README for Pi4 instructions
+  * firmware: 2712: Move to the 2024-11-27 release
+  * rpiboot: Provide a short link to the troubleshooting guide on startup
+  * secure-boot-example: Update to work on both Compute Module 4 and
+    Compute Module 5
+  * pi5: Improve path handling if bootfiles.bin is not found
+  * firmware: 2712: Update to pieeprom-2025-01-22
+  * mass-storage-64: Restore symlink to bootfiles.bin
+  * README: mass-storage-gadget -> mass-storage-gadget64
+  * rpiboot: Add note about rpiboot jumper to the startup guidance
+
+  [ tinyboxvk ]
+  * Update Readme.md
+  * Update Readme.md
+  * Update README.md
+  * Update config.txt
+  * Update config.txt
+  * Update Readme.md
+  * Fix typos
+
+  [ Stanislav Kusovskyi ]
+  * mass-storage-gadget64: fix invokes of extra tools in sign.sh
+
+  [ Rasmus Villemoes ]
+  * Makefile: make it work better in a cross-build scenario
+
+  [ Serge Schneider ]
+  * debian: add salsa-ci.yml
+
+  [ Bryce Schober ]
+  * mass-storage-64: Suggest docker build environment
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 29 Jan 2025 12:36:32 +0000
+
 rpiboot (20241107~183156) bookworm; urgency=medium
 
   [ Tim Gover ]
