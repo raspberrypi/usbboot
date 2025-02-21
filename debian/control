@@ -2,7 +2,7 @@ Source: rpiboot
 Section: utils
 Priority: optional
 Maintainer: Serge Schneider <serge@raspberrypi.com>
-Build-Depends: debhelper (>= 9), libusb-1.0-0-dev, pkg-config, rpi-eeprom (>= 27.0), xxd
+Build-Depends: debhelper (>= 9), libusb-1.0-0-dev, pkg-config, rpi-eeprom (>= 27.4), xxd
 Standards-Version: 4.5.1
 Homepage: https://github.com/raspberrypi/usbboot
 
