@@ -1,3 +1,17 @@
+rpiboot (20250221~161557) bookworm; urgency=medium
+
+  * win32: Update windows installer for latest bootfiles.bin firmware
+  * firmware: 2712: Update to the 2025-02-12 release
+  * 2712: Fix incorrect filename for pieeprom.bin
+  * firmware: 2711: Update to the 2025-02-11 release
+  * rpiboot: Use mass-storage-gadget-64 by default on BCM2711
+  * debian: Add a build time dependency on xxd
+  * Add gbp.conf
+  * debian: Require rpi-eeprom >= 27.4
+  * debian: Select pieeprom-2025-02-12-2712 and pieeprom-2025-02-11-2711
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Fri, 21 Feb 2025 16:45:08 +0000
+
 rpiboot (20250129~123632) bookworm; urgency=medium
 
   [ Tim Gover ]
