@@ -30,7 +30,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ```bash
-sudo apt install git libusb-1.0-0-dev pkg-config build-essential
+sudo apt install git libusb-1.0-0-dev pkg-config build-essential rpiboot
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
