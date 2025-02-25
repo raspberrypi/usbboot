@@ -21,6 +21,11 @@ For more information run `rpiboot -h`.
 
 ## Building
 
+Once compiled, rpiboot can either be run locally from the source directory by specifying
+the directory of the boot image e.g. `sudo ./rpiboot -d mass-storage-gadget`.
+If no arguments are specified rpiboot will attempt to boot the mass-storage-gadget
+from `INSTALL_PREFIX/share/mass-storage-gadget64`.
+
 ### Linux / Cygwin / WSL
 Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
@@ -34,7 +39,12 @@ sudo apt install git libusb-1.0-0-dev pkg-config build-essential
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
-sudo ./rpiboot
+# Either
+sudo ./rpiboot -d mass-storage-gadget64
+# Or, install rpiboot to /usr/bin and boot images to /usr/share
+sudo make install
+sudo rpiboot
+
 ```
 
 `sudo` isn't required if you have write permissions for the `/dev/bus/usb` device.
@@ -46,7 +56,7 @@ From a macOS machine, you can also run usbboot, just follow the same steps:
 2. Install `libusb` (`brew install libusb`)
 3. Install `pkg-config` (`brew install pkg-config`)
 4. (Optional) Export the `PKG_CONFIG_PATH` so that it includes the directory enclosing `libusb-1.0.pc`
-5. Build using make
+5. Build using make - installing to /usr/local rather than /usr/bin is recommended on macOS
 6. Run the binary
 
 ```bash
@@ -54,8 +64,12 @@ git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com
 cd usbboot
 brew install libusb
 brew install pkg-config
-make
-sudo ./rpiboot
+make INSTALL_PREFIX=/usr/local
+# Either
+sudo ./rpiboot -d mass-storage-gadget64
+# Or, install rpiboot to /usr/local/bin and boot images to /usr/local/share
+sudo make INSTALL_PREFIX=/usr/local install
+sudo rpiboot
 ```
 
 If the build is unable to find the header file `libusb.h` then most likely the `PKG_CONFIG_PATH` is not set properly.
@@ -76,7 +90,7 @@ Running `make` again should now succeed.
 
 ### Updating the rpi-eeprom submodule
 After updating the usbboot repo (`git pull --rebase origin master`) update the
-submodules by running 
+submodules by running
 
 ```bash
 git submodule update --init
