@@ -16,6 +16,8 @@ Description: Raspberry Pi USB booting code
 
 Package: rpi-make-boot-image
 Architecture: any
-Depends: coreutils, dosfstools, file, mount, tar
+Depends: dosfstools, file, mount
 Recommends: mtools
-Description: Utility to create minimal boot ramdisk files.
+Description: Utility to create Raspberry Pi minimal boot ramdisk files.
+  Utility for building Raspberry Pi bootloader ramdisk (boot.img) files.
+  These images are raw FAT images and the tool attempts to make this as small as possible to reduce load time.
