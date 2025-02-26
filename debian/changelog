@@ -1,3 +1,14 @@
+rpiboot (20250226~163138) bookworm; urgency=medium
+
+  * readme: Expand build instructions to mention 'make install' and
+    INSTALL_PREFIX
+  * salsa-ci: Add the extract source section as with rpi-eeprom
+  * debian: rpi-make-boot-image: Drop direct dependency on coreutils and
+    tar
+  * makefile: Pass CPPFLAGS - required for APT (debian/hardening)
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 26 Feb 2025 16:33:08 +0000
+
 rpiboot (20250221~161557) bookworm; urgency=medium
 
   * win32: Update windows installer for latest bootfiles.bin firmware
