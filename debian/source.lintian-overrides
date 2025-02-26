@@ -1,5 +1,0 @@
-rpiboot: source-is-missing rpi-eeprom/tools/vl805
-rpiboot: source-is-missing msd/start.elf
-rpiboot: source-is-missing msd/start4.elf
-rpiboot: source-contains-prebuilt-windows-binary win32/*.dll
-rpiboot: source-contains-prebuilt-windows-binary win32/*.exe
