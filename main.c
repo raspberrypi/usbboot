@@ -964,7 +964,7 @@ int main(int argc, char *argv[])
 
 	get_options(argc, argv);
 
-	printf("RPIBOOT: build-date %s version %s %s\n\n", __DATE__, PKG_VER, GIT_VER);
+	printf("RPIBOOT: build-date %s pkg-version %s git-version %s\n\n", __DATE__, PKG_VER, GIT_VER);
 	printf("Please fit the EMMC_DISABLE / nRPIBOOT jumper before connecting the power and USB cables to the target device.\n");
 	printf("If the device fails to connect then please see https://rpltd.co/rpiboot for debugging tips.\n\n");
 
