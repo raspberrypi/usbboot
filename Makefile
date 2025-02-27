@@ -1,4 +1,4 @@
-PKG_VER=$(shell if [ -d debian/changelog ]; then grep rpiboot debian/changelog | head -n1 | sed 's/.*(\(.*\)).*/\1/g'; else echo local; fi)
+PKG_VER=$(shell if [ -f debian/changelog ]; then grep rpiboot debian/changelog | head -n1 | sed 's/.*(\(.*\)).*/\1/g'; else echo local; fi)
 GIT_VER=$(shell git rev-parse HEAD 2>/dev/null | cut -c1-8 || echo "")
 HAVE_XXD=$(shell xxd -v >/dev/null 2>/dev/null && echo y)
 INSTALL_PREFIX?=/usr
