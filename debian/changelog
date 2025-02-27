@@ -1,3 +1,10 @@
+rpiboot (20250226~171348) bookworm; urgency=medium
+
+  * makefile: Only set the PKG_VERSION in APT builds
+  * debian: Remove debian build scripts from master
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Thu, 27 Feb 2025 12:16:06 +0000
+
 rpiboot (20250226~163138) bookworm; urgency=medium
 
   * readme: Expand build instructions to mention 'make install' and
