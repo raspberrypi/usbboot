@@ -1,3 +1,11 @@
+rpiboot (20250227~123606) bookworm; urgency=medium
+
+  * makefile: Fix check for debian/changelog in PKG_VER
+  * makefile: Pass build-date as a make flag for reproducible builds
+  * main: Tidyup error handling in second stage setup
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Thu, 27 Feb 2025 13:06:00 +0000
+
 rpiboot (20250226~171348) bookworm; urgency=medium
 
   * makefile: Only set the PKG_VERSION in APT builds
