@@ -608,7 +608,12 @@ int second_stage_prep(FILE *fp, FILE *fp_sig)
 
 	if(fp_sig != NULL)
 	{
-		fread(boot_message.signature, 1, sizeof(boot_message.signature), fp_sig);
+		size = fread(boot_message.signature, 1, sizeof(boot_message.signature), fp_sig);
+		if (size != sizeof(boot_message.signature))
+		{
+			fprintf(stderr, "Failed to read bootcode signature \n");
+			return -1;
+		}
 	}
 
 	if (second_stage_txbuf)
@@ -618,14 +623,14 @@ int second_stage_prep(FILE *fp, FILE *fp_sig)
 	second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
 	if (second_stage_txbuf == NULL)
 	{
-		printf("Failed to allocate memory\n");
+		fprintf(stderr, "Failed to allocate memory\n");
 		return -1;
 	}
 
 	size = fread(second_stage_txbuf, 1, boot_message.length, fp);
 	if(size != boot_message.length)
 	{
-		printf("Failed to read second stage\n");
+		fprintf(stderr, "Failed to read second stage\n");
 		return -1;
 	}
 
@@ -964,7 +969,7 @@ int main(int argc, char *argv[])
 
 	get_options(argc, argv);
 
-	printf("RPIBOOT: build-date %s pkg-version %s git-version %s\n\n", __DATE__, PKG_VER, GIT_VER);
+	printf("RPIBOOT: build-date %s pkg-version %s git-version %s\n\n", BUILD_DATE, PKG_VER, GIT_VER);
 	printf("Please fit the EMMC_DISABLE / nRPIBOOT jumper before connecting the power and USB cables to the target device.\n");
 	printf("If the device fails to connect then please see https://rpltd.co/rpiboot for debugging tips.\n\n");
 
