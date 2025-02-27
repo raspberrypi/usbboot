@@ -1,3 +1,9 @@
+rpiboot (20250227~132106) bookworm; urgency=medium
+
+  * version: Drop git-version prefix
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Thu, 27 Feb 2025 13:22:44 +0000
+
 rpiboot (20250227~123606) bookworm; urgency=medium
 
   * makefile: Fix check for debian/changelog in PKG_VER
