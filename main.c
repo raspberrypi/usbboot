@@ -689,6 +689,23 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 	{
 		const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 		unsigned long length = 0;
+
+		// If 'dir' is specified and the file exists then load this in preference
+		// to the file in bootfiles.bin e.g. use a custom config.txt or cmdline.txt
+		// to override settings in the mass-storage-gadget
+		if (dir)
+		{
+			snprintf(path, sizeof(path), "%s/%s/%s", dir, prefix, fname);
+			path[sizeof(path) - 1] = 0;
+			fp = fopen(path, "rb");
+
+			if (fp)
+			{
+				printf("Loading bootfiles.bin overlay: %s\n", path);
+				return fp;
+			}
+		}
+
 		snprintf(path, sizeof(path), "%s/%s", prefix, fname);
 		path[sizeof(path) - 1] = 0;
 		if (bootfile_data)
