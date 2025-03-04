@@ -12,6 +12,7 @@ NAME="$(basename "$0")"
 
 # Define these environment variables to override mkfs options
 SECTOR_SIZE=${SECTOR_SIZE:-512}
+SECTORS_PER_CLUSTER=${SECTORS_PER_CLUSTER:-1}
 ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
 
 # Add 64k to the size calculation to reserve some space for the FAT,
