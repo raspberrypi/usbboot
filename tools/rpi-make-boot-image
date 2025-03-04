@@ -5,7 +5,9 @@ set -e
 TMP_DIR=""
 TMP_IMAGE=""
 IMAGE_SIZE=${IMAGE_SIZE:-0}
-MEGABYTE=$((1024 * 1024))
+if [ "$IMAGE_SIZE" -ne 0 ]; then
+   IMAGE_SIZE="$((IMAGE_SIZE * 1024))"
+fi
 BOOT_MOUNT=""
 LOOP=""
 NAME="$(basename "$0")"
@@ -36,7 +38,7 @@ die() {
 }
 
 createfs() {
-   size_mb="$1"
+   size_kib="$1"
    image="$2"
 
    volume_label="BOOT"
@@ -52,12 +54,10 @@ createfs() {
       fat_size="-F ${FAT_SIZE}"
    fi
 
-   sectors=$((size_mb * MEGABYTE / SECTOR_SIZE))
-   sectors=$((sectors / 2))
    mkfs.fat -C -f 1 \
       ${SECTORS_PER_CLUSTER} -n "${volume_label}" \
       ${fat_size} ${DISK_GEOMETRY} \
-      -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${sectors} || \
+      -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${size_kib} || \
       die "Failed to create FAT filesystem"
 }
 
@@ -147,14 +147,14 @@ createstaging() {
       IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
       rm -f "${content}"
 
-      # Add a little padding for FAT etc and convert to megabytes
+      # Add a little padding for FAT etc and round to next MiB boundary
       IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
-      IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
+      IMAGE_SIZE=$((((IMAGE_SIZE + 1023)/1024)*1024))
    fi
 
    echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
 
-   if [ "${IMAGE_SIZE}" -gt 20 ]; then
+   if [ "${IMAGE_SIZE}" -gt "$((20 * 1024))" ]; then
       echo "Warning: Large image size detected. Try removing unused files."
    fi
 }
