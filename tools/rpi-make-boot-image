@@ -18,9 +18,9 @@ SECTORS_PER_CLUSTER=${SECTORS_PER_CLUSTER:-1}
 DISK_GEOMETRY=${DISK_GEOMETRY:-1/1}
 ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
 
-# Add 64k to the size calculation to reserve some space for the FAT,
+# Add 16k to the size calculation to reserve some space for the FAT,
 # directory entries and rounding up files to cluster sizes.
-FAT_OVERHEAD=${FAT_OVERHEAD:-64}
+FAT_OVERHEAD=${FAT_OVERHEAD:-16}
 
 HAVE_MCOPY=false
 
@@ -106,6 +106,65 @@ copyfiles() {
    fi
 }
 
+estimate_fat_clusters() {
+   local cluster_size
+   cluster_size="$1"
+   local directory
+   directory="$2"
+
+   local clusters
+   clusters="0"
+   local subdir
+
+   for subdir in $(find "$directory" -mindepth 1 -maxdepth 1 -type d); do
+      local sd_clusters
+      sd_clusters="$(estimate_fat_clusters "$cluster_size" "$subdir")"
+      clusters="$((clusters + sd_clusters))"
+   done
+
+   # Determine number of clusters required for file contents
+   local file_clusters
+   file_clusters="$(find "$directory" -maxdepth 1 -type f -exec du --apparent-size --block-size="${cluster_size}" {} + | awk '{clust=clust+$1} END {print clust}')"
+   clusters="$((clusters + file_clusters))"
+
+   # Determine number of clusters required for directory entries
+   # Two additional entries are required for "." and ".."
+   local dir_entries
+   dir_entries="2"
+   local file_name
+   local file_base_name
+
+   for file_name in "${directory}"/*; do
+      file_base_name="$(basename "${file_name}")"
+
+      # Always at least one entry
+      dir_entries="$((dir_entries + 1))"
+
+      # MSDOS 8.3 Filename Requirements
+      # A-Z
+      # 0-9
+      # Space
+      # ! # $ % & ' ( ) - @ ^ _ ` { } ~
+      # Values 128-255
+      VALID_MSDOS_FILENAME_CHAR='[A-Z0-9 \!#\$%\&'"'"'\(\)\-@\^_`\{\}~\x80-\xff]'
+      VALID_MSDOS_FILENAME="^${VALID_MSDOS_FILENAME_CHAR}{1,8}(?:\.${VALID_MSDOS_FILENAME_CHAR}{1,3})$"
+
+      local msdos_compatible_filename
+      msdos_compatible_filename="0"
+      printf "%s" "${file_base_name}" | \
+         grep --silent --perl-regexp "${VALID_MSDOS_FILENAME}" || msdos_compatible_filename=$?
+
+      if [ "$msdos_compatible_filename" -ne "0" ]; then
+         local ucs2_bytes
+         ucs2_bytes="$(printf "%s" "${file_name}" | iconv --to-code=UCS2 | wc --bytes)"
+         dir_entries="$((dir_entries + ((ucs2_bytes + 25)/26)))"
+      fi
+   done
+
+   # 32-bytes are required for each entry
+   clusters="$((clusters + ((dir_entries * 32) + cluster_size - 1)/cluster_size))"
+   echo "$clusters"
+}
 
 createstaging() {
    source_dir="$1"
@@ -138,18 +197,30 @@ createstaging() {
       rm -f "${staging}/start4x.elf"
       rm -f "${staging}/fixup4x.dat"
    fi
-   # Estimate the size of the image in KBs
-   content="${TMP_DIR}/content.tar"
-   echo "$(cd "${staging}"; ls -R)"
-   tar -cf "${content}" "${staging}" > /dev/null 2>&1
-   if [ "${IMAGE_SIZE}" = 0 ]; then
-      IMAGE_SIZE=$(stat --printf "%s" "${content}")
-      IMAGE_SIZE=$(((IMAGE_SIZE + 1023) / 1024))
-      rm -f "${content}"
 
-      # Add a little padding for FAT etc and round to next MiB boundary
+   if [ "${IMAGE_SIZE}" = 0 ]; then
+      # Estimate the size of the image in clusters
+      cluster_size="$((SECTOR_SIZE * SECTORS_PER_CLUSTER))"
+      clusters="$(estimate_fat_clusters "${cluster_size}" "${staging}")"
+
+      IMAGE_SIZE="$((clusters * cluster_size))"
+
+      # FAT32/FAT16 determined by number of clusters
+      if [ "$clusters" -gt "65526" ]; then
+         FAT_SIZE="32"
+	 fat_table_sectors="$(((((clusters + 2)*4) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
+      else
+         FAT_SIZE="16"
+	 fat_table_sectors="$(((((clusters + 2)*2) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
+	 # Add some sectors based on ROOT_DIR_ENTRIES
+	 root_dir_sectors="$((((ROOT_DIR_ENTRIES * 32) + cluster_size - 1)/cluster_size))"
+	 fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
+      fi
+      IMAGE_SIZE="$((IMAGE_SIZE + fat_table_sectors * SECTOR_SIZE))"
+      IMAGE_SIZE="$(((IMAGE_SIZE + 1023)/1024))"
+
+      # Add a little padding for FAT etc
       IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
-      IMAGE_SIZE=$((((IMAGE_SIZE + 1023)/1024)*1024))
    fi
 
    echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
