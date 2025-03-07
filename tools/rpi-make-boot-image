@@ -182,6 +182,7 @@ createstaging() {
          rm -f start.elf fixup.dat start_cd.elf fixup_cd.dat start_db.elf fixup_db.dat start_x.elf fixup_x.dat
          rm -f start4cd.elf fixup4cd.dat
          rm -f start4db.elf fixup4db.dat
+         rm -f start4x.elf fixup4x.dat
          rm -f bcm2708* bcm2709* bcm2710*
          rm -f bootcode.bin
       )
