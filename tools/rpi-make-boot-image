@@ -184,6 +184,7 @@ createstaging() {
          rm -f start4db.elf fixup4db.dat
          rm -f start4x.elf fixup4x.dat
          rm -f bcm2708* bcm2709* bcm2710*
+         rm -f kernel_2712.img initramfs_2712
          rm -f bootcode.bin
       )
    fi
