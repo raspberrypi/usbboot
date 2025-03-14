@@ -1,1 +1,7 @@
 ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0a5c", ATTR{idProduct}=="27[16][1234]", TAG+="uaccess"
+
+# Disable mass-storage interface if it's made available by the boot rom, it's
+# of no use.
+ACTION=="add", DRIVER=="usb-storage", \
+  ATTRS{idVendor}=="0a5c", ATTRS{idProduct}=="27[16][1234]", \
+  ATTR{authorized}="0"
