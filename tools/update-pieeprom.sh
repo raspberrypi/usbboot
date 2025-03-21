@@ -80,12 +80,6 @@ update_eeprom() {
     sign_args=""
 
     if [ -n "${pem_file}" ]; then
-        if ! grep -q "SIGNED_BOOT=1" "${CONFIG}"; then
-            # If the OTP bit to require secure boot are set then then
-            # SIGNED_BOOT=1 is implicitly set in the EEPROM config.
-            # For debug in signed-boot mode it's normally useful to set this
-            echo "Warning: SIGNED_BOOT=1 not found in \"${CONFIG}\""
-        fi
         update_version=$(strings "${src_image}" | grep BUILD_TIMESTAMP | sed 's/.*=//g')
         if [ "${BOOTLOADER_SECURE_BOOT_MIN_VERSION}" -gt "${update_version}" ]; then
             die "Source bootloader image ${src_image} does not support secure-boot. Please use a newer version."
