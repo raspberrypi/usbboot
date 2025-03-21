@@ -7,6 +7,7 @@
 # boot.conf - The bootloader config file to apply.
 
 set -e
+set -u
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 export PATH=${script_dir}:${PATH}
@@ -28,7 +29,7 @@ die() {
 }
 
 cleanup() {
-   if [ -f "${TMP_CONFIG}" ]; then rm -f "${TMP_CONFIG}"; fi
+   if [ -f "${TMP_CONFIG_SIG}" ]; then rm -f "${TMP_CONFIG_SIG}"; fi
    if [ -d "${TMP_DIR}" ]; then rm -rf "${TMP_DIR}"; fi
 }
 
@@ -154,7 +155,7 @@ sign_firmware() {
       fi
 
       # Extract bootcode.bin from the bootloader image and sign it
-      pieeprom_src="pieeprom.original.bin"
+      pieeprom_src="${1}"
       pieeprom_dst="pieeprom.signed_boot.bin"
       if [ -f "${pieeprom_src}" ]; then
          echo "Signing ${pieeprom_src} as ${pieeprom_dst}"
@@ -225,6 +226,6 @@ fi
 DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\.[^./]*$//').sig"
 TMP_DIR="$(mktemp -d)"
 rm -f "${DST_IMAGE}" "${DST_IMAGE_SIG}"
-sign_firmware
+sign_firmware "${SRC_IMAGE}"
 update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}"
 image_digest "${DST_IMAGE}" "${DST_IMAGE_SIG}"
