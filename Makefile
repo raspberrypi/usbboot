@@ -1,9 +1,4 @@
-BUILD_TIMESTAMP ?= $(shell date -u +%s)
-ifeq ($(shell uname),Darwin)
-    BUILD_DATE ?= $(shell date -j -f %s $(BUILD_TIMESTAMP) "+%Y/%m/%d")
-else
-    BUILD_DATE ?= $(shell date "+%Y/%m/%d" --date=@$(BUILD_TIMESTAMP))
-endif
+BUILD_DATE ?= $(shell date "+%Y/%m/%d")
 PKG_VER=$(shell if [ -f debian/changelog ]; then grep rpiboot debian/changelog | head -n1 | sed 's/.*(\(.*\)).*/\1/g'; else echo local; fi)
 GIT_VER=$(shell git rev-parse HEAD 2>/dev/null | cut -c1-8 || echo "")
 HAVE_XXD=$(shell xxd -v >/dev/null 2>/dev/null && echo y)
