@@ -1,3 +1,38 @@
+rpiboot (20250401~081331) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * Add support for overriding files in bootfiles.bin
+  * mass-storage-gadget64-cm3: Update GPU firmware for 2710 and older
+    devices
+  * msd: Remove legacy msd/start4.elf and use a common legacy msd .elf
+    file
+  * rpi-make-boot-image: Drop start4x on 2711
+  * rpi-make-boot-image: Don't include Pi5 specific kernel + initramfs in
+    pi4 mode
+  * mass-storage-gadget64: Update boot.img for util-linux blkid tools
+  * firmware: 2712: Update to pieeprom-2025-03-10
+  * update-pieeprom: Fix handling for SRC_IMAGE in code-signing mode
+  * update-pieeprom.sh: Remove redundant SIGNED_BOOT=1 flag
+  * make: Remove BUILD_TIMESTAMP
+  * update-pieeprom.sh: Initialise SIGN_FIRMWARE variable
+  * firmware: Update rpi-eeprom submodule
+
+  [ Richard Oliver ]
+  * rpi-make-boot-image: Prefer 512-byte clusters
+  * rpi-make-boot-image: Set disk geometry
+  * rpi-make-boot-image: Use KiB for sizes internally
+  * rpi-make-boot-image: Estimate size with clusters
+  * udev: Deauthorise boot rom usb-storage
+  * pkg: Include mass-storage-gadget64-cm3
+
+  [ Leon Anavi ]
+  * secure-boot-example/README.md: Fix typo
+
+  [ Matt Wildoer ]
+  * Update Makefile to handle date formatting for macOS compatibility
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 01 Apr 2025 08:14:36 +0100
+
 rpiboot (20250227~132106) bookworm; urgency=medium
 
   * version: Drop git-version prefix
