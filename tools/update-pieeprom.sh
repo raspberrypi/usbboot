@@ -7,6 +7,7 @@
 # boot.conf - The bootloader config file to apply.
 
 set -e
+set -u
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 export PATH=${script_dir}:${PATH}
@@ -21,6 +22,7 @@ PUBLIC_PEM_FILE=""
 TMP_CONFIG_SIG=""
 SIGN_RECOVERY=0
 TMP_DIR=""
+SIGN_FIRMWARE=${SIGN_FIRMWARE:-0}
 
 die() {
    echo "$@" >&2
@@ -28,7 +30,7 @@ die() {
 }
 
 cleanup() {
-   if [ -f "${TMP_CONFIG}" ]; then rm -f "${TMP_CONFIG}"; fi
+   if [ -f "${TMP_CONFIG_SIG}" ]; then rm -f "${TMP_CONFIG_SIG}"; fi
    if [ -d "${TMP_DIR}" ]; then rm -rf "${TMP_DIR}"; fi
 }
 
@@ -79,12 +81,6 @@ update_eeprom() {
     sign_args=""
 
     if [ -n "${pem_file}" ]; then
-        if ! grep -q "SIGNED_BOOT=1" "${CONFIG}"; then
-            # If the OTP bit to require secure boot are set then then
-            # SIGNED_BOOT=1 is implicitly set in the EEPROM config.
-            # For debug in signed-boot mode it's normally useful to set this
-            echo "Warning: SIGNED_BOOT=1 not found in \"${CONFIG}\""
-        fi
         update_version=$(strings "${src_image}" | grep BUILD_TIMESTAMP | sed 's/.*=//g')
         if [ "${BOOTLOADER_SECURE_BOOT_MIN_VERSION}" -gt "${update_version}" ]; then
             die "Source bootloader image ${src_image} does not support secure-boot. Please use a newer version."
@@ -154,7 +150,7 @@ sign_firmware() {
       fi
 
       # Extract bootcode.bin from the bootloader image and sign it
-      pieeprom_src="pieeprom.original.bin"
+      pieeprom_src="${1}"
       pieeprom_dst="pieeprom.signed_boot.bin"
       if [ -f "${pieeprom_src}" ]; then
          echo "Signing ${pieeprom_src} as ${pieeprom_dst}"
@@ -225,6 +221,6 @@ fi
 DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\.[^./]*$//').sig"
 TMP_DIR="$(mktemp -d)"
 rm -f "${DST_IMAGE}" "${DST_IMAGE_SIG}"
-sign_firmware
+sign_firmware "${SRC_IMAGE}"
 update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}"
 image_digest "${DST_IMAGE}" "${DST_IMAGE_SIG}"

@@ -10,7 +10,6 @@
 #include "msd/bootcode.h"
 #include "msd/start.h"
 #include "msd/bootcode4.h"
-#include "msd/start4.h"
 // 2712 doesn't use start5.elf
 
 /*
@@ -689,6 +688,23 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 	{
 		const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 		unsigned long length = 0;
+
+		// If 'dir' is specified and the file exists then load this in preference
+		// to the file in bootfiles.bin e.g. use a custom config.txt or cmdline.txt
+		// to override settings in the mass-storage-gadget
+		if (dir)
+		{
+			snprintf(path, sizeof(path), "%s/%s/%s", dir, prefix, fname);
+			path[sizeof(path) - 1] = 0;
+			fp = fopen(path, "rb");
+
+			if (fp)
+			{
+				printf("Loading bootfiles.bin overlay: %s\n", path);
+				return fp;
+			}
+		}
+
 		snprintf(path, sizeof(path), "%s/%s", prefix, fname);
 		path[sizeof(path) - 1] = 0;
 		if (bootfile_data)
@@ -734,7 +750,7 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 			if(strcmp(fname, "bootcode4.bin") == 0)
 				fp = fmemopen(msd_bootcode4_bin, msd_bootcode4_bin_len, "rb");
 			else if(strcmp(fname, "start4.elf") == 0)
-				fp = fmemopen(msd_start4_elf, msd_start4_elf_len, "rb");
+				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 		}
 		else
 		{

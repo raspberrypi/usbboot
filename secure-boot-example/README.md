@@ -3,7 +3,7 @@
 ## Overview
 
 This example demonstrates how the low level code signing and provisioning tools can be used to enable
-signed boot on Compute Module 4 or Compute Modulde 5. For simplicity, the example is based on the
+signed boot on Compute Module 4 or Compute Module 5. For simplicity, the example is based on the
 mass-storage-gadget which small buildroot image.
 
 For production systems we recommend using the higher level [Raspberry Pi Secure Boot Provisioner](https://github.com/raspberrypi/rpi-sb-provisioner)
