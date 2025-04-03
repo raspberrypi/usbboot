@@ -26,6 +26,10 @@ The `sign.sh` script wraps the command do this on Pi4 and Pi5.
 KEY_FILE=$HOME/private.pem
 ./sign.sh ${KEY_FILE}
 ```
+or as follows if using a HSM wrapper script.
+```bash
+./sign.sh -H hsm-wrapper public.pem
+```
 
 WARNING: The signed images will not be bootable on a Pi5 without secure-boot enabled. Run `./reset.sh` to reset the signed images to the default unsigned state.
 
