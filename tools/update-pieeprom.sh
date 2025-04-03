@@ -10,7 +10,7 @@ set -e
 set -u
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-export PATH=${script_dir}:${PATH}
+export PATH="${script_dir}:${PATH}"
 
 # Minimum version for secure-boot support
 BOOTLOADER_SECURE_BOOT_MIN_VERSION=1632136573
@@ -23,6 +23,7 @@ TMP_CONFIG_SIG=""
 SIGN_RECOVERY=0
 TMP_DIR=""
 SIGN_FIRMWARE=${SIGN_FIRMWARE:-0}
+HSM_WRAPPER=""
 
 die() {
    echo "$@" >&2
@@ -38,7 +39,7 @@ usage() {
 cat <<EOF
     update-pieeprom.sh [key]
 
-    Updates and EEPROM image by replacing the configuration file and generates
+    Updates an EEPROM image by replacing the configuration file and generates
     the new pieeprom.sig file.
 
     The bootloader configuration may also be signed by specifying the name
@@ -50,8 +51,9 @@ cat <<EOF
     -c Bootloader config file - default: "${CONFIG}"
     -i Source EEPROM image - default: "${SRC_IMAGE}"
     -o Output EEPROM image - default: "${DST_IMAGE}"
+    -H The name of the HSM wrapper script to invoke - default ""
     -k Optional RSA private key PEM file.
-    -p Optional RSA public key PEM file.
+    -p Optional RSA public key PEM file - required if using a HSM wrapper
 
     Flags:
     -f Countersign the EEPROM firmware
@@ -80,7 +82,7 @@ update_eeprom() {
     public_pem_file="$5"
     sign_args=""
 
-    if [ -n "${pem_file}" ]; then
+    if [ -n "${pem_file}" ] || [ -n "${HSM_WRAPPER}" ]; then
         update_version=$(strings "${src_image}" | grep BUILD_TIMESTAMP | sed 's/.*=//g')
         if [ "${BOOTLOADER_SECURE_BOOT_MIN_VERSION}" -gt "${update_version}" ]; then
             die "Source bootloader image ${src_image} does not support secure-boot. Please use a newer version."
@@ -88,9 +90,15 @@ update_eeprom() {
 
         TMP_CONFIG_SIG="$(mktemp)"
         echo "Signing bootloader config"
-        rpi-eeprom-digest \
-            -i "${config}" -o "${TMP_CONFIG_SIG}" \
-            -k "${pem_file}" || die "Failed to sign EEPROM config"
+        if [ -n "${HSM_WRAPPER}" ]; then
+           rpi-eeprom-digest \
+              -i "${config}" -o "${TMP_CONFIG_SIG}" \
+              -H "${HSM_WRAPPER}" || die "Failed to sign EEPROM config using HSM"
+        else
+           rpi-eeprom-digest \
+              -i "${config}" -o "${TMP_CONFIG_SIG}" \
+              -k "${pem_file}" || die "Failed to sign EEPROM config"
+        fi
 
         cat "${TMP_CONFIG_SIG}"
 
@@ -121,14 +129,28 @@ image_digest() {
 }
 
 sign_firmware_blob() {
-   [ -f "${PEM_FILE}" ] || die "sign-firmware: key-file ${PEM_FILE} not found"
-   rpi-sign-bootcode \
-      -c 2712 \
-      -i "${1}" \
-      -o "${2}" \
-      -n 16 \
-      -v 0 \
-      -k "${PEM_FILE}"
+
+  if [ -n "${HSM_WRAPPER}" ]; then
+      rpi-sign-bootcode \
+         -c 2712 \
+         -i "${1}" \
+         -o "${2}" \
+         -n 16 \
+         -v 0 \
+         -p "${PUBLIC_PEM_FILE}" \
+         -H "${HSM_WRAPPER}" || die "Failed to sign firmware blob using HSM wrapper"
+
+  else
+
+      [ -f "${PEM_FILE}" ] || die "sign-firmware: key-file ${PEM_FILE} not found"
+      rpi-sign-bootcode \
+         -c 2712 \
+         -i "${1}" \
+         -o "${2}" \
+         -n 16 \
+         -v 0 \
+         -k "${PEM_FILE}" || die "Failed to sign firmware blob using private key"
+   fi
 }
 
 sign_firmware() {
@@ -156,7 +178,7 @@ sign_firmware() {
          echo "Signing ${pieeprom_src} as ${pieeprom_dst}"
          (
             cp -f "${pieeprom_src}" "${TMP_DIR}"
-            cd ${TMP_DIR}
+            cd "${TMP_DIR}"
             rpi-eeprom-config -x "${pieeprom_src}"
          )
          sign_firmware_blob "${TMP_DIR}/bootcode.bin" "${TMP_DIR}/bootcode.bin.signed"
@@ -168,7 +190,7 @@ sign_firmware() {
 
 trap cleanup EXIT
 
-while getopts "c:i:o:k:p:fhr" option; do
+while getopts "c:i:o:k:p:H:fhr" option; do
     case "${option}" in
         c) CONFIG="${OPTARG}"
             ;;
@@ -188,6 +210,8 @@ while getopts "c:i:o:k:p:fhr" option; do
            ;;
         h) usage
            exit 0
+           ;;
+        H) HSM_WRAPPER="${OPTARG}"
            ;;
         *) echo "Unknown argument \"${option}\""
             usage
@@ -209,6 +233,14 @@ fi
 [ -f "${CONFIG}" ] || die "Bootloader config file \"${CONFIG}\" not found"
 if [ -n "${PEM_FILE}" ]; then
     [ -f "${PEM_FILE}" ] || die "RSA key file \"${PEM_FILE}\" not found"
+fi
+
+if [ -n "${HSM_WRAPPER}" ]; then
+   if ! command -v "${HSM_WRAPPER}" > /dev/null; then
+      die "HSM wrapper script \"${HSM_WRAPPER}\" not found"
+   fi
+   [ -n "${PUBLIC_PEM_FILE}" ] || die "Public key (-p public.pem) must specified in HSM mode"
+   [ -f "${PUBLIC_PEM_FILE}" ] || die "Public key \"${PUBLIC_PEM_FILE}\" not found"
 fi
 
 # If a public key is specified then use it. Otherwise, if just the private
