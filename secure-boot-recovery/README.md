@@ -11,7 +11,7 @@ must be used to enable RPIBOOT if pulled low. The available GPIOs are `2,4,5,6,7
 since these are high by default.
 
 Pi4 Model B rev 1.3 and older use the BCM2711B0 processor which does not support secure-boot.
-All CM4, CM4S and Pi400 boards use BCM2712C0 which supports secure-boot.
+All CM4, CM4S and Pi400 boards use BCM2711C0 which supports secure-boot.
 
 ### Step 1 - Erase the EEPROM
 In order to avoid this OTP configuration being accidentally set on Pi 4B / Pi 400
