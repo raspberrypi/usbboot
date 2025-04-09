@@ -48,7 +48,7 @@ if [ ! -f "${FIRMWARE_DIR}/bootfiles.bin" ]; then
 fi
 
 # Check if pieeprom.original.bin exists
-if [ ! -f "${RECOVERY_DIR}/pieeprom.original.bin" ]; then
+if [ ! -e "${RECOVERY_DIR}/pieeprom.original.bin" ]; then
     echo "ERROR: pieeprom.original.bin not found in ${RECOVERY_DIR}"
     echo "Please make sure the secure-boot-recovery5 directory contains pieeprom.original.bin"
     exit 1

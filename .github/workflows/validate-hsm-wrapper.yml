@@ -15,6 +15,9 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        submodules: true
+        submodule-recursive: true
+        submodule-shallow: true
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -42,10 +45,9 @@ jobs:
       run: |
         make
 
-    - name: Make validate script executable
-      run: chmod +x test/validate-hsm-wrapper.sh
-
-    - name: Run validation script
+    - name: Run HSM Wrapper unit test
       run: |
         source .venv/bin/activate
-        ./test/validate-hsm-wrapper.sh 
+        cd test
+        chmod +x validate-hsm-wrapper.sh
+        ./validate-hsm-wrapper.sh
