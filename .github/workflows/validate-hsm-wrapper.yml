@@ -1,0 +1,53 @@
+name: Raspberry Pi USB Boot tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+        submodule-recursive: true
+        submodule-shallow: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          tar \
+          libusb-1.0-0-dev \
+          pkg-config
+
+    - name: Set up Python virtual environment
+      run: |
+        python3 -m venv .venv
+        source .venv/bin/activate
+        python3 -m pip install --upgrade pip
+        pip3 install pycryptodomex
+
+    - name: Build rpiboot
+      run: |
+        make
+
+    - name: Run HSM Wrapper unit test
+      run: |
+        source .venv/bin/activate
+        cd test
+        chmod +x validate-hsm-wrapper.sh
+        ./validate-hsm-wrapper.sh

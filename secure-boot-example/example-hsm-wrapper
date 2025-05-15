@@ -1,0 +1,73 @@
+#!/bin/sh
+
+set -e
+set -u
+
+script_dir=$(cd "$(dirname "$0")" && pwd)
+KEY="${script_dir}/example-private.pem"
+ALGORITHM=""
+OPENSSL=${OPENSSL:-openssl}
+
+die() {
+   echo "$@" >&2
+   exit 1
+}
+
+usage() {
+   cat << EOF
+Example HSM Wrapper Interface
+============================
+This is an example program to demonstrate the HSM wrapper interface for secure boot signing.
+It signs the provided input file using RSA2048 with SHA256 and outputs the PKCS#1 v1.5 signature in hex format.
+
+This program should be used as a template to implement a HSM wrapper for a specific HSM
+and be in the PATH of the user running rpi-eeprom-digest / rpi-sign-bootcode.
+
+Usage: $(basename $0) -a ALGORITHM INPUT_FILE
+
+Options:
+  -a ALGORITHM   The signing algorithm to use (currently only supports rsa2048-sha256)
+  INPUT_FILE     The input file to sign
+  -h             Display this help message
+
+Output:
+  The script outputs the RSA signature in hexadecimal format to stdout.
+  This is the format expected by the rpi-sign-bootcode tool when using an HSM wrapper.
+
+Example:
+  $(basename $0) -a rsa2048-sha256 input.bin > signature.hex
+EOF
+   exit 1
+}
+
+while getopts "a:h" opt; do
+   case "${opt}" in
+      a) ALGORITHM="${OPTARG}"
+         ;;
+      h) usage
+         ;;
+      *) usage
+         ;;
+   esac
+done
+
+# Shift past the options
+shift $((OPTIND-1))
+
+# Check for mandatory arguments
+[ -n "${ALGORITHM}" ] || die "$(basename $0): Algorithm (-a) is required"
+[ $# -eq 1 ] || die "$(basename $0): Input file must be specified as a positional argument"
+
+# Get the input file from positional argument
+IMAGE="$1"
+
+# Validate algorithm
+if [ "${ALGORITHM}" != "rsa2048-sha256" ]; then
+   die "$(basename $0): Unsupported algorithm '${ALGORITHM}'. Only rsa2048-sha256 is supported"
+fi
+
+# Validate input file
+[ -f "${IMAGE}" ] || die "$(basename $0): Input file ${IMAGE} not found"
+
+# Sign the file using the specified algorithm
+${OPENSSL} dgst -hex -sign "${KEY}" -sha256 "${IMAGE}" | awk '{print $2}'
