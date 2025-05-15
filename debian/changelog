@@ -1,3 +1,18 @@
+rpiboot (20250514~214724) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * mass-storage-gadget: Update to rpi-6.12.y kernel
+  * mass-storage-gadget64-cm4: Update to rpi-6.12 kernel
+  * Add a Hardware Security Module wrapper script interface
+  * WIP: Add Github CI workflow tests
+  * test: Add a README.md and test CI
+  * firmware: 2712: 2711: Move to the 2025-05-08 release
+
+  [ Gaël PORTAY ]
+  * secure-boot-recovery: Fix typo
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Thu, 15 May 2025 17:24:23 +0100
+
 rpiboot (20250401~081331) bookworm; urgency=medium
 
   [ Tim Gover ]
