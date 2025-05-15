@@ -11,18 +11,12 @@ uart_2ndstage=1
 # This option also prevents the ROM from loading recovery.bin from SD/EMMC
 # which means that the bootloader can only be updated via RPIBOOT or self-update.
 #
+# recovery.bin version to 2025-05-15 and newer automatically sets
+# revoke_devkey=1 if program_pubkey is non-zero.
+#
 # Uncomment program_pubkey=1 to enable this
 # WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
-
 #program_pubkey=1
-
-# Uncomment to revoke the ROM development key via OTP preventing older
-# bootloader or recovery.bin releases from running on this Pi
-# WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
-#
-# DO NOT SET THIS OPTION UNTIL THE BOOTLOADER IS SIGNED WITH THE SECURE
-# BOOT KEY. IT WILL PREVENT THE PI FROM BOOTING.
-#revoke_devkey=1
 
 # Pi 4B and Pi400 do not have a dedicated RPIBOOT jumper so a different GPIO
 # must be used to enable RPIBOOT if pulled low. The options are 2,4,5,6,7,8.
@@ -45,4 +39,4 @@ uart_2ndstage=1
 # Uncomment to instruct recovery.bin to send metadata including OTP fields
 # Specify -j dirname on the command line to specify the directory where
 # metadata should be stored (JSON format)
-#recovery_metadata=1
+recovery_metadata=1
