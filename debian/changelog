@@ -1,3 +1,9 @@
+rpiboot (20250516~140109) bookworm; urgency=medium
+
+  * rules: Update the 2711/2712 bootloaders to 2025-05-08
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Fri, 16 May 2025 14:01:09 +0100
+
 rpiboot (20250514~214724) bookworm; urgency=medium
 
   [ Tim Gover ]
