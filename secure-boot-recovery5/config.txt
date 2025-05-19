@@ -14,9 +14,6 @@ uart_2ndstage=1
 # Uncomment program_pubkey=1 to enable this
 # WARNING: THIS OPTION MODIFIES THE BCM2712 CHIP AND IS IRREVERSIBLE.
 #
-# N.B The revoke_keydey option is not required and not currently implemented
-# because on 2712 the bootloader firmware must also be signed by the customer
-# key if secure-boot is enabled.
 #program_pubkey=1
 
 # Permanently disable VideoCore JTAG access.
@@ -31,4 +28,4 @@ uart_2ndstage=1
 # Uncomment to instruct recovery.bin to send metadata including OTP fields
 # Specify -j dirname on the command line to specify the directory where
 # metadata should be stored (JSON format)
-#recovery_metadata=1
+recovery_metadata=1

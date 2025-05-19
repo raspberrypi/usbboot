@@ -58,8 +58,44 @@ The HSM wrapper script should:
 * Set nRPIBOOT jumper (or hold power button before power on) and remove EEPROM WP protection
 ```bash
 cd secure-boot-recovery5
-../rpiboot -d .
+mkdir -p metadata
+../rpiboot -d . -j metadata
 ```
+
+### Example UART output
+```
+3.04 OTP boardrev b04170 bootrom a a
+3.06 Customer key hash 8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee
+3.13 VC-JTAG unlocked
+3.36 RP1_BOOT chip ID: 0x20001927
+3.41 bootconf.sig
+3.41 hash: f71ede8fad8bea2f853bcff41173ffedde48c5b76ed46bc38fa057ce46e5d58b
+3.47 rsa2048: 3f215305d5aff620219da94f6f1294787e3a407102a507da96c28e9195d3ccb2f144cac66919f9d86ba9f54a8d20ff57c80d6d269e6e49a16dc23553974489947fe05bf3b7df5cd2c5040a9eebadca754ff4be50600b06fd9f565639adc859d88052e15e0ff6eecf7fec0386d41f81e5d009b04520bb83f17663b62b1271b9d27ec2344c73a20d42dfd68facd741d48c0453e8149448537abfed1d4805872c16182a3e9f25c0b86e002e88949d62c148a561aa8137c257ce0d3e0ae5761aa64c225e9c9782b2bb613de7d90499567c56218bb18a239d4347967b68b3ebd06eaa48215f16316d2a697bb2e67cb3883068f6284e2ca71d25ce0099a1ceb37a85c9
+3.94 RSA verify
+3.10 rsa-verify pass (0x0)
+
+```
+
+### Metadata
+The optional metadata argument causes rpiboot to readback the OTP information and write it to a JSON file in the given directory.
+This can be useful for debug or for storing in a provisioning database.
+
+Example metadata:
+```json
+{
+        "USER_SERIAL_NUM" : "a7eb274c",
+        "MAC_ADDR" : "2c:cf:67:70:76:f3",
+        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM" : "0000000a",
+        "BOARD_ATTR" : "00000000",
+        "USER_BOARDREV" : "b04170",
+        "JTAG_LOCKED" : "0",
+        "MAC_WIFI_ADDR" : "2c:cf:67:70:76:f4",
+        "MAC_BT_ADDR" : "2c:cf:67:70:76:f5",
+        "FACTORY_UUID" : "001000911006186073"
+}
+```
+
 * Power ON the DUT
 
 ## Locking secure-boot mode
@@ -75,17 +111,8 @@ onwards:
 * It is not possible to downgrade to an old version of the bootloader that doesn't
   support secure boot.
 
-**WARNING: Modifications to OTP are irreversible. Once `revoke_devkey` has been set, it is not possible to unlock secure-boot mode or use a different private key.**
 
-To enable this, edit the `config.txt` file in this directory and set
-`program_pubkey=1`
-
-* `program_pubkey` - If 1, write the hash of the customer's public key to OTP.
-
-## Revoking the development key - NOT SUPPORTED YET
-* `revoke_devkey` - If 1, revoke the ROM bootloader development key, which
-   requires secure-boot mode and prevents downgrades to bootloader versions that
-   don't support secure boot.
+To enable this, edit the `config.txt` file in this directory and set `program_pubkey=1`
 
 ## Disabling VideoCore JTAG
 
