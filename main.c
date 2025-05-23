@@ -60,6 +60,13 @@ typedef struct MESSAGE_S {
 		unsigned char signature[20];
 } boot_message_t;
 
+void print_version(int error)
+{
+	FILE * dest = error ? stderr : stdout;
+	fprintf(dest, "RPIBOOT: build-date %s pkg-version %s %s\n", BUILD_DATE, PKG_VER, GIT_VER);	
+	exit(error ? -1 : 0);
+}
+
 void usage(int error)
 {
 	FILE * dest = error ? stderr : stdout;
@@ -495,6 +502,10 @@ void get_options(int argc, char *argv[])
 			if(argc < 1)
 				usage(1);
 			targetpathname = *argv;
+		}
+		else if(strcmp(*argv, "-V") == 0 || strcmp(*argv, "--version") == 0)
+		{
+			print_version(0);
 		}
 		else if(strcmp(*argv, "-h") == 0 || strcmp(*argv, "--help") == 0)
 		{
