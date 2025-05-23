@@ -82,6 +82,7 @@ void usage(int error)
 	fprintf(dest, "                           (bootcode.bin is always preloaded from the base directory)\n");
 	fprintf(dest, "        -m delay         : Microseconds delay between checking for new devices (default 500)\n");
 	fprintf(dest, "        -v               : Verbose\n");
+	fprintf(dest, "        -V               : Displays the version string and exits\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
@@ -476,6 +477,11 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 		return ret;
 }
 
+void print_version(void)
+{
+	printf("RPIBOOT: build-date %s pkg-version %s %s\n", BUILD_DATE, PKG_VER, GIT_VER);
+}
+
 void get_options(int argc, char *argv[])
 {
 	// Skip the command name
@@ -507,6 +513,11 @@ void get_options(int argc, char *argv[])
 		else if(strcmp(*argv, "-v") == 0)
 		{
 			verbose = 1;
+		}
+		else if((strcmp(*argv, "-V") == 0) || (strcmp(*argv, "--version")) == 0)
+		{
+			print_version();
+			exit(0);
 		}
 		else if(strcmp(*argv, "-o") == 0)
 		{
@@ -984,9 +995,8 @@ int main(int argc, char *argv[])
 	struct libusb_config_descriptor *config;
 
 	get_options(argc, argv);
-
-	printf("RPIBOOT: build-date %s pkg-version %s %s\n\n", BUILD_DATE, PKG_VER, GIT_VER);
-	printf("Please fit the EMMC_DISABLE / nRPIBOOT jumper before connecting the power and USB cables to the target device.\n");
+	print_version();
+	printf("\nPlease fit the EMMC_DISABLE / nRPIBOOT jumper before connecting the power and USB cables to the target device.\n");
 	printf("If the device fails to connect then please see https://rpltd.co/rpiboot for debugging tips.\n\n");
 
 	// flush immediately
