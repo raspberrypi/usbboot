@@ -188,6 +188,33 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 * Add `uart_2ndstage=1` to the `config.txt` file in `msd/` or `recovery/` directories to enable UART debug output.
 * Add `recovery_metadata=1` to the `config.txt` file in `recovery/` or `recovery5/` directory to enable metadata JSON output.
 
+## Reading device metadata from OTP via rpiboot
+The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation.
+
+To enable this make sure that `recovery_metadata=1` is set in the recovery `config.txt` file and pass the `-j metadata` flag to `rpiboot`.
+
+See [board revision](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use) documentation to decode the `BOARD_ATTR` field.
+
+Example command to extract the OTP metadata from a Compute Module 4:
+```bash
+cd recovery
+mkdir -p metadata
+sudo rpiboot -j metadata -d .
+```
+
+Example metadata file contents written to `metadata/SERIAL_NUMBER.json`
+```json
+{
+        "MAC_ADDR" : "d8:3a:dd:05:ee:78",
+        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM" : "0000c8b0",
+        "BOARD_ATTR" : "00000000",
+        "USER_BOARDREV" : "c03141",
+        "JTAG_LOCKED" : "0",
+        "ADVANCED_BOOT" : "0000e8e8"
+}
+```
+
 <a name="secure-boot"></a>
 ## Secure Boot
 This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 and  Compute Module 5.
