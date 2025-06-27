@@ -205,16 +205,22 @@ createstaging() {
 
       IMAGE_SIZE="$((clusters * cluster_size))"
 
+      root_dir_sectors="$((((ROOT_DIR_ENTRIES * 32) + cluster_size - 1)/cluster_size))"
       # FAT32/FAT16 determined by number of clusters
       if [ "$clusters" -gt "65526" ]; then
          FAT_SIZE="32"
-	 fat_table_sectors="$(((((clusters + 2)*4) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
-      else
+         fat_table_sectors="$(((((clusters + 2)*4) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
+      elif [ "$clusters" -gt "4085" ]; then
          FAT_SIZE="16"
-	 fat_table_sectors="$(((((clusters + 2)*2) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
-	 # Add some sectors based on ROOT_DIR_ENTRIES
-	 root_dir_sectors="$((((ROOT_DIR_ENTRIES * 32) + cluster_size - 1)/cluster_size))"
-	 fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
+         fat_table_sectors="$(((((clusters + 2)*2) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
+         # Add some sectors based on ROOT_DIR_ENTRIES
+         fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
+      else
+         FAT_SIZE="12"
+         #12 bits per cluster = 3 bytes for 2 clusters
+         fat_table_sectors=$(((((clusters + 2)*3+1) / 2 + SECTOR_SIZE - 1)/SECTOR_SIZE))
+         # Add some sectors based on ROOT_DIR_ENTRIES
+         fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
       fi
       IMAGE_SIZE="$((IMAGE_SIZE + fat_table_sectors * SECTOR_SIZE))"
       IMAGE_SIZE="$(((IMAGE_SIZE + 1023)/1024))"
