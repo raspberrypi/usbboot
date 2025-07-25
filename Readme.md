@@ -30,7 +30,8 @@ from `INSTALL_PREFIX/share/mass-storage-gadget64`.
 Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
 
-* This git repository uses symlinks. For Windows builds clone the repository under Cygwin.
+* This git repository uses symlinks. For Windows builds clone the repository under Cygwin and make sure symlinks are enabled. `git config --get core.symlinks` should return true. You can enable symlinks by passing `-c core.symlinks=true` to the "clone" command or enable them globally with `git config --global core.symlinks true`.
+* On Windows make sure you have run the rpiboot driver installer once, see `usbboot\win32\rpiboot_setup`
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
