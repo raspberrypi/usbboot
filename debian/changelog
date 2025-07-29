@@ -1,3 +1,9 @@
+rpiboot (20250519~100421+trixie) trixie; urgency=medium
+
+  * Switch gbp.conf debian branch to pios/trixie
+
+ -- Serge Schneider <serge@raspberrypi.com>  Tue, 29 Jul 2025 13:21:23 +0100
+
 rpiboot (20250519~100421) bookworm; urgency=medium
 
   * secure-boot-recovery: program_pubkey now automatically sets
