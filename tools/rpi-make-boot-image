@@ -16,7 +16,8 @@ NAME="$(basename "$0")"
 SECTOR_SIZE=${SECTOR_SIZE:-512}
 SECTORS_PER_CLUSTER=${SECTORS_PER_CLUSTER:-1}
 DISK_GEOMETRY=${DISK_GEOMETRY:-1/1}
-ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
+# Calculated from the source files unless set
+ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-0}
 
 # mkfs.fat derives the FAT width from the number of clusters and rejects a -F
 # option that disagrees with it. Cluster counts between MAX_CLUSTERS_FAT12 and
@@ -25,9 +26,12 @@ MAX_CLUSTERS_FAT12=4084
 MIN_CLUSTERS_FAT16=4087
 MAX_CLUSTERS_FAT16=65524
 
-# Add 16k to the size calculation to reserve some space for the FAT,
-# directory entries and rounding up files to cluster sizes.
-FAT_OVERHEAD=${FAT_OVERHEAD:-16}
+# Spare space, in KiB, to leave free in the filesystem
+FAT_OVERHEAD=${FAT_OVERHEAD:-0}
+
+# mkfs.fat refuses to create a filesystem whose data region is much smaller
+# than this, whatever the sector and cluster sizes in use.
+MIN_DATA_KIB=64
 
 HAVE_MCOPY=false
 
@@ -127,10 +131,16 @@ select_fat_width() {
 }
 
 createfs() {
-   size_kib="$1"
+   image_sectors="$1"
    image="$2"
+   root_dir_entries="$3"
 
    volume_label="BOOT"
+
+   rm -f "${image}"
+   truncate -s "$((image_sectors * SECTOR_SIZE))" "${image}" || \
+      die "Failed to allocate ${image}"
+
    if [ -n "${SECTORS_PER_CLUSTER}" ]; then
       SECTORS_PER_CLUSTER="-s ${SECTORS_PER_CLUSTER}"
    fi
@@ -143,10 +153,12 @@ createfs() {
       fat_size="-F ${FAT_SIZE}"
    fi
 
-   mkfs.fat -C -f 1 \
+   # -a suppresses alignment of the FAT and root directory to cluster
+   # boundaries, which would otherwise consume sectors not budgeted for above.
+   mkfs.fat -a -f 1 \
       ${SECTORS_PER_CLUSTER} -n "${volume_label}" \
       ${fat_size} ${DISK_GEOMETRY} \
-      -S "${SECTOR_SIZE}" -r "${ROOT_DIR_ENTRIES}" "${image}" ${size_kib} || \
+      -S "${SECTOR_SIZE}" -r "${root_dir_entries}" "${image}" || \
       die "Failed to create FAT filesystem"
 }
 
@@ -195,35 +207,32 @@ copyfiles() {
    fi
 }
 
-estimate_fat_clusters() {
-   local cluster_size
-   cluster_size="$1"
+# Extract directory entry calculation into a separate function
+estimate_directory_entries() {
    local directory
-   directory="$2"
+   directory="$1"
+   local is_root_dir
+   is_root_dir="${2:-0}"  # Default to 0 (not root directory)
 
-   local clusters
-   clusters="0"
-   local subdir
-
-   for subdir in $(find "$directory" -mindepth 1 -maxdepth 1 -type d); do
-      local sd_clusters
-      sd_clusters="$(estimate_fat_clusters "$cluster_size" "$subdir")"
-      clusters="$((clusters + sd_clusters))"
-   done
-
-   # Determine number of clusters required for file contents
-   local file_clusters
-   file_clusters="$(find "$directory" -maxdepth 1 -type f -exec du --apparent-size --block-size="${cluster_size}" {} + | awk '{clust=clust+$1} END {print clust}')"
-   clusters="$((clusters + file_clusters))"
-
-   # Determine number of clusters required for directory entries
-   # Two additional entries are required for "." and ".."
+   # Determine number of directory entries required
    local dir_entries
-   dir_entries="2"
+   if [ "$is_root_dir" = "1" ]; then
+      # The root directory has no "." or ".." entries but does hold the
+      # volume label
+      dir_entries="1"
+   else
+      # Two additional entries are required for "." and ".." in subdirectories
+      dir_entries="2"
+   fi
+
    local file_name
    local file_base_name
 
    for file_name in "${directory}"/*; do
+      # An unmatched glob expands to the pattern itself. A dangling symbolic
+      # link still occupies a directory entry.
+      [ -e "${file_name}" ] || [ -L "${file_name}" ] || continue
+
       file_base_name="$(basename "${file_name}")"
 
       # Always at least one entry
@@ -250,9 +259,72 @@ estimate_fat_clusters() {
       fi
    done
 
-   # 32-bytes are required for each entry
-   clusters="$((clusters + ((dir_entries * 32) + cluster_size - 1)/cluster_size))"
+   echo "$dir_entries"
+}
+
+# Specific function for root directory entries in FAT12/16
+estimate_root_directory_entries() {
+   local directory
+   directory="$1"
+   estimate_directory_entries "$directory" 1
+}
+
+estimate_fat_clusters() {
+   local cluster_size
+   cluster_size="$1"
+   local directory
+   directory="$2"
+   local include_root_dir_entries
+   include_root_dir_entries="${3:-1}"  # Default to 1 (include) for backwards compatibility
+
+   local clusters
+   clusters="0"
+   local subdir
+
+   for subdir in $(find "$directory" -mindepth 1 -maxdepth 1 -type d); do
+      local sd_clusters
+      # Subdirectories always include directory entries regardless of FAT type
+      sd_clusters="$(estimate_fat_clusters "$cluster_size" "$subdir" 1)"
+      clusters="$((clusters + sd_clusters))"
+   done
+
+   # Determine number of clusters required for file contents
+   local file_clusters
+   file_clusters="$(find "$directory" -maxdepth 1 -type f -exec du --apparent-size --block-size="${cluster_size}" {} + | awk '{clust=clust+$1} END {print clust}')"
+   clusters="$((clusters + file_clusters))"
+
+   # Only include directory entry clusters if requested (FAT32 or non-root directories)
+   if [ "$include_root_dir_entries" = "1" ]; then
+      local dir_entries
+      dir_entries="$(estimate_directory_entries "$directory")"
+
+      # 32-bytes are required for each entry
+      local dir_clusters
+      dir_clusters="$(((dir_entries * 32 + cluster_size - 1)/cluster_size))"
+      clusters="$((clusters + dir_clusters))"
+   fi
+
    echo "$clusters"
+}
+
+# Entry point for FAT32 (includes all directory entries as clusters)
+estimate_fat_clusters_fat32() {
+   local cluster_size
+   cluster_size="$1"
+   local directory
+   directory="$2"
+
+   estimate_fat_clusters "$cluster_size" "$directory" 1
+}
+
+# Entry point for FAT12/FAT16 (excludes root directory entries from cluster calculation)
+estimate_fat_clusters_fat12_16() {
+   local cluster_size
+   cluster_size="$1"
+   local directory
+   directory="$2"
+
+   estimate_fat_clusters "$cluster_size" "$directory" 0
 }
 
 createstaging() {
@@ -289,41 +361,67 @@ createstaging() {
       rm -f "${staging}/fixup4x.dat"
    fi
 
+   cluster_size="$((SECTOR_SIZE * SECTORS_PER_CLUSTER))"
+
+   # Calculate actual root directory entries needed for FAT12/16. The Linux
+   # vfat driver refuses to mount a filesystem whose root directory does not
+   # span a whole number of sectors.
+   required_root_entries="$(estimate_root_directory_entries "${staging}")"
+   estimated_root_entries="${required_root_entries}"
+   if [ "${ROOT_DIR_ENTRIES}" != 0 ]; then
+      estimated_root_entries="${ROOT_DIR_ENTRIES}"
+      if [ "${ROOT_DIR_ENTRIES}" -lt "${required_root_entries}" ]; then
+         echo "Warning: ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES} is fewer than the" \
+            "${required_root_entries} entries the source files require"
+      fi
+   fi
+   entries_per_sector="$((SECTOR_SIZE / 32))"
+   ROOT_ENTRIES="$(((estimated_root_entries + entries_per_sector - 1) \
+      / entries_per_sector * entries_per_sector))"
+
    if [ "${IMAGE_SIZE}" = 0 ]; then
       # Estimate the size of the image in clusters
-      cluster_size="$((SECTOR_SIZE * SECTORS_PER_CLUSTER))"
-      clusters="$(estimate_fat_clusters "${cluster_size}" "${staging}")"
+      overhead_clusters="$(((FAT_OVERHEAD * 1024 + cluster_size - 1)/cluster_size))"
 
-      IMAGE_SIZE="$((clusters * cluster_size))"
+      # First, estimate assuming FAT32 to determine potential FAT type
+      clusters="$(($(estimate_fat_clusters_fat32 "${cluster_size}" "${staging}") \
+         + overhead_clusters))"
 
-      root_dir_sectors="$((((ROOT_DIR_ENTRIES * 32) + cluster_size - 1)/cluster_size))"
       # FAT32/FAT16 determined by number of clusters
-      if [ "$clusters" -gt "65526" ]; then
+      if [ "$clusters" -gt "${MAX_CLUSTERS_FAT16}" ]; then
          FAT_SIZE="32"
-         fat_table_sectors="$(((((clusters + 2)*4) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
-      elif [ "$clusters" -gt "4085" ]; then
-         FAT_SIZE="16"
-         fat_table_sectors="$(((((clusters + 2)*2) + SECTOR_SIZE - 1)/SECTOR_SIZE))"
-         # Add some sectors based on ROOT_DIR_ENTRIES
-         fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
       else
-         FAT_SIZE="12"
-         #12 bits per cluster = 3 bytes for 2 clusters
-         fat_table_sectors=$(((((clusters + 2)*3+1) / 2 + SECTOR_SIZE - 1)/SECTOR_SIZE))
-         # Add some sectors based on ROOT_DIR_ENTRIES
-         fat_table_sectors="$((fat_table_sectors + root_dir_sectors))"
-      fi
-      IMAGE_SIZE="$((IMAGE_SIZE + fat_table_sectors * SECTOR_SIZE))"
-      IMAGE_SIZE="$(((IMAGE_SIZE + 1023)/1024))"
+         # Will be FAT12 or FAT16, so recalculate without the root directory
+         # entries, which live outside the data region at those widths
+         clusters="$(($(estimate_fat_clusters_fat12_16 "${cluster_size}" "${staging}") \
+            + overhead_clusters))"
 
-      # Add a little padding for FAT etc
-      IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
-   elif [ -z "${FAT_SIZE}" ]; then
-      FAT_SIZE="$(select_fat_width "$((IMAGE_SIZE * 1024 / SECTOR_SIZE))" \
-         "${ROOT_DIR_ENTRIES}")"
+         if [ "$clusters" -gt "${MAX_CLUSTERS_FAT12}" ]; then
+            FAT_SIZE="16"
+            if [ "$clusters" -lt "${MIN_CLUSTERS_FAT16}" ]; then
+               clusters="${MIN_CLUSTERS_FAT16}"
+            fi
+         else
+            FAT_SIZE="12"
+         fi
+      fi
+
+      # mkfs.fat refuses to create a filesystem with a very small data region
+      min_clusters="$(((MIN_DATA_KIB * 1024 + cluster_size - 1)/cluster_size))"
+      if [ "$clusters" -lt "$min_clusters" ]; then
+         clusters="$min_clusters"
+      fi
+
+      IMAGE_SECTORS="$(layout_sectors "${clusters}" "${FAT_SIZE}" "${ROOT_ENTRIES}")"
+      IMAGE_SIZE="$(((IMAGE_SECTORS * SECTOR_SIZE + 1023)/1024))"
+   else
+      IMAGE_SECTORS="$((IMAGE_SIZE * 1024 / SECTOR_SIZE))"
+      if [ -z "${FAT_SIZE}" ]; then
+         FAT_SIZE="$(select_fat_width "${IMAGE_SECTORS}" "${ROOT_ENTRIES}")"
+      fi
    fi
 
-   echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
+   echo "Using IMAGE_SIZE of ${IMAGE_SIZE} with ${ROOT_ENTRIES} root directory entries"
 
    if [ "${IMAGE_SIZE}" -gt "$((20 * 1024))" ]; then
       echo "Warning: Large image size detected. Try removing unused files."
@@ -333,6 +431,9 @@ createstaging() {
 checkDependencies() {
    if ! mkfs.fat --help > /dev/null 2> /dev/null ; then
        die "mkfs.fat is required. Run this script on Linux"
+   fi
+   if ! truncate --help > /dev/null 2> /dev/null ; then
+       die "truncate is required. Run this script on Linux"
    fi
    if mcopy --help > /dev/null 2> /dev/null ; then
        HAVE_MCOPY=true
@@ -361,10 +462,11 @@ Environment variables:
 The following environment variables may be specified to optionally override mkfs.vfat
 arguments to help minimise the size of the boot image:
 
-Name               mkfs.vfat parameter
+Name               mkfs.vfat parameter / Description
 SECTOR_SIZE        -S
-ROOT_DIR_ENTRIES   -r
+ROOT_DIR_ENTRIES   -r (calculated from the source files if unset)
 FAT_SIZE           -F
+FAT_OVERHEAD       Spare space to leave free in the filesystem, in KiB
 
 EOF
 exit 0
@@ -406,7 +508,7 @@ createstaging  "${SOURCE_DIR}" "${STAGING}" "${BOARD}"
 
 echo "Creating FAT file system"
 TMP_IMAGE="${TMP_DIR}/boot.img"
-createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
+createfs "${IMAGE_SECTORS}" "${TMP_IMAGE}" "${ROOT_ENTRIES}"
 
 echo "Copying files to file system image ${TMP_IMAGE}"
 copyfiles "${TMP_IMAGE}" "${staging}"/*
