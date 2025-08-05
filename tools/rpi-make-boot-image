@@ -236,7 +236,7 @@ estimate_fat_clusters() {
       # ! # $ % & ' ( ) - @ ^ _ ` { } ~
       # Values 128-255
       VALID_MSDOS_FILENAME_CHAR='[A-Z0-9 \!#\$%\&'"'"'\(\)\-@\^_`\{\}~\x80-\xff]'
-      VALID_MSDOS_FILENAME="^${VALID_MSDOS_FILENAME_CHAR}{1,8}(?:\.${VALID_MSDOS_FILENAME_CHAR}{1,3})$"
+      VALID_MSDOS_FILENAME="^${VALID_MSDOS_FILENAME_CHAR}{1,8}(?:\.${VALID_MSDOS_FILENAME_CHAR}{1,3})?$"
 
       local msdos_compatible_filename
       msdos_compatible_filename="0"
@@ -245,7 +245,7 @@ estimate_fat_clusters() {
 
       if [ "$msdos_compatible_filename" -ne "0" ]; then
          local ucs2_bytes
-         ucs2_bytes="$(printf "%s" "${file_name}" | iconv --to-code=UCS2 | wc --bytes)"
+         ucs2_bytes="$(printf "%s" "${file_base_name}" | iconv --to-code=UCS2 | wc --bytes)"
          dir_entries="$((dir_entries + ((ucs2_bytes + 25)/26)))"
       fi
    done
