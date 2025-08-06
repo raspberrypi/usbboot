@@ -47,7 +47,6 @@ sudo dnf install git libusb1-devel pkg-config glibc-devel g++ gcc make
 
 #### Building
 ```bash
-
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
