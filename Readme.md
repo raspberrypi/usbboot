@@ -35,8 +35,19 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
+#### apt (Debian/Ubuntu)
 ```bash
 sudo apt install git libusb-1.0-0-dev pkg-config build-essential
+```
+
+#### dnf (Fedora/RHEL)
+```bash
+sudo dnf install git libusb1-devel pkg-config glibc-devel g++ gcc make
+```
+
+#### Building
+```bash
+
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
