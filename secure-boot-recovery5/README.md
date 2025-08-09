@@ -62,6 +62,17 @@ mkdir -p metadata
 ../rpiboot -d . -j metadata
 ```
 
+## Requirement for flashed OTP
+The BCM2712 will not boot a signed EEPROM image unless it holds the public key in its One Time Programmable (OTP) memory. If you try to boot a signed EEPROM image without burning the public key into OTP:
+
+* The EEPROM firmware will not run and there will be no output on the debug header. The device will not boot.
+* On the BCM2712 C1 stepping (found on older Pi 5B models), the boot LED on the Raspberry Pi 5B will display an error code by flashing green 2 times.
+* On the BCM2712 D0 stepping (found on Pi 500, CM5, and newer Pi 5Bs), the boot LED will not display an error code, however the device will still not boot.
+
+This is different from the BCM2711 chip used in the Raspberry Pi 4B and CM4. On the BCM2711, it was possible to test out the secure boot flow without making irreversible changes to the OTP. The user could flash a signed `pieeprom.bin` EEPROM firmware image and test that it would verify the signature of the `boot.img` file correctly. On the Pi 5, this is not possible.
+
+However, it is possible to check that your signed `boot.img` file is bootable on the BCM2712. To do this, place the files `boot.img` and `boot.sig` in the `boot` partition of your Raspberry Pi OS image. Then modify the file `config.txt` on the boot partition to contain the entry `boot_ramdisk=1`. On the next boot, the Raspberry Pi will unpack the `boot.img` into memory and treat it as the boot partition.
+
 ### Example UART output
 This output is given by the EEPROM bootloader when it verifies the signature of a `boot.img`. It can be read over the [3-pin Serial Debug Port](https://datasheets.raspberrypi.com/debug/debug-connector-specification.pdf). This is accessible via a JST-SH header on the Pi 5B. On the CM5, it is unpopulated on the top side of the board.
 ```
