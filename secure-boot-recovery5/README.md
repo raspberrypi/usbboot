@@ -63,6 +63,7 @@ mkdir -p metadata
 ```
 
 ### Example UART output
+This output is given by the EEPROM bootloader when it verifies the signature of a `boot.img`. It can be read over the [3-pin Serial Debug Port](https://datasheets.raspberrypi.com/debug/debug-connector-specification.pdf). This is accessible via a JST-SH header on the Pi 5B. On the CM5, it is unpopulated on the top side of the board.
 ```
 3.04 OTP boardrev b04170 bootrom a a
 3.06 Customer key hash 8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee
