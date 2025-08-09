@@ -125,6 +125,11 @@ onwards:
 
 
 To enable this, edit the `config.txt` file in this directory and set `program_pubkey=1`
+before flashing the Pi firmware as described in the section `Programming the EEPROM image using rpiboot`.
+
+Note that the file `config.txt` in this directory is unrelated to the `config.txt` commonly
+found in the boot parition of Raspberry Pi OS. The file `config.txt` in this directory
+is used to configure the `rpiboot` tool.
 
 ## Disabling VideoCore JTAG
 
