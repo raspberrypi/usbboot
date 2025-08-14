@@ -687,6 +687,7 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	FILE * fp = NULL;
 	char path[MAX_PATH_LEN];
+	const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 
 	// Prevent USB device from requesting files in parent directories
 	if(strstr(fname, ".."))
@@ -697,7 +698,6 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 
 	if (use_bootfiles && use_fmem)
 	{
-		const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 		unsigned long length = 0;
 
 		// If 'dir' is specified and the file exists then load this in preference
@@ -744,9 +744,19 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 
 		if (fp == NULL)
 		{
-			snprintf(path, sizeof(path), "%s/%s", dir, fname);
+			// try to open file in  device specific sub folder first (eg. 2712/...)
+			snprintf(path, sizeof(path), "%s/%s/%s", dir, prefix, fname);
 			path[sizeof(path) - 1] = 0;
 			fp = fopen(path, "rb");
+
+			// fallback to top level and look for requested file
+			if (fp == NULL)
+			{
+				snprintf(path, sizeof(path), "%s/%s", dir, fname);
+				path[sizeof(path) - 1] = 0;
+				fp = fopen(path, "rb");
+			}
+
 			if (fp)
 				printf("Loading: %s\n", path);
 		}
