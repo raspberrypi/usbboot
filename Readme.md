@@ -135,7 +135,7 @@ via RPIBOOT on Compute Module 4 and Compute Module 5.
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
-| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
+| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Linux mass storage gadget with 64-bit kernel for BCM2710, BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
