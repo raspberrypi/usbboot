@@ -1,5 +1,11 @@
 rpiboot (20250908~162618~bookworm) bookworm; urgency=medium
 
+  * debian: Update rpi-eeprom dependency versions
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 08 Sep 2025 16:55:01 +0100
+
+rpiboot (20250908~162618~bookworm) bookworm; urgency=medium
+
   * debian: firmware: Update to 2025-08-27
 
  -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 08 Sep 2025 16:51:02 +0100
