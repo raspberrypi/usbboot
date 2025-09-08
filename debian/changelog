@@ -1,5 +1,11 @@
 rpiboot (20250908~162618) trixie; urgency=medium
 
+  * debian: firmware: Update to 2025-08-27
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 08 Sep 2025 16:48:25 +0100
+
+rpiboot (20250908~162618) trixie; urgency=medium
+
   [ Tim Gover ]
   * secure-boot-recovery: Fixup the revoke_devkey date for recovery.bin
   * bootfiles: Reduce the verbosity of bootfiles message
