@@ -11,7 +11,7 @@ uart_2ndstage=1
 # This option also prevents the ROM from loading recovery.bin from SD/EMMC
 # which means that the bootloader can only be updated via RPIBOOT or self-update.
 #
-# recovery.bin version to 2025-05-15 and newer automatically sets
+# recovery.bin version to 2025-05-16 and newer automatically sets
 # revoke_devkey=1 if program_pubkey is non-zero.
 #
 # Uncomment program_pubkey=1 to enable this

@@ -94,6 +94,9 @@ update_eeprom() {
            rpi-eeprom-digest \
               -i "${config}" -o "${TMP_CONFIG_SIG}" \
               -H "${HSM_WRAPPER}" || die "Failed to sign EEPROM config using HSM"
+           rpi-eeprom-digest \
+              -i "${config}" -v "${TMP_CONFIG_SIG}" \
+              -k "$public_pem_file" || die "Failed to verify EEPROM config signed by HSM"
         else
            rpi-eeprom-digest \
               -i "${config}" -o "${TMP_CONFIG_SIG}" \
