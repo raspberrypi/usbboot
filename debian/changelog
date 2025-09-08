@@ -1,3 +1,38 @@
+rpiboot (20250908~162618~bookworm) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * secure-boot-recovery: Fixup the revoke_devkey date for recovery.bin
+  * bootfiles: Reduce the verbosity of bootfiles message
+  * rpiboot: Add -V/--version to display the version string.
+  * docs: Add metadata docs to the top level Readme.md
+  * mass-storage-gadget: Update boot.img for latest firmware and
+    6.12.38-v8 kernel
+  * mass-storage-gadget64: Add support for BCM2710 devices
+  * firmware: 2711: 2712 Move to the pieeprom-2025-08-27 release
+  * firmware: bootfiles.bin Update 2711/2712 to the 2025-09-08 release
+
+  [ pseregiet ]
+  * rpi-make-boot-image: Fix FAT12 image generation
+
+  [ Péter Szilágyi ]
+  * tools: verify HSM signature based on provided public key
+
+  [ Peter Harper ]
+  * Readme additions for Windows
+
+  [ Jonas Dohmen ]
+  * Restructured readme to add Fedora/RHEL dnf dependencies
+  * Removed leftover blank line
+
+  [ Nicolai Buchwitz ]
+  * eeprom-erase: Add symlink for bootcode5.bin
+  * rpiboot: Lookup files in device specific folders first
+
+  [ Cameron Tacklind ]
+  * Make any keypress work to close the window
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 08 Sep 2025 16:49:53 +0100
+
 rpiboot (20250519~100421) bookworm; urgency=medium
 
   * secure-boot-recovery: program_pubkey now automatically sets
