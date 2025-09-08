@@ -64,7 +64,7 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
          goto fail;
       }
       hdr.filename[sizeof(hdr.filename) - 1] = 0;
-      if (verbose)
+      if (verbose > 1)
           printf("%s position %08lx size %lu\n", hdr.filename, ftell(fp), size);
 
       if (strcasecmp(hdr.filename, filename) == 0)
@@ -82,7 +82,7 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
       }
    } while (!feof(fp));
 
-   if (verbose)
+   if (verbose > 1)
        printf("File %s not found in %s\n", filename, archive);
 
    goto end;

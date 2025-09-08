@@ -30,12 +30,23 @@ from `INSTALL_PREFIX/share/mass-storage-gadget64`.
 Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
 
-* This git repository uses symlinks. For Windows builds clone the repository under Cygwin.
+* This git repository uses symlinks. For Windows builds clone the repository under Cygwin and make sure symlinks are enabled. `git config --get core.symlinks` should return true. You can enable symlinks by passing `-c core.symlinks=true` to the "clone" command or enable them globally with `git config --global core.symlinks true`.
+* On Windows make sure you have run the rpiboot driver installer once, see `usbboot\win32\rpiboot_setup`
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
+#### apt (Debian/Ubuntu)
 ```bash
 sudo apt install git libusb-1.0-0-dev pkg-config build-essential
+```
+
+#### dnf (Fedora/RHEL)
+```bash
+sudo dnf install git libusb1-devel pkg-config glibc-devel g++ gcc make
+```
+
+#### Building
+```bash
 git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 make
@@ -124,7 +135,7 @@ via RPIBOOT on Compute Module 4 and Compute Module 5.
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
-| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Mass storage gadget with 64-bit Kernel for BCM2711 and BCM2712 |
+| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Linux mass storage gadget with 64-bit kernel for BCM2710, BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
@@ -187,6 +198,33 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 * If `bootcode.bin` or the `start.elf` detects an error then [error-code](https://www.raspberrypi.com/documentation/computers/configuration.html#led-warning-flash-codes) will be indicated by flashing the green activity LED.
 * Add `uart_2ndstage=1` to the `config.txt` file in `msd/` or `recovery/` directories to enable UART debug output.
 * Add `recovery_metadata=1` to the `config.txt` file in `recovery/` or `recovery5/` directory to enable metadata JSON output.
+
+## Reading device metadata from OTP via rpiboot
+The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation.
+
+To enable this make sure that `recovery_metadata=1` is set in the recovery `config.txt` file and pass the `-j metadata` flag to `rpiboot`.
+
+See [board revision](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use) documentation to decode the `BOARD_ATTR` field.
+
+Example command to extract the OTP metadata from a Compute Module 4:
+```bash
+cd recovery
+mkdir -p metadata
+sudo rpiboot -j metadata -d .
+```
+
+Example metadata file contents written to `metadata/SERIAL_NUMBER.json`
+```json
+{
+        "MAC_ADDR" : "d8:3a:dd:05:ee:78",
+        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM" : "0000c8b0",
+        "BOARD_ATTR" : "00000000",
+        "USER_BOARDREV" : "c03141",
+        "JTAG_LOCKED" : "0",
+        "ADVANCED_BOOT" : "0000e8e8"
+}
+```
 
 <a name="secure-boot"></a>
 ## Secure Boot
