@@ -84,7 +84,7 @@ void usage(int error)
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -V               : Displays the version string and exits\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
-	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
+	fprintf(dest, "        -0/1/2/.../255   : Only look for CMs attached to USB port number 0-255\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
 	fprintf(dest, "        -j [path]        : Enable output of metadata JSON files in a given directory for BCM2712/2711\n");
@@ -556,33 +556,15 @@ void get_options(int argc, char *argv[])
 				target_serialno = *argv;
 			}
 		}
-		else if(strcmp(*argv, "-0") == 0)
+		else if((*argv)[0] == '-' && isdigit((unsigned char)(*argv)[1]))
 		{
-			targetPortNo = 0;
-		}
-		else if(strcmp(*argv, "-1") == 0)
-		{
-			targetPortNo = 1;
-		}
-		else if(strcmp(*argv, "-2") == 0)
-		{
-			targetPortNo = 2;
-		}
-		else if(strcmp(*argv, "-3") == 0)
-		{
-			targetPortNo = 3;
-		}
-		else if(strcmp(*argv, "-4") == 0)
-		{
-			targetPortNo = 4;
-		}
-		else if(strcmp(*argv, "-5") == 0)
-		{
-			targetPortNo = 5;
-		}
-		else if(strcmp(*argv, "-6") == 0)
-		{
-			targetPortNo = 6;
+			char *endptr;
+			long port = strtol(*argv + 1, &endptr, 10);
+			if (*endptr == '\0' && port >= 0 && port <= 255) {
+				targetPortNo = (uint8_t)port;
+			} else {
+				usage(1);
+			}
 		}
 		else
 		{
