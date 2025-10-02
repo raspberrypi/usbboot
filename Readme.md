@@ -26,6 +26,8 @@ the directory of the boot image e.g. `sudo ./rpiboot -d mass-storage-gadget`.
 If no arguments are specified rpiboot will attempt to boot the mass-storage-gadget
 from `INSTALL_PREFIX/share/mass-storage-gadget64`.
 
+The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`
+
 ### Linux / Cygwin / WSL
 Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
@@ -140,6 +142,8 @@ via RPIBOOT on Compute Module 4 and Compute Module 5.
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
+
+The APT package for `rpiboot` installs these utilities directories to `/usr/share/rpiboot`
 
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
