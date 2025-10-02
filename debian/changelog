@@ -1,3 +1,19 @@
+rpiboot (20251002~150524) trixie; urgency=medium
+
+  [ Jack O'Brien ]
+  * secure-boot-recovery5: Added verbose docs about debug serial ports.
+  * secure-boot-recovery5: BCM2712 needs burnt OTP for signed pieeprom
+  * secure-boot-recovery5: Clarify docs about config.txt
+
+  [ Tim Gover ]
+  * firmware: 2711: Fixup link to 2711 instead of 2712 firmware
+  * mass-storage-gadget: Remove mass-storage-gadget64-cm3
+  * mass-storage-gadget: Update boot.img to use MAC address for DHCP
+    identifier
+  * readme: Document APT install location for rpiboot utilities
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Thu, 02 Oct 2025 15:10:58 +0100
+
 rpiboot (20250908~162618) trixie; urgency=medium
 
   * debian: firmware: Update to 2025-08-27
