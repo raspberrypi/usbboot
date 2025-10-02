@@ -84,7 +84,7 @@ void usage(int error)
 	fprintf(dest, "        -v               : Verbose\n");
 	fprintf(dest, "        -V               : Displays the version string and exits\n");
 	fprintf(dest, "        -s               : Signed using bootsig.bin\n");
-	fprintf(dest, "        -0/1/2/.../255   : Only look for CMs attached to USB port number 0-255\n");
+	fprintf(dest, "        -0/1/2/.../98    : Only look for CMs attached to USB port number 0-98\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
 	fprintf(dest, "        -j [path]        : Write metadata JSON object to a file at the given path (BCM2712/2711)\n");
@@ -559,7 +559,7 @@ void get_options(int argc, char *argv[])
 		{
 			char *endptr;
 			long port = strtol(*argv + 1, &endptr, 10);
-			if (*endptr == '\0' && port >= 0 && port <= 255) {
+			if (*endptr == '\0' && port >= 0 && port <= 98) {
 				targetPortNo = (uint8_t)port;
 			} else {
 				usage(1);
