@@ -253,9 +253,9 @@ sudo ${NAME} -d SOURCE_DIR -o OUTPUT
 
 Options:
    -a Select 32 or 64 bit kernel
-   -b Optionally prune the files to those required for the given board type.
-   -d The directory containing the files to include in the boot image.
-   -o The filename for the boot image.
+   -b Optionally prune the files to those required for the given board type
+   -d The directory containing the files to include in the boot image
+   -o The filename for the boot image
    -h Display help text and exit
 
 Examples:
@@ -267,8 +267,7 @@ sudo ${NAME} -b pi4 -d bootfs/ -o boot.img
 
 Environment variables:
 The following environment variables may be specified to optionally override mkfs.vfat
-arguments to help minimise the size of the boot image.
-
+arguments to help minimise the size of the boot image:
 
 Name               mkfs.vfat parameter
 SECTOR_SIZE        -S
