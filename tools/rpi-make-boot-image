@@ -255,7 +255,8 @@ Options:
    -a Select 32 or 64 bit kernel
    -b Optionally prune the files to those required for the given board type.
    -d The directory containing the files to include in the boot image.
-   -o The filename for the boot image.  -h Display help text and exit
+   -o The filename for the boot image.
+   -h Display help text and exit
 
 Examples:
 # Include all files in bootfs/
