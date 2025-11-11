@@ -1,3 +1,16 @@
+rpiboot (20251107~092017) trixie; urgency=medium
+
+  [ Andrew Scheller ]
+  * Fix help-text formatting for rpi-make-boot-image
+  * Remove inconsistent full stops
+
+  [ Tim Gover ]
+  * tools: rpi-get-latest-fw: Updates the Pi4 / Pi5 firmware release
+  * firmware: 2711: 2712: Update to 2025-11-05
+  * firmware: Update to 2025-11-05 with rpi-eeprom >= 28.8
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 11 Nov 2025 12:14:28 +0000
+
 rpiboot (20251002~150524) trixie; urgency=medium
 
   [ Jack O'Brien ]
