@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Updates the rpi-eeprom submodule and updates the symlinks to get the 
+# latest firmware version
+
+set -e
+set -u
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+base="${script_dir}/.."
+
+cd "${base}"
+git submodule update
+cd rpi-eeprom
+git fetch -ap
+git reset --hard origin/master
+
+for chip in 2711 2712; do
+   cd "${base}"
+   image=$(ls "rpi-eeprom/firmware-${chip}/latest/" | grep pieeprom | sort -r | head -n1)
+   cd "${base}/firmware/${chip}"
+   ln -sf "../../rpi-eeprom/firmware-${chip}/latest/${image}" pieeprom.bin
+done
