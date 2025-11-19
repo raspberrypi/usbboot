@@ -24,7 +24,7 @@ uart_2ndstage=1
 # This option has no effect on CM4.
 
 # WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
-#program_rpiboot_gpio=8
+#program_rpiboot_gpio=6
 
 # Permanently disable VideoCore JTAG access.
 # Warning: This option limits the ability to do failure analysis on

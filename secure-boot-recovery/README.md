@@ -30,7 +30,7 @@ uart_2ndstage=1
 ### Step 2 - Select the nRPIBOOT GPIO
 Edit the `secure-boot-recovery/config.txt` file to specify the GPIO to use for nRPIBOOT. For example:
 ```
-program_rpiboot_gpio=8
+program_rpiboot_gpio=6
 ```
 
 This can either be programmed in isolation or combined with the steps to program the secure-boot OTP settings.
@@ -57,10 +57,32 @@ cd secure-boot-recovery
 
 `pieeprom.bin` can then be flashed to the bootloader EEPROM via `rpiboot`.
 
+## Program secure-boot mode
+Secure boot is implemented by programming the hash of the customer public key
+into the SoC OTP memory.
+
+Once set:-
+
+* The bootloader will only load OS images signed with the customer private key.
+* The EEPROM configuration file must be signed with the customer private key.
+* It is not possible to downgrade to an old version of the bootloader that doesn't support secure boot.
+
+**WARNING: This operation cannot be undone and the key hash cannot be changed.**
+
+To enable this edit the `config.txt` file in this directory and set `program_pubkey=1`
+
+### Disabling VideoCore JTAG
+
+VideoCore JTAG may be permanently disabled by setting `program_jtag_lock=1` in
+`config.txt`. This option has no effect unless secure-boot has been enabled.
+
+See default secure-boot-recovery [config.txt](config.txt) file.
+
 ## Program the EEPROM image using rpiboot
 * Power off CM4
 * Set nRPIBOOT jumper and remove EEPROM WP protection
 * If possible connect a UART to the CM4 and capture the output for debug
+* Power ON CM4
 
 ```bash
 cd secure-boot-recovery
@@ -106,23 +128,4 @@ Example metadata:
         "ADVANCED_BOOT" : "0000e8e8"
 }
 ```
-* Power ON CM4
 
-## Locking secure-boot mode
-After verifying that the signed OS image boots successfully the system
-can be locked into secure-boot mode.  This writes the hash of the
-customer public key to "one time programmable" (OTP) bits. From then
-onwards:
-
-* The bootloader will only load OS images signed with the customer private key.
-* The EEPROM configuration file must be signed with the customer private key.
-* It is not possible to downgrade to an old version of the bootloader that doesn't support secure boot.
-
-To enable this edit the `config.txt` file in this directory and set `program_pubkey=1`
-
-## Disabling VideoCore JTAG
-
-VideoCore JTAG may be permanently disabled by setting `program_jtag_lock` in
-`config.txt`. This option has no effect unless secure-boot has been enabled.
-
-See [config.txt](config.txt)
