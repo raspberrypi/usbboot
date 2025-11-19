@@ -155,15 +155,6 @@ the minimal set of files required from the boot partition.
 ## Troubleshooting
 See [troubleshooting guide](docs/troubleshooting.md)
 
-### Diagnostics
-* Monitor the Linux `dmesg` output and verify that a BCM boot device is detected immediately after powering on the device. If not, please check the `hardware` section.
-* Check the green activity LED. On Compute Module 4 this is activated by the software bootloader and should remain on. If not, then it's likely that the initial USB transfer to the ROM failed.
-* On Compute Module 4 connect a HDMI monitor for additional debug output. Flashing the EEPROM using `recovery.bin` will show a green screen and the `mass-storage-gadget64` enables a console on the HDMI display.
-* If `rpiboot` starts to download `bootcode4.bin` but the transfer fails then can indicate a cable issue OR a corrupted file. Check the hash of `bootcode.bin` file against this repository and check `dmesg` for USB error.
-* If `bootcode.bin` or the `start.elf` detects an error then [error-code](https://www.raspberrypi.com/documentation/computers/configuration.html#led-warning-flash-codes) will be indicated by flashing the green activity LED.
-* Add `uart_2ndstage=1` to the `config.txt` file in `msd/` or `recovery/` directories to enable UART debug output.
-* Add `recovery_metadata=1` to the `config.txt` file in `recovery/` or `recovery5/` directory to enable metadata JSON output.
-
 ## Reading device metadata from OTP via rpiboot
 The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation.
 
