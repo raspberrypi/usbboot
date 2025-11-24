@@ -1,7 +1,7 @@
 # USB Device Boot Code
 
 This is the USB device boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
-Module 3, 3+ 4S, 4 and 5, Raspberry Pi Zero and Zero 2 W.
+Module 3, 3+, 4S, 4 and 5, Raspberry Pi Zero and Zero 2 W.
 
 The default behaviour when run with no arguments is to boot the Raspberry Pi with
 special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
@@ -12,28 +12,28 @@ used to install a new operating system.
 
 Since `RPIBOOT` is a generic firmware loading interface, it is possible to load
 other versions of the firmware by passing the `-d` flag to specify the directory
-where the firmware should be loaded from.
-E.g. The firmware in the [msd](msd/README.md) can be replaced with newer/older versions.
+where the firmware should be loaded from. For example, the firmware in the
+[msd](msd/README.md) directory can be replaced with newer or older versions.
 
-From Raspberry Pi 4 onwards the MSD VPU firmware has been replaced with the Linux based mass storage gadget.
+From Raspberry Pi 4 onwards, the MSD VPU firmware has been replaced with the Linux-based mass storage gadget.
 
 For more information run `rpiboot -h`.
 
 ## Building
 
-Once compiled, rpiboot can either be run locally from the source directory by specifying
+Once compiled, `rpiboot` can either be run locally from the source directory by specifying
 the directory of the boot image e.g. `sudo ./rpiboot -d mass-storage-gadget`.
-If no arguments are specified rpiboot will attempt to boot the mass-storage-gadget
+If no arguments are specified, `rpiboot` will attempt to boot the mass-storage-gadget
 from `INSTALL_PREFIX/share/mass-storage-gadget64`.
 
-The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`
+The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`.
 
 ### Linux / Cygwin / WSL
 Clone this repository on your Pi or other Linux machine.
 Make sure that the system date is set correctly, otherwise Git may produce an error.
 
-* This git repository uses symlinks. For Windows builds clone the repository under Cygwin and make sure symlinks are enabled. `git config --get core.symlinks` should return true. You can enable symlinks by passing `-c core.symlinks=true` to the "clone" command or enable them globally with `git config --global core.symlinks true`.
-* On Windows make sure you have run the rpiboot driver installer once, see `usbboot\win32\rpiboot_setup`
+* This git repository uses symlinks. For Windows builds, clone the repository under Cygwin and make sure symlinks are enabled. `git config --get core.symlinks` should return true. You can enable symlinks by passing `-c core.symlinks=true` to the "clone" command or enable them globally with `git config --global core.symlinks true`.
+* On Windows, make sure you have run the `rpiboot` driver installer once; see `usbboot\win32\rpiboot_setup`.
 * Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
@@ -63,7 +63,7 @@ sudo rpiboot
 `sudo` isn't required if you have write permissions for the `/dev/bus/usb` device.
 
 ### macOS
-From a macOS machine, you can also run usbboot, just follow the same steps:
+From a macOS machine, you can also run `usbboot`; just follow the same steps:
 
 1. Clone the `usbboot` repository
 2. Install `libusb` (`brew install libusb`)
@@ -102,8 +102,8 @@ cd ..
 Running `make` again should now succeed.
 
 ### Updating the rpi-eeprom submodule
-After updating the usbboot repo (`git pull --rebase origin master`) update the
-submodules by running
+After updating the `usbboot` repo (`git pull --rebase origin master`), update the
+submodules by running:
 
 ```bash
 git submodule update --init
@@ -116,11 +116,11 @@ Fit the `EMMC-DISABLE` jumper on the Compute Module IO board before powering on 
 or connecting the USB cable.
 
 ### Compute Module 4
-On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
+On Compute Module 4, EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to `usbboot` mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
 ### Compute Module 5
-On Compute Module 5 EMMC-DISABLE / nRPIBOOT (BCM2712 GPIO 20) must be fitted to switch the ROM to usbboot mode.
+On Compute Module 5, EMMC-DISABLE / nRPIBOOT (BCM2712 GPIO 20) must be fitted to switch the ROM to `usbboot` mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
 ### Raspberry Pi 5
@@ -143,7 +143,7 @@ via RPIBOOT on Compute Module 4 and Compute Module 5.
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
 
-The APT package for `rpiboot` installs these utilities directories to `/usr/share/rpiboot`
+The APT package for `rpiboot` installs these utility directories to `/usr/share/rpiboot`.
 
 ## Booting Linux
 The `RPIBOOT` protocol provides a virtual file system to the Raspberry Pi bootloader and GPU firmware. It's therefore possible to
@@ -153,7 +153,7 @@ On Raspberry Pi 4 / CM4 the recommended approach is to use a `boot.img` which is
 the minimal set of files required from the boot partition.
 
 ## Troubleshooting
-See [troubleshooting guide](docs/troubleshooting.md)
+See the [troubleshooting guide](docs/troubleshooting.md).
 
 ## Reading device metadata from OTP via rpiboot
 The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation.
@@ -169,7 +169,7 @@ mkdir -p metadata
 sudo rpiboot -j metadata -d .
 ```
 
-Example metadata file contents written to `metadata/SERIAL_NUMBER.json`
+Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 ```json
 {
         "MAC_ADDR" : "d8:3a:dd:05:ee:78",
@@ -184,4 +184,4 @@ Example metadata file contents written to `metadata/SERIAL_NUMBER.json`
 
 <a name="secure-boot"></a>
 ## Secure Boot
-This repository contains the low-level tools and firmware images for enabling secure-boot/verified boot on Compute Module 4 and  Compute Module 5.
+See the [secure-boot](docs/secure-boot.md) reference.

@@ -22,8 +22,8 @@ Secure-boot uses cryptographic signing to ensure the OS kernel and all required 
 If any signature or hash verification fails, the current boot mode is aborted and the firmware advances to the next boot mode.
 
 See also:-
-* Secure boot BCM2711 [chain of trust diagram](docs/secure-boot-chain-of-trust-2711.pdf).
-* Secure boot BCM2712 [chain of trust diagram](docs/secure-boot-chain-of-trust-2712.pdf).
+* Secure boot BCM2711 [chain of trust diagram](secure-boot-chain-of-trust-2711.pdf).
+* Secure boot BCM2712 [chain of trust diagram](secure-boot-chain-of-trust-2712.pdf).
 
 ## boot.img files
 Secure-boot requires a self-contained ramdisk (`boot.img`) FAT image containing the GPU firmware, kernel and any other dependencies that would normally be loaded from the boot partition.
@@ -69,8 +69,8 @@ openssl genrsa 2048 > private.pem
 ```
 
 ### Programming the OTP and signed EEPROM image
-* Please see the [secure boot EEPROM guide](secure-boot-recovery/README.md) to enable via rpiboot `recovery.bin`.
-* Please see the [secure boot MSD guide](mass-storage-gadget64/README.md) for instructions about how to mount the eMMC via USB mass-storage once secure-boot has been enabled.
+* Please see the [secure boot EEPROM guide](../secure-boot-recovery/README.md) to enable via rpiboot `recovery.bin`.
+* Please see the [secure boot MSD guide](../mass-storage-gadget64/README.md) for instructions about how to mount the eMMC via USB mass-storage once secure-boot has been enabled.
 
 ### Disk encryption
 Secure-boot is responsible for loading the Kernel + initramfs and loads all of the data
