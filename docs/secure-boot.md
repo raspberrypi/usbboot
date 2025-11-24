@@ -21,6 +21,11 @@ Secure-boot uses cryptographic signing to ensure the OS kernel and all required 
 
 If any signature or hash verification fails, the current boot mode is aborted and the firmware advances to the next boot mode.
 
+### Pi 4 vs Pi 5 secure-boot differences
+On Raspberry Pi 4 devices using the BCM2711 SoC, the boot ROM only checks that `bootsys` is signed by Raspberry Pi’s key.
+
+On Raspberry Pi 5 devices using the BCM2712 SoC, when secure-boot is enabled, the boot ROM requires `bootsys` to be signed by Raspberry Pi’s private key *and* counter-signed with the customer’s private key. This allows customers to authorize specific Raspberry Pi bootloader firmware versions: a firmware update cannot be installed unless the customer signs it.
+
 See also:-
 * Secure boot BCM2711 [chain of trust diagram](secure-boot-chain-of-trust-2711.pdf).
 * Secure boot BCM2712 [chain of trust diagram](secure-boot-chain-of-trust-2712.pdf).
