@@ -1,23 +1,49 @@
-# USB Device Boot Code
+# Raspberry Pi USB device boot - RPIBOOT
 
-This is the USB device boot code which supports the Raspberry Pi 1A, 3A+, Compute Module, Compute
-Module 3, 3+, 4S, 4 and 5, Raspberry Pi Zero and Zero 2 W.
+This repository contains the Raspberry Pi USB device boot software known as `rpiboot`. The `rpiboot` tool provides a file server for loading software into memory on a Raspberry Pi for provisioning. By default, it boots the device with firmware that makes it appear to the host as a USB mass-storage device. The host operating system then treats it as a standard USB drive, allowing the filesystem to be accessed. An operating system image can be written to the device using the [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 
-The default behaviour when run with no arguments is to boot the Raspberry Pi with
-special firmware so that it emulates USB Mass Storage Device (MSD). The host OS
-will treat this as a normal USB mass storage device allowing the file system
-to be accessed. If the storage has not been formatted yet (default for Compute Module)
-then the [Raspberry Pi Imager App](https://www.raspberrypi.com/software/) can be
-used to install a new operating system.
+On Compute Module 4 and newer devices, `rpiboot` is also used to update the bootloader SPI flash EEPROM.
 
-Since `RPIBOOT` is a generic firmware loading interface, it is possible to load
-other versions of the firmware by passing the `-d` flag to specify the directory
-where the firmware should be loaded from. For example, the firmware in the
-[msd](msd/README.md) directory can be replaced with newer or older versions.
+For more information, run `rpiboot -h`.
 
-From Raspberry Pi 4 onwards, the MSD VPU firmware has been replaced with the Linux-based mass storage gadget.
+### Compatible devices
 
-For more information run `rpiboot -h`.
+Devices supporting the fast Linux-based `mass-storage-gadget`
+
+* Raspberry Pi Zero2W
+* Raspberry Pi
+* Compute Module 3
+* Compute Module 3+
+* Compute Module 3E
+* Raspberry Pi 4
+* Compute Module 4
+* Compute Module 4S
+* Raspberry Pi 400
+* Raspberry Pi 5
+* Raspberry Pi 500
+* Raspberry Pi 500+
+* Compute Module 5
+
+Devices which require the legacy `msd` firmware loading interface
+* Raspberry Pi 1A
+* Compute Module
+* Raspberry Pi Zero
+
+The `mass-storage-gadget` boots a Linux initramfs image that scans for SD/EMMC, NVMe, and USB block devices and uses `configfs` to expose them as USB mass-storage devices. Because it runs Linux, it also provides a console login via both the hardware UART and the USB CDC-UART interfaces.
+
+The legacy `msd` firmware is a special build of the VideoCore firmware that exposes the SD/EMMC device as an emulated USB mass-storage device. The legacy `msd` firmware runs on Raspberry Pi 4 and older devices. It does not provide a console login or diagnostics, and although it loads quickly, write performance is significantly lower than with the Linux-based `mass-storage-gadget`.
+
+### Recommended `rpiboot` host configuration
+
+The recommended host setup for running `rpiboot` is:
+
+* A Raspberry Pi 4 or Raspberry Pi 5 computer
+* A Raspberry Pi Powered USB Hub to supply power and data to the Raspberry Pi being provisioned
+* High-quality, short USB cables
+* Raspberry Pi OS 64-bit (Trixie)
+
+The `rpiboot` host software uses `libusb` to communicate with the Raspberry Pi. `rpiboot` is widely used on Linux x86 (various distributions), Windows 11 (Cygwin), and macOS. Support for other platforms is provided on a best-effort and/or community-maintained basis.
+
 
 ## Building
 
@@ -34,7 +60,7 @@ Make sure that the system date is set correctly, otherwise Git may produce an er
 
 * This git repository uses symlinks. For Windows builds, clone the repository under Cygwin and make sure symlinks are enabled. `git config --get core.symlinks` should return true. You can enable symlinks by passing `-c core.symlinks=true` to the "clone" command or enable them globally with `git config --global core.symlinks true`.
 * On Windows, make sure you have run the `rpiboot` driver installer once; see `usbboot\win32\rpiboot_setup`.
-* Instead of duplicating the EEPROM binaries and tools the rpi-eeprom repository
+* Instead of duplicating the EEPROM binaries and tools, the rpi-eeprom repository
   is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 #### apt (Debian/Ubuntu)
@@ -53,7 +79,7 @@ git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com
 cd usbboot
 make
 # Either
-sudo ./rpiboot -d mass-storage-gadget64
+sudo ./rpiboot -d mass-storage-gadget
 # Or, install rpiboot to /usr/bin and boot images to /usr/share
 sudo make install
 sudo rpiboot
@@ -123,21 +149,22 @@ Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 On Compute Module 5, EMMC-DISABLE / nRPIBOOT (BCM2712 GPIO 20) must be fitted to switch the ROM to `usbboot` mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
-### Raspberry Pi 5
+### Raspberry Pi 5, Pi 500 and Pi 500+
 * Disconnect the USB-C cable. Power must be removed rather than just running "sudo shutdown now"
 * Hold the power button down
 * Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
+**Pi 500 requires the QMK keyboard firmware to be updated (via `raspi-config`) to the latest release to enable `rpiboot`.**
+
 <a name="extensions"></a>
-## Compute Module provisioning extensions
-In addition to the MSD functionality, there are a number of other utilities that can be loaded
-via RPIBOOT on Compute Module 4 and Compute Module 5.
+## Provisioning extensions
+In addition to the MSD functionality, there are a number of other utilities that can be loaded.
 
 | Directory | Description |
 | ----------| ----------- |
 | [recovery](recovery/README.md) | Updates the bootloader EEPROM on a Compute Module 4 |
 | [recovery5](recovery5/README.md) | Updates the bootloader EEPROM on a Raspberry Pi 5 |
-| [mass-storage-gadget64](mass-storage-gadget64/README.md) | Linux mass storage gadget with 64-bit kernel for BCM2710, BCM2711 and BCM2712 |
+| [mass-storage-gadget](mass-storage-gadget/README.md) | Linux mass storage gadget with 64-bit kernel for BCM2710, BCM2711 and BCM2712 |
 | [secure-boot-recovery](secure-boot-recovery/README.md) | Pi4 secure-boot bootloader flash and OTP provisioning |
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
