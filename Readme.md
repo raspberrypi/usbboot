@@ -146,12 +146,19 @@ This is configured using the `make-pi4-rpiboot-gpio-sd` utility, which generates
 * The selected GPIO can be used normally after boot, but it must **not** be pulled low unless `rpiboot` mode is intended. Confirm that this does not conflict with any HATs you may attach.
 * **This option permanently modifies the OTP and cannot be changed afterwards.**
 
-Example: build an SD card image that configures GPIO 8 as `nRPIBOOT`:
-
+#### Dependencies
+This tool must be run on Linux and depends upon the `kpartx` command.
 ```bash
+sudo apt update && sudo apt full-upgrade
 sudo apt install kpartx
+```
+
+#### Example 
+Build an SD card image (`images-2711/pi4-program-rpiboot-gpio8.zip`) that configures GPIO 8 as `nRPIBOOT`:
+```bash
 sudo ./rpi-eeprom/imager/make-pi4-rpiboot-gpio-sd 8
 ```
+
 
 ### Pi 500
 Pi 500 requires the QMK keyboard firmware to be updated via `raspi-config` to the latest release to enable `rpiboot` through the power button.
