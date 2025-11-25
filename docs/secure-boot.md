@@ -157,11 +157,24 @@ to the path of the public key file in PEM format.
 
 
 #### Hardware security modules
-`rpi-eeprom-digest` is a shell script that wraps a call to `openssl dgst -sign`.
-If the private key is stored within a hardware security module instead of
-a .PEM file the `openssl` command will need to be replaced with the appropriate call to the HSM.
+`rpi-eeprom-digest` supports delegating the RSA signing operation to an external **HSM wrapper** script via the `-H` argument, instead of reading a private key from a `.PEM` file with `-k`.
+The wrapper script is responsible for performing an `rsa2048-sha256` PKCS#1 v1.5 signature using a key that is internal to the HSM (or otherwise not stored on disk) and printing the raw signature bytes as a hex string on stdout.
+The wrapper is invoked as:
 
-`rpi-eeprom-digest` is called by `update-pieeprom.sh` to sign the EEPROM config file.
+```bash
+rpi-eeprom-digest -H hsm-wrapper -i bootconf.txt -o bootconf.sig
+```
+
+where `hsm-wrapper` is a program that implements the interface:
+
+```bash
+hsm-wrapper -a rsa2048-sha256 INPUT_FILE
+```
+
+and writes the signature in hexadecimal format to stdout.
+This encapsulates the private key handling inside the HSM wrapper while keeping the `rpi-eeprom-digest` and `rpi-sign-bootcode` command-line interfaces unchanged.
+
+`rpi-eeprom-digest` is called by `update-pieeprom.sh` to sign the EEPROM config file, and the same HSM wrapper mechanism can be used there to keep the private key entirely within the HSM or wrapper.
 
 The RSA public key must be stored within the EEPROM so that it can be used by the bootloader.
 By default, the RSA public key is automatically extracted from the private key PEM file. Alternatively,
