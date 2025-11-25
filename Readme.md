@@ -15,12 +15,12 @@ Devices supporting the fast Linux-based `mass-storage-gadget`
 * Compute Module 3
 * Compute Module 3+
 * Compute Module 3E
-* Raspberry Pi 4
+* Raspberry Pi 4B (requires rpiboot to be enabled first)
 * Compute Module 4
 * Compute Module 4S
-* Raspberry Pi 400
+* Raspberry Pi 400 (requires rpiboot to be enabled first)
 * Raspberry Pi 5
-* Raspberry Pi 500
+* Raspberry Pi 500 (requires rpiboot to be enabled first)
 * Raspberry Pi 500+
 * Compute Module 5
 
@@ -135,17 +135,26 @@ submodules by running:
 git submodule update --init
 ```
 
-## Enabling `rpiboot` support - Pi 4B, Pi 400 & Pi 500
+## Enabling `rpiboot` support — extra steps for Pi 4B, Pi 400 & Pi 500
 
 ### Pi 4B and Pi 400
-Raspberry Pi 4B and Pi 400 do not have a dedicated `nRPIBOOT` jumper. Instead, a GPIO on the 40-pin header can be selected, which,
-if pulled to ground during boot, will cause the bootrom to entire `rpiboot` mode.
-**This option is permenantly changes the OTP and cannot be altered afterwards**
+Raspberry Pi 4B and Pi 400 do not have a dedicated `nRPIBOOT` jumper. Instead, a GPIO on the 40-pin header can be selected which, if held low during boot, forces the boot ROM into `rpiboot` mode.
 
+This is configured using the `make-pi4-rpiboot-gpio-sd` utility, which generates an SD card that programs the target device at power-on with the desired GPIO setting.
 
+* Available GPIOs: `2, 4, 5, 6, 7, 8`
+* The selected GPIO can be used normally after boot, but it must **not** be pulled low unless `rpiboot` mode is intended. Confirm that this does not conflict with any HATs you may attach.
+* **This option permanently modifies the OTP and cannot be changed afterwards.**
+
+Example: build an SD card image that configures GPIO 8 as `nRPIBOOT`:
+
+```bash
+sudo apt install kpartx
+sudo ./rpi-eeprom/imager/make-pi4-rpiboot-gpio-sd 8
+```
 
 ### Pi 500
-Pi 500 requires the QMK keyboard firmware to be updated via `raspi-config` to the latest release to enable `rpiboot` via the power button
+Pi 500 requires the QMK keyboard firmware to be updated via `raspi-config` to the latest release to enable `rpiboot` through the power button.
 
 ## Running
 
@@ -166,7 +175,15 @@ Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 * Hold the power button down
 * Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
+Launch the Linux based mass-storage-gadget
+```bash
+sudo rpiboot -d mass-storage-gadget
+```
 
+Launch the legacy MSD firmware
+```bash
+sudo rpiboot -d msd
+```
 
 <a name="extensions"></a>
 ## Provisioning extensions
