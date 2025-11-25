@@ -11,7 +11,7 @@ For more information, run `rpiboot -h`.
 Devices supporting the fast Linux-based `mass-storage-gadget`
 
 * Raspberry Pi Zero2W
-* Raspberry Pi
+* Raspberry Pi 3A+
 * Compute Module 3
 * Compute Module 3+
 * Compute Module 3E
@@ -25,8 +25,8 @@ Devices supporting the fast Linux-based `mass-storage-gadget`
 * Compute Module 5
 
 Devices which require the legacy `msd` firmware loading interface
-* Raspberry Pi 1A
-* Compute Module
+* Raspberry Pi 1A+
+* Compute Module 1
 * Raspberry Pi Zero
 
 The `mass-storage-gadget` boots a Linux initramfs image that scans for SD/EMMC, NVMe, and USB block devices and uses `configfs` to expose them as USB mass-storage devices. Because it runs Linux, it also provides a console login via both the hardware UART and the USB CDC-UART interfaces.
@@ -135,6 +135,18 @@ submodules by running:
 git submodule update --init
 ```
 
+## Enabling `rpiboot` support - Pi 4B, Pi 400 & Pi 500
+
+### Pi 4B and Pi 400
+Raspberry Pi 4B and Pi 400 do not have a dedicated `nRPIBOOT` jumper. Instead, a GPIO on the 40-pin header can be selected, which,
+if pulled to ground during boot, will cause the bootrom to entire `rpiboot` mode.
+**This option is permenantly changes the OTP and cannot be altered afterwards**
+
+
+
+### Pi 500
+Pi 500 requires the QMK keyboard firmware to be updated via `raspi-config` to the latest release to enable `rpiboot` via the power button
+
 ## Running
 
 ### Compute Module 3
@@ -154,7 +166,7 @@ Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 * Hold the power button down
 * Connect the USB-C cable (from the `RPIBOOT` host to the Pi 5)
 
-**Pi 500 requires the QMK keyboard firmware to be updated (via `raspi-config`) to the latest release to enable `rpiboot`.**
+
 
 <a name="extensions"></a>
 ## Provisioning extensions
