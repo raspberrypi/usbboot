@@ -89,22 +89,26 @@ This output is given by the EEPROM bootloader when it verifies the signature of 
 ```
 
 ### Metadata
-The optional metadata argument causes rpiboot to readback the OTP information and write it to a JSON file in the given directory.
+Metadata output is enabled by default to stdout. Optional argument can be used to specify writing a JSON file to the given directory.
 This can be useful for debug or for storing in a provisioning database.
 
 Example metadata:
 ```json
 {
-        "USER_SERIAL_NUM" : "a7eb274c",
-        "MAC_ADDR" : "2c:cf:67:70:76:f3",
-        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
-        "BOOT_ROM" : "0000000a",
-        "BOARD_ATTR" : "00000000",
-        "USER_BOARDREV" : "b04170",
-        "JTAG_LOCKED" : "0",
-        "MAC_WIFI_ADDR" : "2c:cf:67:70:76:f4",
-        "MAC_BT_ADDR" : "2c:cf:67:70:76:f5",
-        "FACTORY_UUID" : "001000911006186073"
+        "USER_SERIAL_NUM": "a7eb274c",
+        "MAC_ADDR": "2c:cf:67:70:76:f3",
+        "EEPROM_UPDATE": "success",
+        "EEPROM_HASH": "dfc8ef2c77b8152a5cfa008c2296246413fd580fdc26dfacd431e348571a2137",
+        "SECURE_BOOT_PROVISION": "success",
+        "CUSTOMER_KEY_HASH": "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM": "0000000a",
+        "BOARD_ATTR": "00000000",
+        "USER_BOARDREV": "b04170",
+        "JTAG_LOCKED": "0",
+        "SIGNATURE_MODE": "0",
+        "MAC_WIFI_ADDR": "2c:cf:67:70:76:f4",
+        "MAC_BT_ADDR": "2c:cf:67:70:76:f5",
+        "FACTORY_UUID": "001000911006186073"
 }
 ```
 

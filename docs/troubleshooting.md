@@ -47,5 +47,5 @@ Be careful not to overwrite `bootcode.bin` or `bootcode4.bin` with the executabl
 * If `rpiboot` starts to download `bootcode4.bin` but the transfer fails then can indicate a cable issue OR a corrupted file. Check the hash of `bootcode.bin` file against this repository and check `dmesg` for USB error.
 * If `bootcode.bin` or the `start.elf` detects an error then [error-code](https://www.raspberrypi.com/documentation/computers/configuration.html#led-warning-flash-codes) will be indicated by flashing the green activity LED.
 * Add `uart_2ndstage=1` to the `config.txt` file in `msd/` or `recovery/` directories to enable UART debug output.
-* Add `recovery_metadata=1` to the `config.txt` file in `recovery/` or `recovery5/` directory to enable metadata JSON output.
+* Add `recovery_metadata=0` to the `config.txt` file in `recovery/` or `recovery5/` directory to disable metadata JSON output.
 
