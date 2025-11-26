@@ -83,19 +83,21 @@ mkdir -p metadata
 ```
 
 ### Metadata
-The optional metadata argument causes rpiboot to readback the OTP information and write it to a JSON file in the given directory.
+Metadata output is enabled by default to stdout. Optional argument can be used to specify writing a JSON file to the given directory.
 This can be useful for debug or for storing in a provisioning database.
 
-Example metadata:
+Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 ```json
 {
-        "MAC_ADDR" : "d8:3a:dd:05:ee:78",
-        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
-        "BOOT_ROM" : "0000c8b0",
-        "BOARD_ATTR" : "00000000",
-        "USER_BOARDREV" : "c03141",
-        "JTAG_LOCKED" : "0",
-        "ADVANCED_BOOT" : "0000e8e8"
+        "MAC_ADDR": "d8:3a:dd:05:ee:78",
+        "EEPROM_UPDATE": "success",
+        "EEPROM_HASH": "dfc8ef2c77b8152a5cfa008c2296246413fd580fdc26dfacd431e348571a2137",
+        "SECURE_BOOT_PROVISION": "success",
+        "CUSTOMER_KEY_HASH": "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM": "0000c8b0",
+        "BOARD_ATTR": "00000000",
+        "USER_BOARDREV": "c03141",
+        "JTAG_LOCKED": "0",
+        "ADVANCED_BOOT": "0000e8e8"
 }
 ```
-

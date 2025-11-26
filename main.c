@@ -87,7 +87,7 @@ void usage(int error)
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
-	fprintf(dest, "        -j [path]        : Output metadata JSON object to stdout, or to a file if directory is provided (BCM2712/2711)\n");
+	fprintf(dest, "        -j [path]        : Write metadata JSON object to a file at the given path (BCM2712/2711)\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -540,7 +540,6 @@ void get_options(int argc, char *argv[])
 		}
 		else if(strcmp(*argv, "-j") == 0)
 		{
-			metadata = 1;
 			if ((argc > 1) && (argv[1][0] != '-')) {
 				argv++; argc--;
 				metadata_path = *argv;
@@ -788,11 +787,7 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 }
 
 void close_metadata_file(FILE ** fp){
-	long pos = ftell(*fp);
-	if (pos == 0) // No metadata received, write empty JSON object
-		fprintf(*fp, "{}\n");
-	else
-		fprintf(*fp, "\n}\n");
+	fprintf(*fp, "\n}\n");
 	if (*fp != stdout)
 		fclose(*fp);
 }
@@ -865,19 +860,6 @@ int file_server(libusb_device_handle * usb_device)
 	char metadata_fname[FILE_NAME_LENGTH];
 	int metadata_index = 0;
 
-	if (metadata)
-	{
-		if (bcm2711 || bcm2712)
-		{
-			create_metadata_file(&metadata_fp);
-		}
-		else
-		{
-			fprintf(stderr, "Failed to create metadata file: expected BCM2712/2711");
-			metadata = 0;
-		}
-	}
-
 	while(going)
 	{
 		char message_name[][20] = {"GetFileSize", "ReadFile", "Done"};
@@ -902,6 +884,14 @@ int file_server(libusb_device_handle * usb_device)
 		// Metadata files
 		if ((message.fname[0] == '*') && (message.command != 2))
 		{
+			if (!metadata_fp)
+			{
+				if (bcm2711 || bcm2712)
+				{
+					create_metadata_file(&metadata_fp);
+					metadata = 1;
+				}
+			}
 			if (metadata)
 			{
 				strcpy(metadata_fname, message.fname);

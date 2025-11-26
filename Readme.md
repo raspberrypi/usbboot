@@ -219,9 +219,9 @@ the minimal set of files required from the boot partition.
 See the [troubleshooting guide](docs/troubleshooting.md).
 
 ## Reading device metadata from OTP via rpiboot
-The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation.
+The `rpiboot` "recovery" modules provide a facility to read the device OTP information. This can be run either as a provisioning step or as a standalone operation. Pass the `-j metadata` flag to `rpiboot` to write metadata JSON to a specified "metadata" directory.
 
-To enable this make sure that `recovery_metadata=1` is set in the recovery `config.txt` file and pass the `-j metadata` flag to `rpiboot`.
+Metadata output is enabled by default. To disable add `recovery_metadata=0` to the recovery `config.txt` file.
 
 See [board revision](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use) documentation to decode the `BOARD_ATTR` field.
 
@@ -235,13 +235,15 @@ sudo rpiboot -j metadata -d .
 Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 ```json
 {
-        "MAC_ADDR" : "d8:3a:dd:05:ee:78",
-        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
-        "BOOT_ROM" : "0000c8b0",
-        "BOARD_ATTR" : "00000000",
-        "USER_BOARDREV" : "c03141",
-        "JTAG_LOCKED" : "0",
-        "ADVANCED_BOOT" : "0000e8e8"
+        "MAC_ADDR": "d8:3a:dd:05:ee:78",
+        "EEPROM_UPDATE": "success",
+        "EEPROM_HASH": "dfc8ef2c77b8152a5cfa008c2296246413fd580fdc26dfacd431e348571a2137",
+        "CUSTOMER_KEY_HASH": "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM": "0000c8b0",
+        "BOARD_ATTR": "00000000",
+        "USER_BOARDREV": "c03141",
+        "JTAG_LOCKED": "0",
+        "ADVANCED_BOOT": "0000e8e8"
 }
 ```
 
