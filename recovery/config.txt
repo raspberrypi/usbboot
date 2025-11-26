@@ -4,7 +4,5 @@
 # Uncomment to instruct recovery.bin to reboot the Pi after flashing the bootloader image
 #recovery_reboot=1
 
-# Uncomment to instruct recovery.bin to send metadata including OTP fields
-# Specify -j dirname on the command line to specify the directory where
-# metadata should be stored (JSON format)
-recovery_metadata=1
+# Uncomment to instruct recovery.bin to stop sending metadata
+#recovery_metadata=0
