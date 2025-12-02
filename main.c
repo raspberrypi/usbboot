@@ -87,7 +87,7 @@ void usage(int error)
 	fprintf(dest, "        -0/1/2/3/4/5/6   : Only look for CMs attached to USB port number 0-6\n");
 	fprintf(dest, "        -p [pathname]    : Only look for CM with USB pathname\n");
 	fprintf(dest, "        -i [serialno]    : Only look for a Raspberry Pi Device with a given serialno\n");
-	fprintf(dest, "        -j [path]        : Enable output of metadata JSON files in a given directory for BCM2712/2711\n");
+	fprintf(dest, "        -j [path]        : Write metadata JSON object to a file at the given path (BCM2712/2711)\n");
 	fprintf(dest, "        -h               : This help\n");
 
 	exit(error ? -1 : 0);
@@ -540,11 +540,10 @@ void get_options(int argc, char *argv[])
 		}
 		else if(strcmp(*argv, "-j") == 0)
 		{
-			argv++; argc--;
-			if(argc < 1)
-				usage(1);
-			metadata_path = *argv;
-			metadata = 1;
+			if ((argc > 1) && (argv[1][0] != '-')) {
+				argv++; argc--;
+				metadata_path = *argv;
+			}
 		}
 		else if (strcmp(*argv, "-i") == 0)
 		{
@@ -788,8 +787,9 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 }
 
 void close_metadata_file(FILE ** fp){
-	fprintf(*fp, "\n}");
-	fclose(*fp);
+	fprintf(*fp, "\n}\n");
+	if (*fp != stdout)
+		fclose(*fp);
 }
 
 void write_metadata_file(char *metadata_str, FILE **fp, int index)
@@ -804,7 +804,9 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 	if(token)
 	{
 		value = strdup(token);
-		if (index != 0)
+		if (index == 0)
+			fprintf(*fp, "{");
+		else
 			fprintf(*fp, ",");
 
 		if (strcmp(property, "FACTORY_UUID") == 0)
@@ -813,11 +815,11 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 			if (duid_decode_c40(value, c40_str) == -1)
 				fprintf(stderr, "Failed to decode a FACTORY_UUID: invalid input\n");
 			else
-				fprintf(*fp, "\n\t\"%s\" : \"%s\"", property, c40_str);
+				fprintf(*fp, "\n\t\"%s\": \"%s\"", property, c40_str);
 		}
 		else
 		{
-			fprintf(*fp, "\n\t\"%s\" : \"%s\"", property, value);
+			fprintf(*fp, "\n\t\"%s\": \"%s\"", property, value);
 		}
 		free(value);
 	}
@@ -826,19 +828,23 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 
 void create_metadata_file(FILE ** fp)
 {
-	char fname[MAX_PATH_LEN + FILE_NAME_LENGTH + 5]; // 5 for extension .json
+	if (metadata_path == NULL)
+	{
+		*fp = stdout;
+		return;
+	}
+	char fname[MAX_PATH_LEN + FILE_NAME_LENGTH + 5]; // + 5 for extension ".json"
 	snprintf(fname, sizeof(fname), "%s/%s.json", metadata_path, (char *)serial_num);
 
 	*fp = fopen(fname, "w");
 	if (*fp)
 	{
 		printf("Created metadata file: %s\n", fname);
-		fprintf(*fp, "{");
 	}
 	else
 	{
-		fprintf(stderr, "Failed to create metadata file: %s\n", fname);
-		metadata = 0;
+		fprintf(stderr, "Failed to create metadata file: %s\nWriting to stdout instead...\n", fname);
+		*fp = stdout;
 	}
 }
 
@@ -853,19 +859,6 @@ int file_server(libusb_device_handle * usb_device)
 	FILE * metadata_fp = NULL;
 	char metadata_fname[FILE_NAME_LENGTH];
 	int metadata_index = 0;
-
-	if (metadata)
-	{
-		if (bcm2711 || bcm2712)
-		{
-			create_metadata_file(&metadata_fp);
-		}
-		else
-		{
-			fprintf(stderr, "Failed to create metadata file: expected BCM2712/2711");
-			metadata = 0;
-		}
-	}
 
 	while(going)
 	{
@@ -891,6 +884,14 @@ int file_server(libusb_device_handle * usb_device)
 		// Metadata files
 		if ((message.fname[0] == '*') && (message.command != 2))
 		{
+			if (!metadata_fp)
+			{
+				if (bcm2711 || bcm2712)
+				{
+					create_metadata_file(&metadata_fp);
+					metadata = 1;
+				}
+			}
 			if (metadata)
 			{
 				strcpy(metadata_fname, message.fname);

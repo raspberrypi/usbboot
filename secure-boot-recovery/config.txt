@@ -24,7 +24,7 @@ uart_2ndstage=1
 # This option has no effect on CM4.
 
 # WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
-#program_rpiboot_gpio=8
+#program_rpiboot_gpio=6
 
 # Permanently disable VideoCore JTAG access.
 # Warning: This option limits the ability to do failure analysis on
@@ -36,7 +36,5 @@ uart_2ndstage=1
 # reboot after the flashing the firmware.
 #recovery_reboot=1
 
-# Uncomment to instruct recovery.bin to send metadata including OTP fields
-# Specify -j dirname on the command line to specify the directory where
-# metadata should be stored (JSON format)
-recovery_metadata=1
+# Uncomment to instruct recovery.bin to stop sending metadata
+#recovery_metadata=0
