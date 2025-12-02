@@ -1,3 +1,35 @@
+rpiboot (20251202~164822) trixie; urgency=medium
+
+  [ Tim Gover ]
+  * mass-storage-gadget: Fix EMMC access on CM3+ and CM3E
+  * Move trouble-shooting to a separate page
+  * docs: secure-boot pi4 tidyup
+  * docs: Move diagnostics to the troubleshooting page
+  * docs: Move secure-boot reference to a sub-page
+  * docs: readme: Minor tidyups and fix links
+  * docs: Readme: Highlight mass-storage-gadget and device compatibility
+  * docs: secure-boot: Add note about counter-signing.
+  * rpi-eeprom: Update for make-pi4-rpiboot-gpio-sd utility
+  * readme: Update product names
+  * docs: Describe how to enable rpiboot on Pi 4B and Pi 400
+  * docs: readme: make-pi4-rpiboot-gpio dependencies
+  * docs: secure-boot: Describe the HSM wrapper API
+  * firmware: 2712: 2711 bootfiles.bin: Update to 2025-11-27 firmware
+  * firmware: 2712: 2711: Update to 2025-11-27
+  * tools: Move APT release scripts into a sub-directory
+  * apt: update rpi-eeprom dependency
+
+  [ martamomotko ]
+  * rpiboot: Output metadata to stdout when path not provided or invalid
+  * rpiboot: Enable metadata output by default when metadata is received
+    Metadata information is now written to stdout by default when received
+    from BCM2712/2711 devices. The -j flag can be used to specify a
+    directory for a JSON file output instead. To instruct recovery.bin to
+    stop sending metadata, explicitly set recovery_metadata=0 in
+    config.txt.
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 02 Dec 2025 19:44:24 +0000
+
 rpiboot (20251107~092017) trixie; urgency=medium
 
   [ Andrew Scheller ]
