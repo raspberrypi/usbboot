@@ -5,36 +5,6 @@ and recovery.bin files that support secure-boot.
 
 Steps for enabling secure boot:
 
-## Extra steps for Raspberry Pi 4B & Pi 400
-Raspberry Pi 4B and Pi400 do not have a dedicated RPIBOOT jumper so a different GPIO
-must be used to enable RPIBOOT if pulled low. The available GPIOs are `2,4,5,6,7,8`
-since these are high by default.
-
-Pi4 Model B rev 1.3 and older use the BCM2711B0 processor which does not support secure-boot.
-All CM4, CM4S and Pi400 boards use BCM2711C0 which supports secure-boot.
-
-### Step 1 - Erase the EEPROM
-In order to avoid this OTP configuration being accidentally set on Pi 4B / Pi 400
-this option can only be set via RPIBOOT. To force RPIBOOT on a Pi 4B / Pi 400
-erase the SPI EEPROM.
-
-* Use `Raspberry Pi Imager` to flash a bootloader image to a spare SD card.
-* Remove `pieeprom.bin` and `pieeprom.sig` from the SD card image.
-* Add a `config.txt` file to the SD card with the following entries then boot the Pi with this card.
-
-```
-erase_eeprom=1
-uart_2ndstage=1
-```
-
-### Step 2 - Select the nRPIBOOT GPIO
-Edit the `secure-boot-recovery/config.txt` file to specify the GPIO to use for nRPIBOOT. For example:
-```
-program_rpiboot_gpio=8
-```
-
-This can either be programmed in isolation or combined with the steps to program the secure-boot OTP settings.
-
 ## Optional. Specify the private key file in an environment variable.
 Alternatively, specify the path when invoking the helper scripts.
 ```bash
@@ -57,10 +27,32 @@ cd secure-boot-recovery
 
 `pieeprom.bin` can then be flashed to the bootloader EEPROM via `rpiboot`.
 
+## Program secure-boot mode
+Secure boot is implemented by programming the hash of the customer public key
+into the SoC OTP memory.
+
+Once set:-
+
+* The bootloader will only load OS images signed with the customer private key.
+* The EEPROM configuration file must be signed with the customer private key.
+* It is not possible to downgrade to an old version of the bootloader that doesn't support secure boot.
+
+**WARNING: This operation cannot be undone and the key hash cannot be changed.**
+
+To enable this edit the `config.txt` file in this directory and set `program_pubkey=1`
+
+### Disabling VideoCore JTAG
+
+VideoCore JTAG may be permanently disabled by setting `program_jtag_lock=1` in
+`config.txt`. This option has no effect unless secure-boot has been enabled.
+
+See default secure-boot-recovery [config.txt](config.txt) file.
+
 ## Program the EEPROM image using rpiboot
 * Power off CM4
 * Set nRPIBOOT jumper and remove EEPROM WP protection
 * If possible connect a UART to the CM4 and capture the output for debug
+* Power ON CM4
 
 ```bash
 cd secure-boot-recovery
@@ -91,38 +83,21 @@ mkdir -p metadata
 ```
 
 ### Metadata
-The optional metadata argument causes rpiboot to readback the OTP information and write it to a JSON file in the given directory.
+Metadata output is enabled by default to stdout. Optional argument can be used to specify writing a JSON file to the given directory.
 This can be useful for debug or for storing in a provisioning database.
 
-Example metadata:
+Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 ```json
 {
-        "MAC_ADDR" : "d8:3a:dd:05:ee:78",
-        "CUSTOMER_KEY_HASH" : "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
-        "BOOT_ROM" : "0000c8b0",
-        "BOARD_ATTR" : "00000000",
-        "USER_BOARDREV" : "c03141",
-        "JTAG_LOCKED" : "0",
-        "ADVANCED_BOOT" : "0000e8e8"
+        "MAC_ADDR": "d8:3a:dd:05:ee:78",
+        "EEPROM_UPDATE": "success",
+        "EEPROM_HASH": "dfc8ef2c77b8152a5cfa008c2296246413fd580fdc26dfacd431e348571a2137",
+        "SECURE_BOOT_PROVISION": "success",
+        "CUSTOMER_KEY_HASH": "8251a63a2edee9d8f710d63e9da5d639064929ce15a2238986a189ac6fcd3cee",
+        "BOOT_ROM": "0000c8b0",
+        "BOARD_ATTR": "00000000",
+        "USER_BOARDREV": "c03141",
+        "JTAG_LOCKED": "0",
+        "ADVANCED_BOOT": "0000e8e8"
 }
 ```
-* Power ON CM4
-
-## Locking secure-boot mode
-After verifying that the signed OS image boots successfully the system
-can be locked into secure-boot mode.  This writes the hash of the
-customer public key to "one time programmable" (OTP) bits. From then
-onwards:
-
-* The bootloader will only load OS images signed with the customer private key.
-* The EEPROM configuration file must be signed with the customer private key.
-* It is not possible to downgrade to an old version of the bootloader that doesn't support secure boot.
-
-To enable this edit the `config.txt` file in this directory and set `program_pubkey=1`
-
-## Disabling VideoCore JTAG
-
-VideoCore JTAG may be permanently disabled by setting `program_jtag_lock` in
-`config.txt`. This option has no effect unless secure-boot has been enabled.
-
-See [config.txt](config.txt)

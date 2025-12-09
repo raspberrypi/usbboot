@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+#sudo apt update
+#sudo apt full-ugprade -y
+
+for chip in 2711 2712; do
+   image=$(ls -l firmware/${chip}/ | grep pieeprom | sed 's/.*\///g')
+   sed -i -e "s/${chip}\\/latest\\/pieeprom[0-9\\-]*.bin/${chip}\\/latest\\/${image}/g" debian/rules
+done
+
+version=$(dpkg-query -W -f='${Version}\n' rpi-eeprom | sed 's/\-.*//g')
+sed -i -e "s/rpi-eeprom ([^)]*)/rpi-eeprom (>= ${version})/" debian/control
