@@ -7,7 +7,7 @@ set -e
 set -u
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-base="${script_dir}/.."
+base="${script_dir}/../.."
 
 cd "${base}"
 git submodule update
