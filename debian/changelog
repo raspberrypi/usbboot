@@ -1,3 +1,11 @@
+rpiboot (20251209~095558) trixie; urgency=medium
+
+  * tools: Fix base path in release-scripts/get-latest-fw
+  * firmware: 2712: 2711: Move to the 2025-12-08 release
+  * apt: update rpi-eeprom dependency
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 09 Dec 2025 12:42:00 +0000
+
 rpiboot (20251202~164822) trixie; urgency=medium
 
   [ Tim Gover ]
