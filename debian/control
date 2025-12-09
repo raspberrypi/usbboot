@@ -2,13 +2,13 @@ Source: rpiboot
 Section: utils
 Priority: optional
 Maintainer: Serge Schneider <serge@raspberrypi.com>
-Build-Depends: debhelper-compat (= 13), libusb-1.0-0-dev, pkg-config, rpi-eeprom (>= 28.7), xxd
+Build-Depends: debhelper-compat (= 13), libusb-1.0-0-dev, pkg-config, rpi-eeprom (>= 28.10), xxd
 Standards-Version: 4.5.1
 Homepage: https://github.com/raspberrypi/usbboot
 
 Package: rpiboot
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python3, rpi-eeprom (>= 28.7)
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3, rpi-eeprom (>= 28.10)
 Description: Raspberry Pi USB booting code
  USB MSD boot code which should work on the Raspberry Pi model A,
  Compute Module, Compute Module 3, Compute Module 4, Compute Module 5,
