@@ -3,9 +3,14 @@ PKG_VER=$(shell if [ -f debian/changelog ]; then grep rpiboot debian/changelog |
 GIT_VER=$(shell git rev-parse HEAD 2>/dev/null | cut -c1-8 || echo "")
 HAVE_XXD=$(shell xxd -v >/dev/null 2>/dev/null && echo y)
 INSTALL_PREFIX?=/usr
+ifeq ($(OS),Windows_NT)
+    DEFAULT_MSG_DIR ?= "C:/Program Files (x86)/Raspberry Pi/mass-storage-gadget64/"
+else
+    DEFAULT_MSG_DIR ?= $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64/
+endif
 
 rpiboot: main.c bootfiles.c decode_duid.c msd/bootcode.h msd/start.h msd/bootcode4.h
-	$(CC) -Wall -Wextra -g $(CPPFLAGS) $(CFLAGS) -o $@ main.c bootfiles.c decode_duid.c `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\"" -DBUILD_DATE="\"$(BUILD_DATE)\"" -DINSTALL_PREFIX=\"$(INSTALL_PREFIX)\" $(LDFLAGS)
+	$(CC) -Wall -Wextra -g $(CPPFLAGS) $(CFLAGS) -o $@ main.c bootfiles.c decode_duid.c `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\"" -DBUILD_DATE="\"$(BUILD_DATE)\"" -DDEFAULT_MSG_DIR=\"$(DEFAULT_MSG_DIR)\" $(LDFLAGS)
 
 ifeq ($(HAVE_XXD),y)
 %.h: %.bin
