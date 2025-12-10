@@ -296,7 +296,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 					second_stage = "bootcode.bin";
 
 				if ((bcm2711 || bcm2712) && !directory) {
-					directory = INSTALL_PREFIX "/share/rpiboot/mass-storage-gadget64/";
+					directory = DEFAULT_MSG_DIR;
 					use_bootfiles = 1;
 					snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
 					printf("Directory not specified - trying default %s\n", directory);
