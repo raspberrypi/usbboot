@@ -1,3 +1,17 @@
+rpiboot (20260202~161355) trixie; urgency=medium
+
+  [ Tim Gover ]
+  * firmware: 2711: Update to 2026-01-09
+  * firmware: 2712: Update to 2026/01/21 to match manufacture
+  * Require rpi-eeprom 28.12
+  * apt: update rpi-eeprom dependency
+
+  [ Mathew Blowers ]
+  * Latest wdi-simple
+  * mass storage gadget link no longer just CM4 and CM5
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 02 Feb 2026 16:20:30 +0000
+
 rpiboot (20251214~140909) trixie; urgency=medium
 
   [ Tim Gover ]
