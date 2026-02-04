@@ -156,6 +156,18 @@ sign_firmware_blob() {
    fi
 }
 
+isABCapableImage() {
+   image="$1"
+   offset=0x10008
+   count=8
+   bootsys="bootsys"
+   filename=$(dd if="${image}" bs=1 skip=$((offset)) count=$((count)) status=none | strings)
+   if [ "${filename}" = "${bootsys}" ]; then
+      return 0
+   fi
+   return 1
+}
+
 sign_firmware() {
    if [ "${SIGN_FIRMWARE}" = 1 ]; then
       echo "SIGN_RECOVERY: ${SIGN_RECOVERY}"
@@ -185,7 +197,13 @@ sign_firmware() {
             rpi-eeprom-config -x "${pieeprom_src}"
          )
          sign_firmware_blob "${TMP_DIR}/bootcode.bin" "${TMP_DIR}/bootcode.bin.signed"
-         rpi-eeprom-config --bootcode "${TMP_DIR}/bootcode.bin.signed" -o "${pieeprom_dst}" "${pieeprom_src}"
+         if isABCapableImage "${pieeprom_src}"; then
+            sign_firmware_blob "${TMP_DIR}/bootsys" "${TMP_DIR}/bootsys.signed"
+            rpi-eeprom-config --bootcode "${TMP_DIR}/bootcode.bin.signed" --bootsys "${TMP_DIR}/bootsys.signed" -o "${pieeprom_dst}" "${pieeprom_src}"
+         else
+            rpi-eeprom-config --bootcode "${TMP_DIR}/bootcode.bin.signed" -o "${pieeprom_dst}" "${pieeprom_src}"
+         
+         fi
          SRC_IMAGE="${pieeprom_dst}"
       fi
    fi
