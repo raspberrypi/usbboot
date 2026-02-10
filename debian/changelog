@@ -1,3 +1,28 @@
+rpiboot (20260210~145518~bookworm) bookworm; urgency=medium
+
+  [ Tim Gover ]
+  * bootcode: Use USB2 HS mode for loading start.elf / ramdisk
+  * firmware: 2711: Update to 2026-01-09
+  * firmware: 2712: Update to 2026/01/21 to match manufacture
+  * firmware: 2711: 2712: Move to pieeprom-2026-02-06
+  * apt: update rpi-eeprom dependency
+
+  [ Michele Rizzo ]
+  * Increase handled port number up to 255
+  * Adjust port number range to 0-98
+
+  [ Nicolai Buchwitz ]
+  * Makefile: add platform-specific default mass-storage-gadget directory
+
+  [ Ansgar Schmidt ]
+  * Fixing compiler problem of main
+
+  [ Mathew Blowers ]
+  * Latest wdi-simple
+  * mass storage gadget link no longer just CM4 and CM5
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 10 Feb 2026 15:03:02 +0000
+
 rpiboot (20251209~095558~bookworm) bookworm; urgency=medium
 
   [ Tim Gover ]
