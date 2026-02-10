@@ -1,3 +1,11 @@
+rpiboot (20260210~145518) trixie; urgency=medium
+
+  * salsa: Remove extract block
+  * firmware: 2711: 2712: Move to pieeprom-2026-02-06
+  * apt: update rpi-eeprom dependency
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 10 Feb 2026 15:01:50 +0000
+
 rpiboot (20260202~161355) trixie; urgency=medium
 
   [ Tim Gover ]
