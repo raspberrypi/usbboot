@@ -10,6 +10,6 @@ secure-boot-recovery usr/share/rpiboot/
 secure-boot-recovery5 usr/share/rpiboot/
 secure-boot-msd usr/share/rpiboot/
 tools/update-pieeprom.sh usr/share/rpiboot/tools/
-debian/70-rpiboot.rules /lib/udev/rules.d
+debian/70-rpiboot.rules usr/lib/udev/rules.d
 firmware/bootfiles.bin usr/share/rpiboot/firmware/
 temp/firmware/* usr/share/rpiboot/firmware
