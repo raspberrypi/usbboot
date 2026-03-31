@@ -92,7 +92,8 @@ static int closefn(void *handler) {
 }
 
 FILE *fmemopen(void *buf, size_t size, const char *mode) {
-  #pragma unused(mode)
+  (void) mode;
+
   // This data is released on fclose.
   fmem_t* mem = (fmem_t *) malloc(sizeof(fmem_t));
 
