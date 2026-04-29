@@ -15,9 +15,10 @@ export KEY_FILE="${HOME}/private.pem"
 Custom with the desired bootloader settings.
 See: [Bootloader configuration](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-bootloader-configuration)
 
-Setting `SIGNED_BOOT=1` enables signed-boot mode so that the bootloader will only
-boot.img files signed with the specified RSA key. Since this is an EEPROM config
-option secure-boot can be tested and reverted via `RPIBOOT` at this stage.
+Setting `SIGNED_BOOT=1` instructs the bootloader to only load the OS from `boot.img`
+and to verify it against the signature in `boot.sig.`
+If secure-boot is enabled in OTP then the bootloader then `SIGNED_BOOT` is implicitly
+set to `1` and this cannot be disabled.
 
 ## Generate the signed bootloader image
 ```bash
@@ -85,6 +86,8 @@ mkdir -p metadata
 ### Metadata
 Metadata output is enabled by default to stdout. Optional argument can be used to specify writing a JSON file to the given directory.
 This can be useful for debug or for storing in a provisioning database.
+
+If secure-boot is enabled then the `CUSTOMER_KEY_HASH` field will be non-zero.
 
 Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 ```json

@@ -1,8 +1,5 @@
 # Raspberry Pi 5 - secure boot
 
-This directory contains the beta bootcode5.bin (recovery.bin) and a pre-release pieeprom.bin
-bootloader release. Older bootloader and recovery.bin releases do not support secure boot.
-
 # Required packages
 ```bash
 sudo apt install xxd python3-pycryptodome
