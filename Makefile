@@ -9,7 +9,7 @@ else
     DEFAULT_MSG_DIR ?= $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64/
 endif
 
-rpiboot: main.c bootfiles.c decode_duid.c msd/bootcode.h msd/start.h msd/bootcode4.h
+rpiboot: main.c bootfiles.c decode_duid.c fmemopen.c msd/bootcode.h msd/start.h msd/bootcode4.h
 	$(CC) -Wall -Wextra -g $(CPPFLAGS) $(CFLAGS) -o $@ main.c bootfiles.c decode_duid.c `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\"" -DBUILD_DATE="\"$(BUILD_DATE)\"" -DDEFAULT_MSG_DIR=\"$(DEFAULT_MSG_DIR)\" $(LDFLAGS)
 
 ifeq ($(HAVE_XXD),y)
@@ -33,20 +33,21 @@ bin2c: bin2c.c
 endif
 
 install: rpiboot
-	install -m 755 rpiboot $(INSTALL_PREFIX)/bin/
-	install -d $(INSTALL_PREFIX)/share/rpiboot
-	install -d $(INSTALL_PREFIX)/share/rpiboot/msd
-	install -d $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
-	install -m 644 msd/bootcode.bin  $(INSTALL_PREFIX)/share/rpiboot/msd
-	install -m 644 msd/bootcode4.bin $(INSTALL_PREFIX)/share/rpiboot/msd
-	install -m 644 msd/start.elf  $(INSTALL_PREFIX)/share/rpiboot/msd
-	install -m 644 mass-storage-gadget64/boot.img $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
-	install -m 644 mass-storage-gadget64/config.txt $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
-	install -m 644 mass-storage-gadget64/bootfiles.bin $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
+	install -d $(DESTDIR)$(INSTALL_PREFIX)/bin
+	install -m 755 rpiboot $(DESTDIR)$(INSTALL_PREFIX)/bin/
+	install -d $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot
+	install -d $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
+	install -d $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
+	install -m 644 msd/bootcode.bin  $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
+	install -m 644 msd/bootcode4.bin $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
+	install -m 644 msd/start.elf  $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
+	install -m 644 mass-storage-gadget64/boot.img $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
+	install -m 644 mass-storage-gadget64/config.txt $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
+	install -m 644 mass-storage-gadget64/bootfiles.bin $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
 
 uninstall:
-	rm -f $(INSTALL_PREFIX)/bin/rpiboot
-	rm -rf $(INSTALL_PREFIX)/share/rpiboot
+	rm -f $(DESTDIR)$(INSTALL_PREFIX)/bin/rpiboot
+	rm -rf $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot
 
 clean:
 	rm -f rpiboot msd/*.h bin2c

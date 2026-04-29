@@ -20,6 +20,12 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#if defined(__NetBSD__)
+# define FPOS_T off_t
+#else
+# define FPOS_T fpos_t
+#endif
+
 struct fmem {
   size_t pos;
   size_t size;
@@ -53,7 +59,7 @@ static int writefn(void *handler, const char *buf, int size) {
   return size;
 }
 
-static fpos_t seekfn(void *handler, fpos_t offset, int whence) {
+static FPOS_T seekfn(void *handler, FPOS_T offset, int whence) {
   size_t pos;
   fmem_t *mem = handler;
 
@@ -83,7 +89,7 @@ static fpos_t seekfn(void *handler, fpos_t offset, int whence) {
   }
 
   mem->pos = pos;
-  return (fpos_t)pos;
+  return (FPOS_T)pos;
 }
 
 static int closefn(void *handler) {
@@ -92,7 +98,8 @@ static int closefn(void *handler) {
 }
 
 FILE *fmemopen(void *buf, size_t size, const char *mode) {
-  #pragma unused(mode)
+  (void) mode;
+
   // This data is released on fclose.
   fmem_t* mem = (fmem_t *) malloc(sizeof(fmem_t));
 
