@@ -1,3 +1,20 @@
+rpiboot (20260429~184516) trixie; urgency=medium
+
+  [ Tim Gover ]
+  * udev: Install to /usr/lib/ on Trixe instead of /lib
+  * firmware: 2711: 2712: Update bootfiles.bin to 2026-04-29
+  * docs: secure-boot tidyup
+  * firmware: 2711: Update to 2026-04-14 for newer SDRAM variants
+  * apt: update rpi-eeprom dependency
+
+  [ Pierre Pronchery ]
+  * Makefile: add support for DESTDIR
+  * fmemopen.c: improve portability
+  * fmemopen.c: portability fix around funopen()
+  * Makefile: register dependency on fmemopen.c
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 29 Apr 2026 18:57:22 +0100
+
 rpiboot (20260210~145518) trixie; urgency=medium
 
   * salsa: Remove extract block
