@@ -1,3 +1,22 @@
+rpiboot (20260527~143940) trixie; urgency=medium
+
+  [ Mathew Blowers ]
+  * tools: Sign bootsys in the AB partition
+
+  [ Tim Gover ]
+  * firmware: 2711: 2712: Update to pieeprom-2026-05-17
+  * rpi-eeprom: Update submodule dependency for rpi-eeprom-config A/B
+    updates
+  * Update firmware to 2026-05-17
+  * apt: update rpi-eeprom dependency
+  * mass-storage-gadget64: Update boot.img to 6.18 kernel and latest
+    2026/05/21 start.elf
+  * firmware: 2712: Update to 2026-05-26
+  * dependencies: Require rpi-eeprom 28.23
+  * apt: update rpi-eeprom dependency
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 27 May 2026 14:54:41 +0100
+
 rpiboot (20260429~184516) trixie; urgency=medium
 
   [ Tim Gover ]
