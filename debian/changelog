@@ -1,3 +1,10 @@
+rpiboot (20260602~161322) trixie; urgency=medium
+
+  * bootfiles.bin: 2712: Fix secure-boot rpiboot loading
+  * apt: update rpi-eeprom dependency
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 02 Jun 2026 16:38:39 +0100
+
 rpiboot (20260527~143940) trixie; urgency=medium
 
   [ Mathew Blowers ]
