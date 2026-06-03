@@ -1,3 +1,9 @@
+rpiboot (20260603~182203) trixie; urgency=medium
+
+  * bootfiles.bin: Restore bootfiles.bin symbolic link
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 03 Jun 2026 18:27:48 +0100
+
 rpiboot (20260602~161322) trixie; urgency=medium
 
   * bootfiles.bin: 2712: Fix secure-boot rpiboot loading
