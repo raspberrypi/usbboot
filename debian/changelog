@@ -1,3 +1,30 @@
+rpiboot (20260602~161322~bookworm) bookworm; urgency=medium
+
+  [ Pierre Pronchery ]
+  * Makefile: add support for DESTDIR
+  * fmemopen.c: improve portability
+  * fmemopen.c: portability fix around funopen()
+  * Makefile: register dependency on fmemopen.c
+
+  [ Tim Gover ]
+  * firmware: 2711: 2712: Update bootfiles.bin to 2026-04-29
+  * docs: secure-boot tidyup
+  * firmware: 2711: Update to 2026-04-14 for newer SDRAM variants
+  * firmware: 2711: 2712: Update to pieeprom-2026-05-17
+  * rpi-eeprom: Update submodule dependency for rpi-eeprom-config A/B
+    updates
+  * mass-storage-gadget64: Update boot.img to 6.18 kernel and latest
+    2026/05/21 start.elf
+  * firmware: 2712: Update to 2026-05-26
+  * bootfiles.bin: 2712: Fix secure-boot rpiboot loading
+  * debian/control: Update to rpi-eeprom 28.24
+  * apt: update rpi-eeprom dependency
+
+  [ Mathew Blowers ]
+  * tools: Sign bootsys in the AB partition
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Wed, 03 Jun 2026 17:41:28 +0100
+
 rpiboot (20260210~145518~bookworm) bookworm; urgency=medium
 
   [ Tim Gover ]
