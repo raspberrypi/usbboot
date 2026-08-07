@@ -18,6 +18,13 @@ SECTORS_PER_CLUSTER=${SECTORS_PER_CLUSTER:-1}
 DISK_GEOMETRY=${DISK_GEOMETRY:-1/1}
 ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
 
+# mkfs.fat derives the FAT width from the number of clusters and rejects a -F
+# option that disagrees with it. Cluster counts between MAX_CLUSTERS_FAT12 and
+# MIN_CLUSTERS_FAT16 are accepted at neither width.
+MAX_CLUSTERS_FAT12=4084
+MIN_CLUSTERS_FAT16=4087
+MAX_CLUSTERS_FAT16=65524
+
 # Add 16k to the size calculation to reserve some space for the FAT,
 # directory entries and rounding up files to cluster sizes.
 FAT_OVERHEAD=${FAT_OVERHEAD:-16}
@@ -35,6 +42,88 @@ cleanup() {
 die() {
    echo "$@" >&2
    exit 1
+}
+
+# FAT32 reserves room for the FSInfo sector and for the backup boot sector,
+# which must be at sector 6. These match the mkfs.fat defaults.
+reserved_sectors() {
+   if [ "$1" = "32" ]; then
+      echo 32
+   else
+      echo 1
+   fi
+}
+
+# Sectors occupied by a FAT holding the given number of clusters
+fat_sectors() {
+   fs_entries="$(($1 + 2))"
+
+   case "$2" in
+   12) fs_bytes="$(((fs_entries * 3 + 1) / 2))" ;;
+   16) fs_bytes="$((fs_entries * 2))" ;;
+   32) fs_bytes="$((fs_entries * 4))" ;;
+   *)  die "Unsupported FAT size $2" ;;
+   esac
+
+   echo "$(((fs_bytes + SECTOR_SIZE - 1) / SECTOR_SIZE))"
+}
+
+# Total sectors needed for the reserved sectors, the FAT, the root directory
+# and the given number of data clusters
+layout_sectors() {
+   ls_clusters="$1"
+   ls_width="$2"
+   ls_root_entries="$3"
+
+   ls_sectors="$(reserved_sectors "${ls_width}")"
+   ls_sectors="$((ls_sectors + $(fat_sectors "${ls_clusters}" "${ls_width}")))"
+
+   # FAT32 holds the root directory in the data region
+   if [ "${ls_width}" != "32" ]; then
+      ls_sectors="$((ls_sectors + ls_root_entries * 32 / SECTOR_SIZE))"
+   fi
+
+   echo "$((ls_sectors + ls_clusters * SECTORS_PER_CLUSTER))"
+}
+
+# Largest number of data clusters whose layout fits in the given sectors. The
+# size of the FAT depends on the number of clusters it describes, so search
+# for the largest count that still fits rather than solving directly.
+max_clusters() {
+   mc_lo=1
+   mc_hi="$(($1 / SECTORS_PER_CLUSTER + 1))"
+
+   while [ "${mc_lo}" -lt "${mc_hi}" ]; do
+      mc_mid="$(((mc_lo + mc_hi + 1) / 2))"
+      if [ "$(layout_sectors "${mc_mid}" "$2" "$3")" -le "$1" ]; then
+         mc_lo="${mc_mid}"
+      else
+         mc_hi="$((mc_mid - 1))"
+      fi
+   done
+
+   echo "${mc_lo}"
+}
+
+# Narrowest FAT that mkfs.fat will accept for a filesystem of the given number
+# of sectors. Left to itself mkfs.fat picks the width from the size of the
+# device alone, which fails whenever the cluster size in use puts the cluster
+# count outside the range permitted for that width.
+select_fat_width() {
+   sf_clusters="$(max_clusters "$1" 12 "$2")"
+   if [ "${sf_clusters}" -le "${MAX_CLUSTERS_FAT12}" ]; then
+      echo 12
+      return
+   fi
+
+   sf_clusters="$(max_clusters "$1" 16 "$2")"
+   if [ "${sf_clusters}" -ge "${MIN_CLUSTERS_FAT16}" ] && \
+      [ "${sf_clusters}" -le "${MAX_CLUSTERS_FAT16}" ]; then
+      echo 16
+      return
+   fi
+
+   echo 32
 }
 
 createfs() {
@@ -229,6 +318,9 @@ createstaging() {
 
       # Add a little padding for FAT etc
       IMAGE_SIZE=$((IMAGE_SIZE + FAT_OVERHEAD))
+   elif [ -z "${FAT_SIZE}" ]; then
+      FAT_SIZE="$(select_fat_width "$((IMAGE_SIZE * 1024 / SECTOR_SIZE))" \
+         "${ROOT_DIR_ENTRIES}")"
    fi
 
    echo "Using IMAGE_SIZE of ${IMAGE_SIZE}"
