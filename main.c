@@ -10,7 +10,6 @@
 #include "decode_duid.h"
 #include "msd/bootcode.h"
 #include "msd/start.h"
-#include "msd/bootcode4.h"
 // 2712 doesn't use start5.elf
 
 /*
@@ -748,20 +747,10 @@ FILE * check_file(const char * dir, const char *fname, int use_fmem)
 	// is being used to check if a file exists.
 	if(fp == NULL && use_fmem)
 	{
-		if (bcm2711)
-		{
-			if(strcmp(fname, "bootcode4.bin") == 0)
-				fp = fmemopen(msd_bootcode4_bin, msd_bootcode4_bin_len, "rb");
-			else if(strcmp(fname, "start4.elf") == 0)
-				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
-		}
-		else
-		{
-			if(strcmp(fname, "bootcode.bin") == 0)
-				fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "rb");
-			else if(strcmp(fname, "start.elf") == 0)
-				fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
-		}
+		if(strcmp(fname, "bootcode.bin") == 0)
+			fp = fmemopen(msd_bootcode_bin, msd_bootcode_bin_len, "rb");
+		else if(strcmp(fname, "start.elf") == 0)
+			fp = fmemopen(msd_start_elf, msd_start_elf_len, "rb");
 		if (fp)
 			printf("Loading embedded: %s\n", fname);
 	}
