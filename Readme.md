@@ -127,6 +127,22 @@ cd ..
 ```
 Running `make` again should now succeed.
 
+### FreeBSD
+1. Clone the `usbboot` repository
+2. Build using gmake. Installing to /usr/local is recommended.
+3. Run the binary
+
+```bash
+git clone --recurse-submodules --shallow-submodules --depth=1 https://github.com/raspberrypi/usbboot
+cd usbboot
+gmake INSTALL_PREFIX=/usr/local
+# Either
+mdo ./rpiboot -d mass-storage-gadget64
+# Or, install rpiboot to /usr/local/bin and boot images to /usr/local/share
+mdo gmake INSTALL_PREFIX=/usr/local install
+mdo rpiboot
+```
+
 ### Updating the rpi-eeprom submodule
 After updating the `usbboot` repo (`git pull --rebase origin master`), update the
 submodules by running:

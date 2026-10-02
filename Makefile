@@ -9,7 +9,7 @@ else
     DEFAULT_MSG_DIR ?= $(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64/
 endif
 
-rpiboot: main.c bootfiles.c decode_duid.c fmemopen.c msd/bootcode.h msd/start.h msd/bootcode4.h
+rpiboot: main.c bootfiles.c decode_duid.c fmemopen.c msd/bootcode.h msd/start.h
 	$(CC) -Wall -Wextra -g $(CPPFLAGS) $(CFLAGS) -o $@ main.c bootfiles.c decode_duid.c `pkg-config --cflags --libs libusb-1.0` -DGIT_VER="\"$(GIT_VER)\"" -DPKG_VER="\"$(PKG_VER)\"" -DBUILD_DATE="\"$(BUILD_DATE)\"" -DDEFAULT_MSG_DIR=\"$(DEFAULT_MSG_DIR)\" $(LDFLAGS)
 
 ifeq ($(HAVE_XXD),y)
@@ -39,7 +39,6 @@ install: rpiboot
 	install -d $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
 	install -d $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
 	install -m 644 msd/bootcode.bin  $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
-	install -m 644 msd/bootcode4.bin $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
 	install -m 644 msd/start.elf  $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/msd
 	install -m 644 mass-storage-gadget64/boot.img $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
 	install -m 644 mass-storage-gadget64/config.txt $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
