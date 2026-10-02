@@ -1,3 +1,27 @@
+rpiboot (20261002~115811) trixie; urgency=medium
+
+  [ Ed Maste ]
+  * readme: Add FreeBSD instructions
+
+  [ Richard Oliver ]
+  * rpi-make-boot-image: Choose a FAT width that suits an explicit
+    IMAGE_SIZE
+  * rpi-make-boot-image: Fix long file name entry estimation
+  * rpi-make-boot-image: Size FAT12 and FAT16 images from their real
+    layout
+
+  [ Tim Gover ]
+  * mass-storage-gadget64: Performance improvement for CM3
+  * 2711: msd: Remove support for legacy VPU MSD driver
+  * firmware: 2711: Remove stale bootcode4.bin
+  * firmware: Update 2712 to 2026-09-25 and 2711 to 2026-09-23
+  * bootfiles: Update for 2712 MFG_VER 2
+  * mass-storage-gadget: Update to kernel 6.18.54-v8
+  * bootfiles: Fix previous commit to update to MFG_VER 2
+  * apt: update rpi-eeprom dependency
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Fri, 02 Oct 2026 13:07:18 +0100
+
 rpiboot (20260603~182203) trixie; urgency=medium
 
   * bootfiles.bin: Restore bootfiles.bin symbolic link
