@@ -48,11 +48,15 @@ The `rpiboot` host software uses `libusb` to communicate with the Raspberry Pi. 
 ## Building
 
 Once compiled, `rpiboot` can either be run locally from the source directory by specifying
-the directory of the boot image e.g. `sudo ./rpiboot -d mass-storage-gadget`.
-If no arguments are specified, `rpiboot` will attempt to boot the mass-storage-gadget
-from `INSTALL_PREFIX/share/mass-storage-gadget64`.
+the directory of the boot image, for example `sudo ./rpiboot -d ./mass-storage-gadget64`.
+If no arguments are specified, `rpiboot` does not use the payload from the source checkout;
+it attempts to boot the installed mass-storage gadget from
+`INSTALL_PREFIX/share/rpiboot/mass-storage-gadget64`.
 
-The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`.
+The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`. When debugging a
+locally-built checkout, use `-d ./mass-storage-gadget64` to ensure the matching payload
+is used, or reinstall with `make install`. Verbose mode (`rpiboot -v`) prints the host
+paths of files being loaded and can be used to spot a stale installed payload.
 
 ### Linux / Cygwin / WSL
 Clone this repository on your Pi or other Linux machine.
