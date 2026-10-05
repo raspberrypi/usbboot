@@ -1,3 +1,9 @@
+rpiboot (20261005~110850) trixie; urgency=medium
+
+  * mass-storage-gadget64: Fix corrupted boot.img
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Mon, 05 Oct 2026 11:18:08 +0100
+
 rpiboot (20261002~115811) trixie; urgency=medium
 
   [ Ed Maste ]
