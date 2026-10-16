@@ -5,6 +5,10 @@
 #include <ctype.h>
 
 #include <unistd.h>
+#include <limits.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 
 #include "bootfiles.h"
 #include "decode_duid.h"
@@ -34,6 +38,7 @@ int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
+char exe_msg_dir[PATH_MAX];
 char * metadata_path = NULL;
 char pathname[18] = {0};
 char * targetpathname = NULL;
@@ -207,6 +212,37 @@ out_serialno:
 	return handle;
 }
 
+/*
+ * Locate mass-storage-gadget64/ next to the rpiboot binary so an uninstalled
+ * build works regardless of the current working directory.
+ */
+static int get_exe_msg_dir(char *buf, size_t len)
+{
+	char exe[PATH_MAX];
+	char *slash;
+
+#if defined(__linux__)
+	ssize_t n = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
+	if (n <= 0)
+		return -1;
+	exe[n] = '\0';
+#elif defined(__APPLE__)
+	char tmp[PATH_MAX];
+	uint32_t size = sizeof(tmp);
+	if (_NSGetExecutablePath(tmp, &size) != 0 || !realpath(tmp, exe))
+		return -1;
+#else
+	return -1;
+#endif
+	slash = strrchr(exe, '/');
+	if (!slash)
+		return -1;
+	*slash = '\0';
+	if (snprintf(buf, len, "%s/mass-storage-gadget64/", exe) >= (int)len)
+		return -1;
+	return 0;
+}
+
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	libusb_context *ctx, uint16_t vendor_id)
 {
@@ -307,6 +343,13 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 						directory = "mass-storage-gadget64/";
 						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
 						printf("Trying local path %s\n", directory);
+						fp_second_stage = check_file(directory, second_stage, 1);
+					}
+					if (!fp_second_stage && !get_exe_msg_dir(exe_msg_dir, sizeof(exe_msg_dir)))
+					{
+						directory = exe_msg_dir;
+						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+						printf("Trying path next to executable %s\n", directory);
 						fp_second_stage = check_file(directory, second_stage, 1);
 					}
 				}
