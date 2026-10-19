@@ -104,7 +104,6 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 	struct libusb_device **devices;
 	struct libusb_device *cursor;
 	struct libusb_device_handle *handle = NULL;
-	int r = 0;
 
 	if (libusb_get_device_list(ctx, &devices) < 0)
 		return NULL;
@@ -116,13 +115,12 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 
 	while ((cursor = devices[device_index++]) != NULL) {
 		struct libusb_device_descriptor desc;
-		r = libusb_get_device_descriptor(cursor, &desc);
-		if (r < 0)
-			goto out_serialno;
+		if (libusb_get_device_descriptor(cursor, &desc) < 0)
+			continue;
 
-		r = libusb_open(cursor, &handle);
-		if (r < 0)
-			goto out_serialno;
+		// Hubs and other users' devices cannot be opened, skip them
+		if (libusb_open(cursor, &handle) < 0)
+			continue;
 		
 		if (handle != NULL) {
 			if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, serial_buffer, 31) >= 0) {
