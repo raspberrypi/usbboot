@@ -59,6 +59,7 @@ static int use_bootfiles;
 static void *bootfile_data;
 static FILE * check_file(const char * dir, const char *fname, int use_fmem);
 static int second_stage_prep(FILE *fp, FILE *fp_sig);
+static void prepare_second_stage(uint16_t product);
 
 typedef struct MESSAGE_S {
 		int length;
@@ -137,47 +138,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 						desc.idProduct == 0x2711 ||
 						desc.idProduct == 0x2712)
 					{
-						FILE *fp_second_stage = NULL;
-						FILE *fp_sign = NULL;
-						const char *second_stage;
-
-						bcm2711 = (desc.idProduct == 0x2711);
-						bcm2712 = (desc.idProduct == 0x2712);
-						if (bcm2711)
-							second_stage = "bootcode4.bin";
-						else if (bcm2712)
-							second_stage = "bootcode5.bin";
-						else
-							second_stage = "bootcode.bin";
-
-						fp_second_stage = check_file(directory, second_stage, 1);
-						if (!fp_second_stage) {
-							fprintf(stderr, "Failed to open %s\n", second_stage);
-							exit(EXIT_FAILURE);
-						}
-
-						if (signed_boot && !bcm2711 && !bcm2712) { // Signed boot uses a different mechanism on BCM2711 and BCM2712
-							const char *sig_file = "bootcode.sig";
-							fp_sign = check_file(directory, sig_file, 1);
-							if (!fp_sign)
-							{
-								fprintf(stderr, "Unable to open '%s'\n", sig_file);
-								usage(1);
-								exit(EXIT_FAILURE);
-							}
-						}
-
-						if (second_stage_prep(fp_second_stage, fp_sign) != 0) {
-							fprintf(stderr, "Failed to prepare the second stage bootcode\n");
-							exit(EXIT_FAILURE);
-						}
-
-						if (fp_second_stage)
-							fclose(fp_second_stage);
-
-						if (fp_sign)
-							fclose(fp_sign);
-
+						prepare_second_stage(desc.idProduct);
 						break;
 					} else {
 						// Serial number matches, VID matches, but we don't know about this product. Abort.
@@ -241,6 +202,79 @@ static int get_exe_msg_dir(char *buf, size_t len)
 	return 0;
 }
 
+/*
+ * Resolve the boot directory and load the second stage for the detected
+ * product. Exits on failure because nothing boots without it.
+ */
+static void prepare_second_stage(uint16_t product)
+{
+	FILE *fp_second_stage = NULL;
+	FILE *fp_sign = NULL;
+	const char *second_stage;
+
+	bcm2711 = (product == 0x2711);
+	bcm2712 = (product == 0x2712);
+	if (bcm2711)
+		second_stage = "bootcode4.bin";
+	else if (bcm2712)
+		second_stage = "bootcode5.bin";
+	else
+		second_stage = "bootcode.bin";
+
+	if ((bcm2711 || bcm2712) && !directory) {
+		directory = DEFAULT_MSG_DIR;
+		use_bootfiles = 1;
+		snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+		printf("Directory not specified - trying default %s\n", directory);
+
+		fp_second_stage = check_file(directory, second_stage, 1);
+		if (!fp_second_stage)
+		{
+			directory = "mass-storage-gadget64/";
+			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+			printf("Trying local path %s\n", directory);
+			fp_second_stage = check_file(directory, second_stage, 1);
+		}
+		if (!fp_second_stage && !get_exe_msg_dir(exe_msg_dir, sizeof(exe_msg_dir)))
+		{
+			directory = exe_msg_dir;
+			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+			printf("Trying path next to executable %s\n", directory);
+			fp_second_stage = check_file(directory, second_stage, 1);
+		}
+	}
+	else {
+		fp_second_stage = check_file(directory, second_stage, 1);
+	}
+
+	if (!fp_second_stage)
+	{
+		fprintf(stderr, "Failed to open second stage bootloader (%s)\n", second_stage);
+		fprintf(stderr, "\nPlease try specifying the directory e.g. rpiboot -d mass-storage-gadget64\n");
+		exit(1);
+	}
+
+	if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
+	{
+		const char *sig_file = "bootcode.sig";
+		fp_sign = check_file(directory, sig_file, 1);
+		if (!fp_sign)
+		{
+			fprintf(stderr, "Unable to open '%s'\n", sig_file);
+			usage(1);
+		}
+	}
+
+	if (second_stage_prep(fp_second_stage, fp_sign) != 0)
+	{
+		fprintf(stderr, "Failed to prepare the second stage bootcode\n");
+		exit(-1);
+	}
+	fclose(fp_second_stage);
+	if (fp_sign)
+		fclose(fp_sign);
+}
+
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	libusb_context *ctx, uint16_t vendor_id)
 {
@@ -297,10 +331,6 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 			   desc.idProduct == 0x2711 ||
 			   desc.idProduct == 0x2712)
 			{
-				FILE *fp_second_stage = NULL;
-				FILE *fp_sign = NULL;
-				const char *second_stage;
-
 				if(verbose == 2)
 					printf("Found candidate Compute Module...\n");
 
@@ -320,72 +350,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 					continue;
 				}
 
-				bcm2711 = (desc.idProduct == 0x2711);
-				bcm2712 = (desc.idProduct == 0x2712);
-				if (bcm2711)
-					second_stage = "bootcode4.bin";
-				else if (bcm2712)
-					second_stage = "bootcode5.bin";
-				else
-					second_stage = "bootcode.bin";
-
-				if ((bcm2711 || bcm2712) && !directory) {
-					directory = DEFAULT_MSG_DIR;
-					use_bootfiles = 1;
-					snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-					printf("Directory not specified - trying default %s\n", directory);
-
-					fp_second_stage = check_file(directory, second_stage, 1);
-					if (!fp_second_stage)
-					{
-						directory = "mass-storage-gadget64/";
-						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-						printf("Trying local path %s\n", directory);
-						fp_second_stage = check_file(directory, second_stage, 1);
-					}
-					if (!fp_second_stage && !get_exe_msg_dir(exe_msg_dir, sizeof(exe_msg_dir)))
-					{
-						directory = exe_msg_dir;
-						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-						printf("Trying path next to executable %s\n", directory);
-						fp_second_stage = check_file(directory, second_stage, 1);
-					}
-				}
-				else {
-					fp_second_stage = check_file(directory, second_stage, 1);
-				}
-
-				if (!fp_second_stage)
-				{
-					fprintf(stderr, "Failed to open second stage bootloader (%s)\n", second_stage);
-					fprintf(stderr, "\nPlease try specifying the directory e.g. rpiboot -d mass-storage-gadget64\n");
-					exit(1);
-				}
-
-				if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
-				{
-					const char *sig_file = "bootcode.sig";
-					fp_sign = check_file(directory, sig_file, 1);
-					if (!fp_sign)
-					{
-						fprintf(stderr, "Unable to open '%s'\n", sig_file);
-						usage(1);
-					}
-				}
-
-				if (second_stage_prep(fp_second_stage, fp_sign) != 0)
-				{
-					fprintf(stderr, "Failed to prepare the second stage bootcode\n");
-					exit(-1);
-				}
-				if (fp_second_stage)
-					fclose(fp_second_stage);
-
-				if (fp_sign)
-					fclose(fp_sign);
-
-				if (found)
-					break;
+				prepare_second_stage(desc.idProduct);
+				break;
 			}
 		}
 	}
