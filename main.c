@@ -51,7 +51,6 @@ int bcm2712;
 
 #define MAX_PATH_LEN 256
 #define FILE_NAME_LENGTH 250
-#define DUID_LENGTH 36
 
 unsigned char serial_num[MAX_PATH_LEN];
 static char bootfiles_path[MAX_PATH_LEN];
@@ -790,7 +789,7 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 
 		if (strcmp(property, "FACTORY_UUID") == 0)
 		{
-			char c40_str[DUID_LENGTH];
+			char c40_str[DUID_LENGTH + 1];
 			if (duid_decode_c40(value, c40_str) == -1)
 				fprintf(stderr, "Failed to decode a FACTORY_UUID: invalid input\n");
 			else
@@ -836,7 +835,6 @@ int file_server(libusb_device_handle * usb_device)
 	} message;
 	static FILE * fp = NULL;
 	FILE * metadata_fp = NULL;
-	char metadata_fname[FILE_NAME_LENGTH];
 	int metadata_index = 0;
 
 	while(going)
@@ -850,6 +848,13 @@ int file_server(libusb_device_handle * usb_device)
 				break;
 			sleep(1);
 			continue;
+		}
+		// Both fields are device controlled, bound them before use
+		message.fname[sizeof(message.fname) - 1] = '\0';
+		if (message.command < 0 || message.command > 2)
+		{
+			printf("Unknown message %d\n", message.command);
+			return -1;
 		}
 		if(verbose) printf("Received message %s: %s\n", message_name[message.command], message.fname);
 
@@ -873,8 +878,7 @@ int file_server(libusb_device_handle * usb_device)
 			}
 			if (metadata)
 			{
-				strcpy(metadata_fname, message.fname);
-				write_metadata_file(metadata_fname + 1, &metadata_fp, metadata_index++);
+				write_metadata_file(message.fname + 1, &metadata_fp, metadata_index++);
 			}
 			ep_write(NULL, 0, usb_device);
 			continue;
