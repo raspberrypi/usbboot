@@ -40,7 +40,7 @@ long delay = 500;
 char * directory = NULL;
 char exe_msg_dir[PATH_MAX];
 char * metadata_path = NULL;
-char pathname[18] = {0};
+char pathname[64] = {0};
 char * targetpathname = NULL;
 uint8_t targetPortNo = 99;
 
@@ -202,6 +202,20 @@ static int get_exe_msg_dir(char *buf, size_t len)
 }
 
 /*
+ * Build the sysfs style USB path (bus-port.port...) used for -p and overlays.
+ */
+static void format_usb_path(libusb_device *dev, char *buf, size_t len)
+{
+	uint8_t ports[8];	// Needed for libusb_get_port_numbers
+	int n = libusb_get_port_numbers(dev, ports, sizeof(ports));
+	int pos = snprintf(buf, len, "%d", libusb_get_bus_number(dev));
+	int j;
+
+	for (j = 0; j < n && pos < (int)len; j++)
+		pos += snprintf(buf + pos, len - pos, "%c%d", j ? '.' : '-', ports[j]);
+}
+
+/*
  * Resolve the boot directory and load the second stage for the detected
  * product. Exits on failure because nothing boots without it.
  */
@@ -282,33 +296,20 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
 	uint32_t i = 0;
-	int r, j, len;
-	uint8_t path[8];	// Needed for libusb_get_port_numbers
+	int r;
 	uint8_t portNo = 0;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
-		len = 0;
 		struct libusb_device_descriptor desc;
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0)
 			goto out;
 
 		if(overlay || verbose == 2 || targetpathname!=NULL)
-		{
-			r = libusb_get_port_numbers(dev, path, sizeof(path));
-			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
-			if (r > 0) {
-				len += snprintf(&pathname[len], 18-len, "-");
-				len += snprintf(&pathname[len], 18-len, "%d", path[0]);
-				for (j = 1; j < r; j++)
-				{
-					len += snprintf(&pathname[len], 18-len, ".%d", path[j]);
-				}
-			}
-		}
+			format_usb_path(dev, pathname, sizeof(pathname));
 
 		/*
 		  http://libusb.sourceforge.net/api-1.0/group__dev.html#ga14879a0ea7daccdcddb68852d86c00c4
