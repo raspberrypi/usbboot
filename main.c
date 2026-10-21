@@ -49,10 +49,9 @@ int bcm2711;
 int bcm2712;
 
 #define MAX_PATH_LEN 256
-#define FILE_NAME_LENGTH 250
 
 unsigned char serial_num[MAX_PATH_LEN];
-static char bootfiles_path[MAX_PATH_LEN];
+static char bootfiles_path[PATH_MAX];
 static int use_bootfiles;
 static void *bootfile_data;
 static FILE * check_file(const char * dir, const char *fname, int use_fmem);
@@ -674,7 +673,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	FILE * fp = NULL;
-	char path[MAX_PATH_LEN];
+	char path[PATH_MAX];
 	const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 
 	// Prevent USB device from requesting files in parent directories
@@ -814,7 +813,7 @@ void create_metadata_file(FILE ** fp)
 		*fp = stdout;
 		return;
 	}
-	char fname[MAX_PATH_LEN + FILE_NAME_LENGTH + 5]; // + 5 for extension ".json"
+	char fname[PATH_MAX];
 	snprintf(fname, sizeof(fname), "%s/%s.json", metadata_path, (char *)serial_num);
 
 	*fp = fopen(fname, "w");
