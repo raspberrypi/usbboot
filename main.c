@@ -403,8 +403,8 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 		break;
 	}
 
-	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
-	if(config == NULL)
+	ret = libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
+	if (ret < 0)
 	{
 		printf("Failed to read config descriptor\n");
 		exit(-1);
@@ -424,6 +424,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 		out_ep = 3;
 		in_ep = 4;
 	}
+	libusb_free_config_descriptor(config);
 
 	ret = libusb_claim_interface(*usb_device, interface);
 	if (ret)
@@ -980,7 +981,6 @@ int main(int argc, char *argv[])
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
 	struct libusb_device_descriptor desc;
-	struct libusb_config_descriptor *config;
 
 	get_options(argc, argv);
 	print_version();
@@ -1079,7 +1079,6 @@ int main(int argc, char *argv[])
 					libusb_close(usb_device);
 				}
 
-				libusb_get_active_config_descriptor(libusb_get_device(usb_device), &config);
 			}
 
 			if (ret)
