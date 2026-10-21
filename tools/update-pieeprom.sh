@@ -20,6 +20,7 @@ DST_IMAGE="pieeprom.bin"
 PEM_FILE=""
 PUBLIC_PEM_FILE=""
 TMP_CONFIG_SIG=""
+CACERT_FILE=""
 SIGN_RECOVERY=0
 TMP_DIR=""
 SIGN_FIRMWARE=${SIGN_FIRMWARE:-0}
@@ -80,6 +81,8 @@ update_eeprom() {
     dst_image="$3"
     pem_file="$4"
     public_pem_file="$5"
+    cacert_file="$6"
+    cacert_args=""
     sign_args=""
 
     if [ -n "${pem_file}" ] || [ -n "${HSM_WRAPPER}" ]; then
@@ -112,11 +115,20 @@ update_eeprom() {
         sign_args="-d ${TMP_CONFIG_SIG} -p ${public_pem_file}"
     fi
 
+    if [ -n "${cacert_file}" ]; then
+        if ! openssl x509 -inform DER -in "${cacert_file}" -noout > /dev/null 2>&1; then
+            die "${cacert_file} is not a DER format certificate. Convert with: openssl x509 -in cert.pem -outform DER -out cert.der"
+        fi
+        echo "HTTP_CACERT_HASH=$(sha256sum "${cacert_file}" | awk '{print $1}')"
+        cacert_args="--cacertder ${cacert_file}"
+    fi
+
     rm -f "${dst_image}"
     set -x
     rpi-eeprom-config \
         --config "${config}" \
         --out "${dst_image}" ${sign_args} \
+        ${cacert_args} \
         "${src_image}" || die "Failed to update EEPROM image"
     set +x
 
@@ -211,8 +223,10 @@ sign_firmware() {
 
 trap cleanup EXIT
 
-while getopts "c:i:o:k:p:H:fhr" option; do
+while getopts "a:c:i:o:k:p:H:fhr" option; do
     case "${option}" in
+        a) CACERT_FILE="${OPTARG}"
+            ;;
         c) CONFIG="${OPTARG}"
             ;;
         i) SRC_IMAGE="${OPTARG}"
@@ -273,7 +287,8 @@ fi
 
 DST_IMAGE_SIG="$(echo "${DST_IMAGE}" | sed 's/\.[^./]*$//').sig"
 TMP_DIR="$(mktemp -d)"
+
 rm -f "${DST_IMAGE}" "${DST_IMAGE_SIG}"
 sign_firmware "${SRC_IMAGE}"
-update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}"
+update_eeprom "${SRC_IMAGE}" "${CONFIG}" "${DST_IMAGE}" "${PEM_FILE}" "${PUBLIC_PEM_FILE}" "${CACERT_FILE}"
 image_digest "${DST_IMAGE}" "${DST_IMAGE_SIG}"
