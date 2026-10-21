@@ -33,7 +33,6 @@ int selection_mode = SELECTION_MODE_VID;
 char * target_serialno = NULL;
 int signed_boot = 0;
 int verbose = 0;
-int metadata = 0;
 int loop = 0;
 int overlay = 0;
 long delay = 500;
@@ -807,8 +806,10 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 
 void create_metadata_file(FILE ** fp)
 {
-	if (metadata_path == NULL)
+	if (metadata_path == NULL || !serial_num[0])
 	{
+		if (metadata_path)
+			fprintf(stderr, "No serial number for the metadata file name, writing to stdout\n");
 		*fp = stdout;
 		return;
 	}
@@ -869,18 +870,10 @@ int file_server(libusb_device_handle * usb_device)
 		// Metadata files
 		if ((message.fname[0] == '*') && (message.command != 2))
 		{
-			if (!metadata_fp)
-			{
-				if (bcm2711 || bcm2712)
-				{
-					create_metadata_file(&metadata_fp);
-					metadata = 1;
-				}
-			}
-			if (metadata)
-			{
+			if (!metadata_fp && (bcm2711 || bcm2712))
+				create_metadata_file(&metadata_fp);
+			if (metadata_fp)
 				write_metadata_file(message.fname + 1, &metadata_fp, metadata_index++);
-			}
 			ep_write(NULL, 0, usb_device);
 			continue;
 		}
@@ -975,7 +968,7 @@ int file_server(libusb_device_handle * usb_device)
 		}
 	}
 
-	if (metadata)
+	if (metadata_fp)
 		close_metadata_file(&metadata_fp);
 
 	printf("Second stage boot server done\n");
@@ -1096,11 +1089,8 @@ int main(int argc, char *argv[])
 		}
 		while (ret);
 
-		ret = libusb_get_string_descriptor_ascii(usb_device, desc.iSerialNumber, serial_num, sizeof(serial_num));
-		// if metadata output is enabled and could not get serial number
-		if (metadata && (ret <= 0)) {
-			metadata = 0; // disable metadata
-		}
+		if (libusb_get_string_descriptor_ascii(usb_device, desc.iSerialNumber, serial_num, sizeof(serial_num)) <= 0)
+			serial_num[0] = 0;
 
 		if (verbose) printf("last_serial %d serial %d\n", last_serial, desc.iSerialNumber);
 		last_serial = desc.iSerialNumber;
