@@ -472,15 +472,10 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 
 int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 {
-	int ret =
-	    libusb_control_transfer(usb_device,
+	return libusb_control_transfer(usb_device,
 				    LIBUSB_REQUEST_TYPE_VENDOR |
 				    LIBUSB_ENDPOINT_IN, 0, len & 0xffff,
 				    len >> 16, buf, len, 20000);
-	if(ret >= 0)
-		return len;
-	else
-		return ret;
 }
 
 void print_version(void)
@@ -655,8 +650,16 @@ int second_stage_boot(libusb_device_handle *usb_device)
 
 	sleep(1);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
+	// The ROM may disconnect before replying and the main loop then waits for it to re-enumerate
+	if (size == LIBUSB_ERROR_NO_DEVICE || size == LIBUSB_ERROR_IO)
+		return 0;
+	if (size != sizeof(retcode))
+	{
+		printf("Failed to read complete bootloader status (%d bytes)\n", size);
+		return -1;
+	}
 
-	if (size > 0 && retcode == 0)
+	if (retcode == 0)
 	{
 		printf("Successful read %d bytes \n", size);
 	}
@@ -850,6 +853,11 @@ int file_server(libusb_device_handle * usb_device)
 				break;
 			sleep(1);
 			continue;
+		}
+		if (i != sizeof(message))
+		{
+			printf("Incomplete file server message (%d bytes)\n", i);
+			return -1;
 		}
 		// Both fields are device controlled, bound them before use
 		message.fname[sizeof(message.fname) - 1] = '\0';
