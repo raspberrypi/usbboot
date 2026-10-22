@@ -1103,12 +1103,14 @@ int main(int argc, char *argv[])
 		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
 			printf("Sending bootcode.bin\n");
+			// The main loop retries once the device re-enumerates
 			second_stage_boot(usb_device);
+			ret = 0;
 		}
 		else
 		{
 			printf("Second stage boot server\n");
-			file_server(usb_device);
+			ret = file_server(usb_device);
 		}
 
 		libusb_close(usb_device);
@@ -1119,6 +1121,6 @@ int main(int argc, char *argv[])
 
 	libusb_exit(ctx);
 
-	return 0;
+	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
