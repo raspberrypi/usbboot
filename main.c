@@ -53,6 +53,7 @@ int bcm2712;
 unsigned char serial_num[MAX_PATH_LEN];
 static char bootfiles_path[PATH_MAX];
 static int use_bootfiles;
+static int directory_given;
 static void *bootfile_data;
 static FILE * check_file(const char * dir, const char *fname, int use_fmem);
 static int second_stage_prep(FILE *fp, FILE *fp_sig);
@@ -231,6 +232,13 @@ static void prepare_second_stage(uint16_t product)
 		second_stage = "bootcode5.bin";
 	else
 		second_stage = "bootcode.bin";
+
+	if (!directory_given && !bcm2711 && !bcm2712) {
+		// BCM2835/6/7 use the embedded msd files, drop a default directory
+		// left behind by a BCM2711 or BCM2712 device
+		directory = NULL;
+		use_bootfiles = 0;
+	}
 
 	if ((bcm2711 || bcm2712) && !directory) {
 		directory = DEFAULT_MSG_DIR;
@@ -585,6 +593,7 @@ void get_options(int argc, char *argv[])
 	{
 		usage(1);
 	}
+	directory_given = (directory != NULL);
 }
 
 boot_message_t boot_message;
