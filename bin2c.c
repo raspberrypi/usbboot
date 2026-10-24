@@ -49,6 +49,7 @@ int main(int argc, char * argv[])
 		int to_read = left < sizeof(buffer) ? left : sizeof(buffer);
 		int bytes = fread(buffer, 1, to_read, fp_in);
 		int i;
+		if(bytes <= 0) break;  
 	
 		for(i = 0; i < bytes; i++)
 			fprintf(fp_out, "0x%02x%s", buffer[i], (i % 16) == 15 ? ",\n\t" : ", ");
