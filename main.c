@@ -33,14 +33,13 @@ int selection_mode = SELECTION_MODE_VID;
 char * target_serialno = NULL;
 int signed_boot = 0;
 int verbose = 0;
-int metadata = 0;
 int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
 char exe_msg_dir[PATH_MAX];
 char * metadata_path = NULL;
-char pathname[18] = {0};
+char pathname[64] = {0};
 char * targetpathname = NULL;
 uint8_t targetPortNo = 99;
 
@@ -50,15 +49,15 @@ int bcm2711;
 int bcm2712;
 
 #define MAX_PATH_LEN 256
-#define FILE_NAME_LENGTH 250
-#define DUID_LENGTH 36
 
 unsigned char serial_num[MAX_PATH_LEN];
-static char bootfiles_path[MAX_PATH_LEN];
+static char bootfiles_path[PATH_MAX];
 static int use_bootfiles;
+static int directory_given;
 static void *bootfile_data;
 static FILE * check_file(const char * dir, const char *fname, int use_fmem);
 static int second_stage_prep(FILE *fp, FILE *fp_sig);
+static void prepare_second_stage(uint16_t product);
 
 typedef struct MESSAGE_S {
 		int length;
@@ -104,7 +103,6 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 	struct libusb_device **devices;
 	struct libusb_device *cursor;
 	struct libusb_device_handle *handle = NULL;
-	int r = 0;
 
 	if (libusb_get_device_list(ctx, &devices) < 0)
 		return NULL;
@@ -116,13 +114,12 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 
 	while ((cursor = devices[device_index++]) != NULL) {
 		struct libusb_device_descriptor desc;
-		r = libusb_get_device_descriptor(cursor, &desc);
-		if (r < 0)
-			goto out_serialno;
+		if (libusb_get_device_descriptor(cursor, &desc) < 0)
+			continue;
 
-		r = libusb_open(cursor, &handle);
-		if (r < 0)
-			goto out_serialno;
+		// Hubs and other users' devices cannot be opened, skip them
+		if (libusb_open(cursor, &handle) < 0)
+			continue;
 		
 		if (handle != NULL) {
 			if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, serial_buffer, 31) >= 0) {
@@ -139,47 +136,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_serialno(
 						desc.idProduct == 0x2711 ||
 						desc.idProduct == 0x2712)
 					{
-						FILE *fp_second_stage = NULL;
-						FILE *fp_sign = NULL;
-						const char *second_stage;
-
-						bcm2711 = (desc.idProduct == 0x2711);
-						bcm2712 = (desc.idProduct == 0x2712);
-						if (bcm2711)
-							second_stage = "bootcode4.bin";
-						else if (bcm2712)
-							second_stage = "bootcode5.bin";
-						else
-							second_stage = "bootcode.bin";
-
-						fp_second_stage = check_file(directory, second_stage, 1);
-						if (!fp_second_stage) {
-							fprintf(stderr, "Failed to open %s\n", second_stage);
-							exit(EXIT_FAILURE);
-						}
-
-						if (signed_boot && !bcm2711 && !bcm2712) { // Signed boot uses a different mechanism on BCM2711 and BCM2712
-							const char *sig_file = "bootcode.sig";
-							fp_sign = check_file(directory, sig_file, 1);
-							if (!fp_sign)
-							{
-								fprintf(stderr, "Unable to open '%s'\n", sig_file);
-								usage(1);
-								exit(EXIT_FAILURE);
-							}
-						}
-
-						if (second_stage_prep(fp_second_stage, fp_sign) != 0) {
-							fprintf(stderr, "Failed to prepare the second stage bootcode\n");
-							exit(EXIT_FAILURE);
-						}
-
-						if (fp_second_stage)
-							fclose(fp_second_stage);
-
-						if (fp_sign)
-							fclose(fp_sign);
-
+						prepare_second_stage(desc.idProduct);
 						break;
 					} else {
 						// Serial number matches, VID matches, but we don't know about this product. Abort.
@@ -243,6 +200,100 @@ static int get_exe_msg_dir(char *buf, size_t len)
 	return 0;
 }
 
+/*
+ * Build the sysfs style USB path (bus-port.port...) used for -p and overlays.
+ */
+static void format_usb_path(libusb_device *dev, char *buf, size_t len)
+{
+	uint8_t ports[8];	// Needed for libusb_get_port_numbers
+	int n = libusb_get_port_numbers(dev, ports, sizeof(ports));
+	int pos = snprintf(buf, len, "%d", libusb_get_bus_number(dev));
+	int j;
+
+	for (j = 0; j < n && pos < (int)len; j++)
+		pos += snprintf(buf + pos, len - pos, "%c%d", j ? '.' : '-', ports[j]);
+}
+
+/*
+ * Resolve the boot directory and load the second stage for the detected
+ * product. Exits on failure because nothing boots without it.
+ */
+static void prepare_second_stage(uint16_t product)
+{
+	FILE *fp_second_stage = NULL;
+	FILE *fp_sign = NULL;
+	const char *second_stage;
+
+	bcm2711 = (product == 0x2711);
+	bcm2712 = (product == 0x2712);
+	if (bcm2711)
+		second_stage = "bootcode4.bin";
+	else if (bcm2712)
+		second_stage = "bootcode5.bin";
+	else
+		second_stage = "bootcode.bin";
+
+	if (!directory_given && !bcm2711 && !bcm2712) {
+		// BCM2835/6/7 use the embedded msd files, drop a default directory
+		// left behind by a BCM2711 or BCM2712 device
+		directory = NULL;
+		use_bootfiles = 0;
+	}
+
+	if ((bcm2711 || bcm2712) && !directory) {
+		directory = DEFAULT_MSG_DIR;
+		use_bootfiles = 1;
+		snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+		printf("Directory not specified - trying default %s\n", directory);
+
+		fp_second_stage = check_file(directory, second_stage, 1);
+		if (!fp_second_stage)
+		{
+			directory = "mass-storage-gadget64/";
+			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+			printf("Trying local path %s\n", directory);
+			fp_second_stage = check_file(directory, second_stage, 1);
+		}
+		if (!fp_second_stage && !get_exe_msg_dir(exe_msg_dir, sizeof(exe_msg_dir)))
+		{
+			directory = exe_msg_dir;
+			snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
+			printf("Trying path next to executable %s\n", directory);
+			fp_second_stage = check_file(directory, second_stage, 1);
+		}
+	}
+	else {
+		fp_second_stage = check_file(directory, second_stage, 1);
+	}
+
+	if (!fp_second_stage)
+	{
+		fprintf(stderr, "Failed to open second stage bootloader (%s)\n", second_stage);
+		fprintf(stderr, "\nPlease try specifying the directory e.g. rpiboot -d mass-storage-gadget64\n");
+		exit(1);
+	}
+
+	if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
+	{
+		const char *sig_file = "bootcode.sig";
+		fp_sign = check_file(directory, sig_file, 1);
+		if (!fp_sign)
+		{
+			fprintf(stderr, "Unable to open '%s'\n", sig_file);
+			usage(1);
+		}
+	}
+
+	if (second_stage_prep(fp_second_stage, fp_sign) != 0)
+	{
+		fprintf(stderr, "Failed to prepare the second stage bootcode\n");
+		exit(-1);
+	}
+	fclose(fp_second_stage);
+	if (fp_sign)
+		fclose(fp_sign);
+}
+
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	libusb_context *ctx, uint16_t vendor_id)
 {
@@ -251,33 +302,20 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	struct libusb_device *dev;
 	struct libusb_device_handle *handle = NULL;
 	uint32_t i = 0;
-	int r, j, len;
-	uint8_t path[8];	// Needed for libusb_get_port_numbers
+	int r;
 	uint8_t portNo = 0;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
-		len = 0;
 		struct libusb_device_descriptor desc;
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0)
 			goto out;
 
 		if(overlay || verbose == 2 || targetpathname!=NULL)
-		{
-			r = libusb_get_port_numbers(dev, path, sizeof(path));
-			len = snprintf(&pathname[len], 18-len, "%d", libusb_get_bus_number(dev));
-			if (r > 0) {
-				len += snprintf(&pathname[len], 18-len, "-");
-				len += snprintf(&pathname[len], 18-len, "%d", path[0]);
-				for (j = 1; j < r; j++)
-				{
-					len += snprintf(&pathname[len], 18-len, ".%d", path[j]);
-				}
-			}
-		}
+			format_usb_path(dev, pathname, sizeof(pathname));
 
 		/*
 		  http://libusb.sourceforge.net/api-1.0/group__dev.html#ga14879a0ea7daccdcddb68852d86c00c4
@@ -299,10 +337,6 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 			   desc.idProduct == 0x2711 ||
 			   desc.idProduct == 0x2712)
 			{
-				FILE *fp_second_stage = NULL;
-				FILE *fp_sign = NULL;
-				const char *second_stage;
-
 				if(verbose == 2)
 					printf("Found candidate Compute Module...\n");
 
@@ -322,72 +356,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 					continue;
 				}
 
-				bcm2711 = (desc.idProduct == 0x2711);
-				bcm2712 = (desc.idProduct == 0x2712);
-				if (bcm2711)
-					second_stage = "bootcode4.bin";
-				else if (bcm2712)
-					second_stage = "bootcode5.bin";
-				else
-					second_stage = "bootcode.bin";
-
-				if ((bcm2711 || bcm2712) && !directory) {
-					directory = DEFAULT_MSG_DIR;
-					use_bootfiles = 1;
-					snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-					printf("Directory not specified - trying default %s\n", directory);
-
-					fp_second_stage = check_file(directory, second_stage, 1);
-					if (!fp_second_stage)
-					{
-						directory = "mass-storage-gadget64/";
-						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-						printf("Trying local path %s\n", directory);
-						fp_second_stage = check_file(directory, second_stage, 1);
-					}
-					if (!fp_second_stage && !get_exe_msg_dir(exe_msg_dir, sizeof(exe_msg_dir)))
-					{
-						directory = exe_msg_dir;
-						snprintf(bootfiles_path, sizeof(bootfiles_path),"%s%s", directory, "bootfiles.bin");
-						printf("Trying path next to executable %s\n", directory);
-						fp_second_stage = check_file(directory, second_stage, 1);
-					}
-				}
-				else {
-					fp_second_stage = check_file(directory, second_stage, 1);
-				}
-
-				if (!fp_second_stage)
-				{
-					fprintf(stderr, "Failed to open second stage bootloader (%s)\n", second_stage);
-					fprintf(stderr, "\nPlease try specifying the directory e.g. rpiboot -d mass-storage-gadget64\n");
-					exit(1);
-				}
-
-				if (signed_boot && !bcm2711 && !bcm2712) // Signed boot use a different mechanism on BCM2711 and BCM2712
-				{
-					const char *sig_file = "bootcode.sig";
-					fp_sign = check_file(directory, sig_file, 1);
-					if (!fp_sign)
-					{
-						fprintf(stderr, "Unable to open '%s'\n", sig_file);
-						usage(1);
-					}
-				}
-
-				if (second_stage_prep(fp_second_stage, fp_sign) != 0)
-				{
-					fprintf(stderr, "Failed to prepare the second stage bootcode\n");
-					exit(-1);
-				}
-				if (fp_second_stage)
-					fclose(fp_second_stage);
-
-				if (fp_sign)
-					fclose(fp_sign);
-
-				if (found)
-					break;
+				prepare_second_stage(desc.idProduct);
+				break;
 			}
 		}
 	}
@@ -440,8 +410,8 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 		break;
 	}
 
-	libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
-	if(config == NULL)
+	ret = libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
+	if (ret < 0)
 	{
 		printf("Failed to read config descriptor\n");
 		exit(-1);
@@ -461,6 +431,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 		out_ep = 3;
 		in_ep = 4;
 	}
+	libusb_free_config_descriptor(config);
 
 	ret = libusb_claim_interface(*usb_device, interface);
 	if (ret)
@@ -509,15 +480,10 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 
 int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 {
-	int ret =
-	    libusb_control_transfer(usb_device,
+	return libusb_control_transfer(usb_device,
 				    LIBUSB_REQUEST_TYPE_VENDOR |
 				    LIBUSB_ENDPOINT_IN, 0, len & 0xffff,
 				    len >> 16, buf, len, 20000);
-	if(ret >= 0)
-		return len;
-	else
-		return ret;
 }
 
 void print_version(void)
@@ -627,6 +593,7 @@ void get_options(int argc, char *argv[])
 	{
 		usage(1);
 	}
+	directory_given = (directory != NULL);
 }
 
 boot_message_t boot_message;
@@ -692,8 +659,16 @@ int second_stage_boot(libusb_device_handle *usb_device)
 
 	sleep(1);
 	size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
+	// The ROM may disconnect before replying and the main loop then waits for it to re-enumerate
+	if (size == LIBUSB_ERROR_NO_DEVICE || size == LIBUSB_ERROR_IO)
+		return 0;
+	if (size != sizeof(retcode))
+	{
+		printf("Failed to read complete bootloader status (%d bytes)\n", size);
+		return -1;
+	}
 
-	if (size > 0 && retcode == 0)
+	if (retcode == 0)
 	{
 		printf("Successful read %d bytes \n", size);
 	}
@@ -710,7 +685,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
 FILE * check_file(const char * dir, const char *fname, int use_fmem)
 {
 	FILE * fp = NULL;
-	char path[MAX_PATH_LEN];
+	char path[PATH_MAX];
 	const char *prefix = bcm2712 ? "2712" : bcm2711 ? "2711" : "2710";
 
 	// Prevent USB device from requesting files in parent directories
@@ -826,7 +801,7 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 
 		if (strcmp(property, "FACTORY_UUID") == 0)
 		{
-			char c40_str[DUID_LENGTH];
+			char c40_str[DUID_LENGTH + 1];
 			if (duid_decode_c40(value, c40_str) == -1)
 				fprintf(stderr, "Failed to decode a FACTORY_UUID: invalid input\n");
 			else
@@ -843,12 +818,14 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 
 void create_metadata_file(FILE ** fp)
 {
-	if (metadata_path == NULL)
+	if (metadata_path == NULL || !serial_num[0])
 	{
+		if (metadata_path)
+			fprintf(stderr, "No serial number for the metadata file name, writing to stdout\n");
 		*fp = stdout;
 		return;
 	}
-	char fname[MAX_PATH_LEN + FILE_NAME_LENGTH + 5]; // + 5 for extension ".json"
+	char fname[PATH_MAX];
 	snprintf(fname, sizeof(fname), "%s/%s.json", metadata_path, (char *)serial_num);
 
 	*fp = fopen(fname, "w");
@@ -872,7 +849,6 @@ int file_server(libusb_device_handle * usb_device)
 	} message;
 	static FILE * fp = NULL;
 	FILE * metadata_fp = NULL;
-	char metadata_fname[FILE_NAME_LENGTH];
 	int metadata_index = 0;
 
 	while(going)
@@ -887,6 +863,18 @@ int file_server(libusb_device_handle * usb_device)
 			sleep(1);
 			continue;
 		}
+		if (i != sizeof(message))
+		{
+			printf("Incomplete file server message (%d bytes)\n", i);
+			return -1;
+		}
+		// Both fields are device controlled, bound them before use
+		message.fname[sizeof(message.fname) - 1] = '\0';
+		if (message.command < 0 || message.command > 2)
+		{
+			printf("Unknown message %d\n", message.command);
+			return -1;
+		}
 		if(verbose) printf("Received message %s: %s\n", message_name[message.command], message.fname);
 
 		// Done can also just be null filename
@@ -899,19 +887,10 @@ int file_server(libusb_device_handle * usb_device)
 		// Metadata files
 		if ((message.fname[0] == '*') && (message.command != 2))
 		{
-			if (!metadata_fp)
-			{
-				if (bcm2711 || bcm2712)
-				{
-					create_metadata_file(&metadata_fp);
-					metadata = 1;
-				}
-			}
-			if (metadata)
-			{
-				strcpy(metadata_fname, message.fname);
-				write_metadata_file(metadata_fname + 1, &metadata_fp, metadata_index++);
-			}
+			if (!metadata_fp && (bcm2711 || bcm2712))
+				create_metadata_file(&metadata_fp);
+			if (metadata_fp)
+				write_metadata_file(message.fname + 1, &metadata_fp, metadata_index++);
 			ep_write(NULL, 0, usb_device);
 			continue;
 		}
@@ -1006,7 +985,7 @@ int file_server(libusb_device_handle * usb_device)
 		}
 	}
 
-	if (metadata)
+	if (metadata_fp)
 		close_metadata_file(&metadata_fp);
 
 	printf("Second stage boot server done\n");
@@ -1018,7 +997,6 @@ int main(int argc, char *argv[])
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
 	struct libusb_device_descriptor desc;
-	struct libusb_config_descriptor *config;
 
 	get_options(argc, argv);
 	print_version();
@@ -1117,7 +1095,6 @@ int main(int argc, char *argv[])
 					libusb_close(usb_device);
 				}
 
-				libusb_get_active_config_descriptor(libusb_get_device(usb_device), &config);
 			}
 
 			if (ret)
@@ -1127,23 +1104,22 @@ int main(int argc, char *argv[])
 		}
 		while (ret);
 
-		ret = libusb_get_string_descriptor_ascii(usb_device, desc.iSerialNumber, serial_num, sizeof(serial_num));
-		// if metadata output is enabled and could not get serial number
-		if (metadata && (ret <= 0)) {
-			metadata = 0; // disable metadata
-		}
+		if (libusb_get_string_descriptor_ascii(usb_device, desc.iSerialNumber, serial_num, sizeof(serial_num)) <= 0)
+			serial_num[0] = 0;
 
 		if (verbose) printf("last_serial %d serial %d\n", last_serial, desc.iSerialNumber);
 		last_serial = desc.iSerialNumber;
 		if(desc.iSerialNumber == 0 || desc.iSerialNumber == 3)
 		{
 			printf("Sending bootcode.bin\n");
+			// The main loop retries once the device re-enumerates
 			second_stage_boot(usb_device);
+			ret = 0;
 		}
 		else
 		{
 			printf("Second stage boot server\n");
-			file_server(usb_device);
+			ret = file_server(usb_device);
 		}
 
 		libusb_close(usb_device);
@@ -1154,6 +1130,6 @@ int main(int argc, char *argv[])
 
 	libusb_exit(ctx);
 
-	return 0;
+	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
