@@ -70,7 +70,7 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
       if (strcasecmp(hdr.filename, filename) == 0)
       {
          data = malloc(size);
-         if (fread(data, 1, size, fp) != size)
+         if (!data || fread(data, 1, size, fp) != size)
             goto fail;
          *psize = size;
          goto end;
@@ -89,7 +89,10 @@ unsigned char *bootfiles_read(const char *archive, const char *filename, unsigne
 
 fail:
    if (data)
+   {
       free(data);
+      data = NULL;
+   }
    printf("read_file: Failed to read \"%s\" from \"%s\" - \%s\n", filename, archive, strerror(errno));
 end:
    if (fp)
