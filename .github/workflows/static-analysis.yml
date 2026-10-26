@@ -1,0 +1,36 @@
+name: Static analysis
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  analyse:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential clang libusb-1.0-0-dev pkg-config xxd
+
+    - name: Build with gcc -Werror
+      run: make -B rpiboot CFLAGS=-Werror
+
+    - name: Build with clang -Werror
+      run: make -B rpiboot CC=clang CFLAGS=-Werror
+
+    - name: Run clang static analyser
+      run: |
+        clang --analyze \
+          -Xanalyzer -analyzer-werror \
+          -Xanalyzer -analyzer-disable-checker -Xanalyzer deadcode.DeadStores \
+          -I. $(pkg-config --cflags libusb-1.0) \
+          -DGIT_VER='"ci"' -DPKG_VER='"ci"' -DBUILD_DATE='"ci"' \
+          -DDEFAULT_MSG_DIR='"/usr/share/rpiboot/mass-storage-gadget64/"' \
+          main.c bootfiles.c decode_duid.c
