@@ -3,3 +3,5 @@ bin2c
 *.exe
 *.swp
 temp/
+test/test_files
+test/test_files.tmp/

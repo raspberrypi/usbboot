@@ -48,7 +48,11 @@ uninstall:
 	rm -f $(DESTDIR)$(INSTALL_PREFIX)/bin/rpiboot
 	rm -rf $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot
 
+check:
+	$(MAKE) -C test check
+
 clean:
 	rm -f rpiboot msd/*.h bin2c
+	$(MAKE) -C test clean
 
-.PHONY: uninstall clean
+.PHONY: uninstall clean check
