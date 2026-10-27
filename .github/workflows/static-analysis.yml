@@ -34,3 +34,6 @@ jobs:
           -DGIT_VER='"ci"' -DPKG_VER='"ci"' -DBUILD_DATE='"ci"' \
           -DDEFAULT_MSG_DIR='"/usr/share/rpiboot/mass-storage-gadget64/"' \
           main.c bootfiles.c decode_duid.c
+
+    - name: Run host tests with ASan and UBSan
+      run: make check CC=clang CFLAGS="-Werror -fsanitize=address,undefined -fno-sanitize-recover=all"
