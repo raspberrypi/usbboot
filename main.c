@@ -37,7 +37,7 @@ int loop = 0;
 int overlay = 0;
 long delay = 500;
 char * directory = NULL;
-char exe_msg_dir[PATH_MAX];
+char exe_msg_dir[PATH_MAX - sizeof("bootfiles.bin") + 1];
 char * metadata_path = NULL;
 char pathname[64] = {0};
 char * targetpathname = NULL;
