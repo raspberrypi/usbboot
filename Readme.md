@@ -262,9 +262,20 @@ Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
         "BOARD_ATTR": "00000000",
         "USER_BOARDREV": "c03141",
         "JTAG_LOCKED": "0",
+        "HARDWARE_INFO": "00010000",
+        "MFG_VER": "1",
         "ADVANCED_BOOT": "0000e8e8"
 }
 ```
+
+`HARDWARE_INFO` is the raw hardware information OTP row. `rpiboot` decodes bits 16-23 as `MFG_VER`, the minimum bootloader version programmed at manufacture.
+
+| Bits | `HARDWARE_INFO` field |
+| ---- | --------------------- |
+| 0-6 | SDRAM ID |
+| 7 | Dual-rank SDRAM |
+| 8-15 | PCB revision |
+| 16-23 | Minimum MFG version |
 
 <a name="secure-boot"></a>
 ## Secure Boot

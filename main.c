@@ -807,6 +807,13 @@ void write_metadata_file(char *metadata_str, FILE **fp, int index)
 			else
 				fprintf(*fp, "\n\t\"%s\": \"%s\"", property, c40_str);
 		}
+		else if (strcmp(property, "HARDWARE_INFO") == 0)
+		{
+			unsigned long hardware_info = strtoul(value, NULL, 16);
+			fprintf(*fp, "\n\t\"%s\": \"%s\"", property, value);
+			// Bits 16-23 hold the minimum bootloader version programmed at manufacture
+			fprintf(*fp, ",\n\t\"MFG_VER\": \"%lu\"", (hardware_info >> 16) & 0xff);
+		}
 		else
 		{
 			fprintf(*fp, "\n\t\"%s\": \"%s\"", property, value);
