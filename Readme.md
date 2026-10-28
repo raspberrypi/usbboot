@@ -174,6 +174,7 @@ sudo apt install kpartx
 #### Example 
 Build an SD card image (`images-2711/pi4-program-rpiboot-gpio8.zip`) that configures GPIO 8 as `nRPIBOOT`:
 ```bash
+sudo apt install mtools
 sudo ./rpi-eeprom/imager/make-pi4-rpiboot-gpio-sd 8
 ```
 
