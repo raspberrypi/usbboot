@@ -38,3 +38,10 @@ uart_2ndstage=1
 
 # Uncomment to instruct recovery.bin to stop sending metadata
 #recovery_metadata=0
+
+# Advance the bootloader anti-rollback (ARB) version in OTP to the version
+# built into recovery.bin (2026-10-23 or newer). Bootloader releases with a
+# lower ARB version will then fail to boot. This may be used on its own on a
+# board where secure-boot is already enabled.
+# WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
+#program_arb=1
