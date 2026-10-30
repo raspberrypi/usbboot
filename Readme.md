@@ -280,3 +280,17 @@ Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
 <a name="secure-boot"></a>
 ## Secure Boot
 See the [secure-boot](docs/secure-boot.md) reference.
+
+## Licence
+The `rpiboot` source code is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
+
+The Raspberry Pi bootloader firmware binaries are redistributed, unmodified, under the
+terms in [LICENSE.firmware](LICENSE.firmware). This is the same licence as the firmware
+in the [rpi-eeprom](https://github.com/raspberrypi/rpi-eeprom/blob/master/LICENSE)
+repository and applies to all of the files inside the `bootfiles.bin` archives
+(`bootmain`, `bootcode4.bin`, `bootcode5.bin`, `memsys*.bin`, etc) and to the
+`pieeprom.bin`, `recovery.bin`, `bootcode4.bin` and `bootcode5.bin` files.
+
+The legacy `msd/bootcode.bin` and `msd/start.elf` firmware is from the
+[firmware](https://github.com/raspberrypi/firmware) repository and is licensed under
+[LICENCE.broadcom](https://github.com/raspberrypi/firmware/blob/master/boot/LICENCE.broadcom).
