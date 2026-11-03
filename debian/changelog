@@ -1,3 +1,10 @@
+rpiboot (20261103~150646) trixie; urgency=medium
+
+  * secure-boot-msd: Remove deprecated msd implemenation
+  * debian: Stop shipping secure-boot-msd
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 03 Nov 2026 15:10:12 +0000
+
 rpiboot (20261103~140022) trixie; urgency=medium
 
   [ Nicolai Buchwitz ]
