@@ -47,6 +47,24 @@ To enable this edit the `config.txt` file in this directory and set `program_pub
 VideoCore JTAG may be permanently disabled by setting `program_jtag_lock=1` in
 `config.txt`. This option has no effect unless secure-boot has been enabled.
 
+### Bootloader anti-rollback
+
+Setting `program_arb=1` in `config.txt` permanently writes the bootloader
+anti-rollback (ARB) version from `recovery.bin` to OTP. Bootloader releases
+with a lower ARB version will then refuse to boot, preventing a downgrade to a
+release with a known vulnerability. This requires `recovery.bin` 2026-10-23 or
+newer and may be used on its own on a board where secure-boot is already enabled.
+
+* The OTP version can only be increased. Up to eight versions can be revoked.
+* `rpiboot` will still flash an older bootloader, which then stops with the
+  `SPI EEPROM error` (3 long 1 short) LED pattern. Flash a newer bootloader
+  with `rpiboot` to recover.
+
+Example UART output:
+```
+Programming bootmain watermark 1
+```
+
 See default secure-boot-recovery [config.txt](config.txt) file.
 
 ## Program the EEPROM image using rpiboot

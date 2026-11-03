@@ -43,12 +43,17 @@ install: rpiboot
 	install -m 644 mass-storage-gadget64/boot.img $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
 	install -m 644 mass-storage-gadget64/config.txt $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
 	install -m 644 mass-storage-gadget64/bootfiles.bin $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot/mass-storage-gadget64
+	install -m 644 LICENSE.firmware $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot
 
 uninstall:
 	rm -f $(DESTDIR)$(INSTALL_PREFIX)/bin/rpiboot
 	rm -rf $(DESTDIR)$(INSTALL_PREFIX)/share/rpiboot
 
+check:
+	$(MAKE) -C test check
+
 clean:
 	rm -f rpiboot msd/*.h bin2c
+	$(MAKE) -C test clean
 
-.PHONY: uninstall clean
+.PHONY: uninstall clean check

@@ -50,7 +50,9 @@ The `rpiboot` host software uses `libusb` to communicate with the Raspberry Pi. 
 Once compiled, `rpiboot` can either be run locally from the source directory by specifying
 the directory of the boot image e.g. `sudo ./rpiboot -d mass-storage-gadget`.
 If no arguments are specified, `rpiboot` will attempt to boot the mass-storage-gadget
-from `INSTALL_PREFIX/share/mass-storage-gadget64`.
+from `INSTALL_PREFIX/share/rpiboot/mass-storage-gadget64`, then from
+`mass-storage-gadget64` in the current directory, and finally from
+`mass-storage-gadget64` next to the `rpiboot` executable.
 
 The Raspberry Pi OS APT package sets `INSTALL_PREFIX` to `/usr`.
 
@@ -172,6 +174,7 @@ sudo apt install kpartx
 #### Example 
 Build an SD card image (`images-2711/pi4-program-rpiboot-gpio8.zip`) that configures GPIO 8 as `nRPIBOOT`:
 ```bash
+sudo apt install mtools
 sudo ./rpi-eeprom/imager/make-pi4-rpiboot-gpio-sd 8
 ```
 
@@ -259,10 +262,35 @@ Example metadata file contents written to `metadata/SERIAL_NUMBER.json`:
         "BOARD_ATTR": "00000000",
         "USER_BOARDREV": "c03141",
         "JTAG_LOCKED": "0",
+        "HARDWARE_INFO": "00010000",
+        "MFG_VER": "1",
         "ADVANCED_BOOT": "0000e8e8"
 }
 ```
 
+`HARDWARE_INFO` is the raw hardware information OTP row. `rpiboot` decodes bits 16-23 as `MFG_VER`, the minimum bootloader version programmed at manufacture.
+
+| Bits | `HARDWARE_INFO` field |
+| ---- | --------------------- |
+| 0-6 | SDRAM ID |
+| 7 | Dual-rank SDRAM |
+| 8-15 | PCB revision |
+| 16-23 | Minimum MFG version |
+
 <a name="secure-boot"></a>
 ## Secure Boot
 See the [secure-boot](docs/secure-boot.md) reference.
+
+## Licence
+The `rpiboot` source code is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
+
+The Raspberry Pi bootloader firmware binaries are redistributed, unmodified, under the
+terms in [LICENSE.firmware](LICENSE.firmware). This is the same licence as the firmware
+in the [rpi-eeprom](https://github.com/raspberrypi/rpi-eeprom/blob/master/LICENSE)
+repository and applies to all of the files inside the `bootfiles.bin` archives
+(`bootmain`, `bootcode4.bin`, `bootcode5.bin`, `memsys*.bin`, etc) and to the
+`pieeprom.bin`, `recovery.bin`, `bootcode4.bin` and `bootcode5.bin` files.
+
+The legacy `msd/bootcode.bin` and `msd/start.elf` firmware is from the
+[firmware](https://github.com/raspberrypi/firmware) repository and is licensed under
+[LICENCE.broadcom](https://github.com/raspberrypi/firmware/blob/master/boot/LICENCE.broadcom).

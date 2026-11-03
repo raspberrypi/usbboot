@@ -21,7 +21,9 @@ The mass-storage-gadget image automatically enables a UART console for debugging
 Once secure-boot has been enable the OS `boot.img` file must be signed with the customer private key.
 On Pi5 firmware must also be counter-signed with this key.
 
-The `sign.sh` script wraps the command do this on Pi4 and Pi5.
+The `sign.sh` script wraps the command do this on Pi4 and Pi5. It also adds the
+public key to `bootfiles.bin` because in `rpiboot` mode the bootloader reads the
+key used to verify `boot.img` from the host instead of the EEPROM.
 ```bash
 KEY_FILE=$HOME/private.pem
 ./sign.sh ${KEY_FILE}

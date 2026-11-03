@@ -7,6 +7,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 TMP_DIR=""
 SIGN_ARGS=""
 PUBLIC_KEY=""
+PUBKEY_PEM=""
 
 die() {
    echo "$@" >&2
@@ -38,6 +39,14 @@ sign_bootfiles() {
       echo "Signing 2712/bootcode5.bin"
       sign_firmware_blob 2712/bootcode5.bin 2712/bootcode5.bin.signed || die "Failed to sign bootcode5.bin"
       mv -f "2712/bootcode5.bin.signed" "2712/bootcode5.bin"
+      # In rpiboot mode the bootloader reads the public key used to verify
+      # boot.img from the host instead of SPI flash.
+      echo "Adding the public key as pubkey.bin"
+      rpi-bootloader-key-convert "${PUBKEY_PEM}" --output pubkey.bin || die "Failed to convert the public key"
+      for chip in 2711 2712; do
+         [ -d "${chip}" ] && cp -f pubkey.bin "${chip}/pubkey.bin"
+      done
+      rm -f pubkey.bin
       tar -cf "${output}" *
       find .
    )
@@ -49,6 +58,7 @@ if [ "${1}" = "-H" ]; then
    HSM_WRAPPER="${2}"
    PUBLIC_KEY="${3}"
    [ -f "${PUBLIC_KEY}" ] || die "HSM requires a public key file in PEM format. Public key \"${PUBLIC_KEY}\" not found."
+   PUBKEY_PEM="${3}"
    PUBLIC_KEY="-p ${3}"
    if ! command -v "${HSM_WRAPPER}"; then
       die "HSM wrapper script \"${HSM_WRAPPER}\" not found"
@@ -57,6 +67,7 @@ if [ "${1}" = "-H" ]; then
 else
    KEY_FILE="${1}"
    [ -f "${KEY_FILE}" ] || die "KEY_FILE: ${KEY_FILE} not found"
+   PUBKEY_PEM="${KEY_FILE}"
    SIGN_ARGS="-k ${KEY_FILE}"
 fi
 

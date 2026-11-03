@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DUID_LENGTH 36
+#include "decode_duid.h"
 
 // Return the c40 value for a character
 int char_to_c40(char val)
@@ -48,6 +48,7 @@ int duid_decode_c40(char * str_of_words, char *c40_str)
 	{
 		word = strtoul(word_str, NULL, 16);
 		if (word == 0) break;
+		if (i + 6 > DUID_LENGTH) return -1;
 		decode_half_word(word & 0xFFFF, c40_list, &i);
 
 		msig = word >> 16;
