@@ -1,3 +1,49 @@
+rpiboot (20261103~140022) trixie; urgency=medium
+
+  [ Nicolai Buchwitz ]
+  * Readme: Fix default mass-storage-gadget64 install path
+  * rpiboot: Look for mass-storage-gadget64 next to the binary
+  * rpiboot: Skip devices that cannot be opened in serial mode
+  * rpiboot: Share the second stage setup between selection modes
+  * rpiboot: Bound device supplied names before use
+  * rpiboot: Fix overflow when formatting the USB path
+  * rpiboot: Guard the metadata file on its pointer
+  * rpiboot: Check and free the config descriptor
+  * rpiboot: Size host path buffers with PATH_MAX
+  * rpiboot: Check USB reply lengths
+  * rpiboot: Report file server failures in the exit status
+  * rpiboot: Limit the default directory to BCM2711 and BCM2712
+
+  [ Peter Harper ]
+  * Option to add a cacert to the bootloader
+
+  [ Tim Gover ]
+  * firmware: 2711: 2712: Update to the 2026-10-23 release
+  * mass-storage-gadget64: Add the public key to bootfiles.bin when
+    signing
+  * bootfiles: Update to support remote loading of the public key
+  * bootfiles: Fix use after free on archive read failure
+  * ci: Add static analysis builds
+  * rpiboot: Leave room for bootfiles.bin in the executable directory
+  * test: Add bootfiles.bin and file lookup tests
+  * ci: Run the host tests with ASan and UBSan
+  * readme: make-pi4-rpiboot-gpio-sd - document mtools dependency
+  * secure-boot-recovery: config.txt: Document the program_arb setting
+  * readme: Document the licence for the bootloader firmware binaries
+  * Makefile: Install LICENSE.firmware alongside bootfiles.bin
+  * firmware: 2711: 2712: Update to 2026-10-30
+  * secure-boot-example: Fix symlink to bootfiles.bin
+  * rpi-eeprom: Bump submodule commit - no change to firmware
+  * apt: update rpi-eeprom dependency
+
+  [ Pranav P ]
+  * bin2c: report an error on short read instead of looping forever
+
+  [ marta.momotko ]
+  * rpiboot: Report the board hardware information in the metadata output
+
+ -- Tim Gover <tim.gover@raspberrypi.com>  Tue, 03 Nov 2026 14:10:07 +0000
+
 rpiboot (20261005~110850) trixie; urgency=medium
 
   * mass-storage-gadget64: Fix corrupted boot.img
