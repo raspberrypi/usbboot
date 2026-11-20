@@ -1,4 +1,4 @@
-BUILD_DATE ?= $(shell date "+%Y/%m/%d")
+BUILD_DATE ?= $(shell if [ -n "$(SOURCE_DATE_EPOCH)" ]; then date -u -d "@$(SOURCE_DATE_EPOCH)" "+%Y/%m/%d" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "+%Y/%m/%d"; else date "+%Y/%m/%d"; fi)
 PKG_VER=$(shell if [ -f debian/changelog ]; then grep rpiboot debian/changelog | head -n1 | sed 's/.*(\(.*\)).*/\1/g'; else echo local; fi)
 GIT_VER=$(shell git rev-parse HEAD 2>/dev/null | cut -c1-8 || echo "")
 HAVE_XXD=$(shell xxd -v >/dev/null 2>/dev/null && echo y)
