@@ -15,8 +15,11 @@ read-only:
 
 ## Running
 
-The image is downloaded rather than stored in this repository, so that the
-current version is always used.
+The image is not stored in this repository. `download.sh` downloads it from
+the
+[rpi-self-test-2026-11-27](https://github.com/raspberrypi/buildroot/releases/tag/rpi-self-test-2026-11-27)
+release of the Raspberry Pi buildroot repo and verifies its checksum. It
+needs `wget` and `unzip`.
 
 ```bash
 cd rpi-self-test
