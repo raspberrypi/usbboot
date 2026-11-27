@@ -3,6 +3,8 @@
 A simple hardware health check for BCM2711 (Pi 4, Pi 400, CM4, CM4S) and
 BCM2712 (Pi 5, Pi 500, CM5). It is loaded into memory with `rpiboot`, so it
 does not need a working bootloader EEPROM, eMMC or SD card on the device.
+BCM2837 (Pi 3) cannot be booted this way, see the source readme for the SD
+card image.
 
 Run it as a pre-check before the other tools in this repository. It is
 read-only:
@@ -29,10 +31,11 @@ fit the `nRPIBOOT` jumper on the IO board). For the full test also connect:
 * Ethernet, with DHCP and Internet access.
 * Optionally a UART (115200 baud) to capture the report as text.
 
-The report appears once Linux has started. The second line is the status:
+The report appears once Linux has started. The first line shows the git
+commit id and build date of the image. The second line is the status:
 it turns green when every test has finished without a problem, and lists the
 issues otherwise. Lines which report a problem are red and in upper case,
-e.g. `NO LINK`. The memory test runs last and takes several minutes.
+e.g. `NO LINK`. The memory tests run last and take several minutes.
 
 The reference platforms for Compute Modules are the CM4 IO board and the
 CM5 IO board. On another carrier board, expect the tests of ports which are
@@ -40,11 +43,13 @@ not fitted to fail.
 
 ## What it sends
 
-To test the Internet connection the image makes one HTTPS request to
-`downloads.raspberrypi.com` with the serial number, board revision, SDRAM
-size and `over_voltage_avs` voltage of the device, so that Raspberry Pi can
-match it with its manufacturing records. Nothing else from the report is
-sent. See the source for the details and for how to build an image without
+To test the Internet connection the image makes an HTTPS request to
+`downloads.raspberrypi.com` after each of its two memory tests (a quick test
+of 256MB, then up to half of the memory). The request has the serial number,
+board revision, SDRAM size and `over_voltage_avs` voltage of the device,
+whether secure-boot is programmed and the result of that memory test, so
+that Raspberry Pi can match it with its manufacturing records. Nothing else
+from the report is sent. See the source for the details and for how to build an image without
 this.
 
 ## Secure boot
