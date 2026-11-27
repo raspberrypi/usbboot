@@ -224,6 +224,7 @@ In addition to the MSD functionality, there are a number of other utilities that
 | [secure-boot-recovery5](secure-boot-recovery5/README.md) | Pi5 secure-boot bootloader flash and OTP provisioning |
 | [rpi-imager-embedded](rpi-imager-embedded/README.md) | Runs the embedded version of Raspberry Pi Imager on the target device |
 | [secure-boot-example](secure-boot-example/README.md) | Simple Linux initrd with a UART console. |
+| [rpi-self-test](rpi-self-test/README.md) | Read-only hardware health check for BCM2711 and BCM2712. The image is downloaded separately |
 
 The APT package for `rpiboot` installs these utility directories to `/usr/share/rpiboot`.
 
